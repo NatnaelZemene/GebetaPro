@@ -18,6 +18,12 @@ const { Pool } = pg
 
 function getPoolOptions() {
   if (config.db.url) {
+    // Hyperdrive provides the connection pool for Cloudflare Workers. Pass its
+    // connection string through directly so pg uses the Hyperdrive binding.
+    if (process.env.CLOUDFLARE_HYPERDRIVE === 'true') {
+      return { connectionString: config.db.url }
+    }
+
     try {
       const u = new URL(config.db.url)
       const isRemote = u.hostname.includes('supabase') || process.env.NODE_ENV === 'production'

@@ -27,6 +27,7 @@
  */
 import { Router } from 'express'
 import multer from 'multer'
+import { createError } from '../../utils/index.js'
 import { authenticate } from '../../middleware/authenticate.js'
 import { validate } from '../../middleware/validate.js'
 import { uploadImagesMiddleware } from '../../middleware/uploadImages.js'
@@ -48,20 +49,26 @@ import {
   reviewReplySchema,
 } from './profiles.schemas.js'
 
-// Single-file upload for avatar / cover
+// Single-file upload for avatar / cover (up to 10MB)
 const singleImageUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024, files: 1 },
+  limits: { fileSize: 10 * 1024 * 1024, files: 1 },
   fileFilter: (_req, file, cb) => {
-    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-    if (allowed.includes(file.mimetype)) cb(null, true)
-    else cb(new Error('Unsupported file type. Use JPEG, PNG, or WEBP.'))
+    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/jfif']
+    if (allowed.includes(file.mimetype.toLowerCase())) cb(null, true)
+    else cb(createError('Unsupported file type. Please use JPEG, PNG, or WEBP.', 422, 'UNSUPPORTED_FILE_TYPE'))
   },
 }).single('image')
 
 function singleUploadMiddleware(req, res, next) {
   singleImageUpload(req, res, (err) => {
     if (!err) return next()
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return next(createError('Image file is too large. Maximum size is 10MB.', 422, 'FILE_TOO_LARGE'))
+    }
+    if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+      return next(createError('Unexpected upload field. Expected field name "image".', 400, 'UNEXPECTED_FIELD'))
+    }
     next(err)
   })
 }

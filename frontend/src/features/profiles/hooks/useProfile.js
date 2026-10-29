@@ -71,7 +71,12 @@ export function useUploadAvatar() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (file) => api.uploadAvatar(file),
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEYS.myProfile }),
+    onSuccess: (data) => {
+      if (data?.avatar_url) {
+        qc.setQueryData(KEYS.myProfile, (old) => old ? { ...old, avatar_url: data.avatar_url } : old)
+      }
+      qc.invalidateQueries({ queryKey: KEYS.myProfile })
+    },
   })
 }
 
@@ -79,7 +84,10 @@ export function useDeleteAvatar() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: () => api.deleteAvatar(),
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEYS.myProfile }),
+    onSuccess: () => {
+      qc.setQueryData(KEYS.myProfile, (old) => old ? { ...old, avatar_url: null } : old)
+      qc.invalidateQueries({ queryKey: KEYS.myProfile })
+    },
   })
 }
 
@@ -87,7 +95,12 @@ export function useUploadCover() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (file) => api.uploadCover(file),
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEYS.myProfile }),
+    onSuccess: (data) => {
+      if (data?.cover_url) {
+        qc.setQueryData(KEYS.myProfile, (old) => old ? { ...old, cover_url: data.cover_url } : old)
+      }
+      qc.invalidateQueries({ queryKey: KEYS.myProfile })
+    },
   })
 }
 
@@ -95,7 +108,10 @@ export function useDeleteCover() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: () => api.deleteCover(),
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEYS.myProfile }),
+    onSuccess: () => {
+      qc.setQueryData(KEYS.myProfile, (old) => old ? { ...old, cover_url: null } : old)
+      qc.invalidateQueries({ queryKey: KEYS.myProfile })
+    },
   })
 }
 

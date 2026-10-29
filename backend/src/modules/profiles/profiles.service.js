@@ -102,7 +102,7 @@ export async function getPublicProfile(slug, viewerUserId = null) {
     throw createError('Profile not found', 404, 'PROFILE_NOT_FOUND')
   }
 
-  const [businessHours, socialLinks, serviceCount, portfolioCount, postCount, achievementCount, reviewStats] =
+  const [businessHours, socialLinks, serviceCount, portfolioCount, postCount, achievementCount, reviewStats, gallery] =
     await Promise.all([
       repo.findBusinessHours(profile.id),
       repo.findSocialLinks(profile.id),
@@ -111,6 +111,7 @@ export async function getPublicProfile(slug, viewerUserId = null) {
       repo.countPosts(profile.id),
       repo.findAchievements(profile.id, { publishedOnly: true }).then(a => a.length),
       repo.getReviewStats(profile.id),
+      repo.getProfileImages(profile.id),
     ])
 
   // Apply contact visibility rules
@@ -139,12 +140,15 @@ export async function getPublicProfile(slug, viewerUserId = null) {
     category: profile.category_name ? {
       name: profile.category_name, slug: profile.category_slug, icon: profile.category_icon,
     } : null,
+    // Gallery photos
+    gallery: gallery || [],
     // Section counts (drives which tabs to show)
     sections: {
       services:     serviceCount,
       portfolio:    portfolioCount,
       posts:        postCount,
       achievements: achievementCount,
+      gallery:      gallery ? gallery.length : 0,
       reviews:      reviewStats.review_count,
     },
     avg_rating: reviewStats.avg_rating,

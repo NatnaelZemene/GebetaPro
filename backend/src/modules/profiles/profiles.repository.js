@@ -105,6 +105,22 @@ export async function findProfileByUserId(userId) {
 }
 
 /**
+ * Get all gallery images for a profile from profile_images table.
+ * @param {string} profileId
+ * @returns {Promise<Array<object>>}
+ */
+export async function getProfileImages(profileId) {
+  const result = await pool.query(
+    `SELECT id, image_url, storage_key, alt_text, sort_order, is_primary, created_at
+     FROM profile_images
+     WHERE profile_id = $1
+     ORDER BY sort_order ASC, created_at ASC`,
+    [profileId],
+  )
+  return result.rows
+}
+
+/**
  * Search published profiles.
  * @param {object} opts
  */

@@ -82,7 +82,9 @@ const swaggerDefinition = {
 // Options for swagger-jsdoc - we point to the whole src folder for annotations.
 const options = {
   swaggerDefinition,
-  apis: ['./src/**/*.js'], // Path to the API docs
+  // Worker deployments don't have the repository source tree available to
+  // swagger-jsdoc's filesystem scanner. Keep the schema docs available there.
+  apis: process.env.CLOUDFLARE_WORKER === 'true' ? [] : ['./src/**/*.js'],
 };
 
 export const swaggerSpec = swaggerJsdoc(options);

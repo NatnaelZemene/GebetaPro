@@ -1,0 +1,39 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "gebetapro",
+	"main": "./worker.js",
+	"compatibility_date": "2026-10-29",
+	"compatibility_flags": [
+		"nodejs_compat_populate_process_env"
+	],
+	"vars": {
+		"NODE_ENV": "production",
+		"PORT": "3000",
+		"FRONTEND_URL": "https://gebetapro.mekliton.workers.dev",
+		"CORS_ORIGINS": "https://gebetapro.mekliton.workers.dev",
+		"CLOUDFLARE_WORKER": "true",
+		"CLOUDFLARE_HYPERDRIVE": "true"
+	},
+	"assets": {
+		"directory": "../frontend/dist",
+		"binding": "ASSETS",
+		"not_found_handling": "single-page-application",
+		"run_worker_first": [
+			"/api",
+			"/api/*",
+			"/api-docs",
+			"/api-docs/*"
+		]
+	},
+	"hyperdrive": [
+		{
+			"binding": "HYPERDRIVE",
+			"id": "afa9f5b747ae401289e0c019927908e3"
+		}
+	],
+	"triggers": {
+		"crons": [
+			"5 21 * * *"
+		]
+	}
+}

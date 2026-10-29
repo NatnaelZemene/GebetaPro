@@ -817,6 +817,24 @@ export default function ProfileEditPage() {
 
         {/* Cover + Avatar */}
         <div className="bg-surface border border-border rounded-xl overflow-hidden">
+          {(uploadAvatar.isError || uploadCover.isError) && (
+            <div className="mx-4 mt-4 p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-danger text-[12.5px] rounded-lg flex items-center justify-between">
+              <span>
+                {uploadAvatar.error?.response?.data?.message ||
+                 uploadCover.error?.response?.data?.message ||
+                 'Failed to upload image. Please ensure the file is an image under 10MB.'}
+              </span>
+              <button
+                type="button"
+                onClick={() => { uploadAvatar.reset(); uploadCover.reset() }}
+                className="text-ink-3 hover:text-ink font-bold ml-2 text-sm leading-none"
+                aria-label="Dismiss"
+              >
+                ×
+              </button>
+            </div>
+          )}
+
           <div className="relative h-32 bg-surface-2 group cursor-pointer" onClick={() => coverRef.current?.click()}>
             {coverUrl
               ? <img src={coverUrl} alt="" className="w-full h-full object-cover" />
@@ -826,6 +844,11 @@ export default function ProfileEditPage() {
               <Camera size={15} className="text-white" />
               <span className="text-white text-[12.5px] font-medium">{t('profile.edit.changeCover')}</span>
             </div>
+            {uploadCover.isPending && (
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
             {coverUrl && (
               <button type="button"
                 onClick={(e) => { e.stopPropagation(); deleteCoverMutation.mutate() }}
@@ -835,7 +858,7 @@ export default function ProfileEditPage() {
               </button>
             )}
           </div>
-          <input ref={coverRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
+          <input ref={coverRef} type="file" accept="image/*" className="hidden"
             onChange={e => { if (e.target.files[0]) uploadCover.mutate(e.target.files[0]); e.target.value = '' }} />
 
           <div className="px-5 pb-5 flex items-end gap-4 -mt-10">
@@ -857,7 +880,7 @@ export default function ProfileEditPage() {
                 </div>
               )}
             </div>
-            <input ref={avatarRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
+            <input ref={avatarRef} type="file" accept="image/*" className="hidden"
               onChange={e => { if (e.target.files[0]) uploadAvatar.mutate(e.target.files[0]); e.target.value = '' }} />
 
             <div className="flex-1 pb-1 min-w-0">

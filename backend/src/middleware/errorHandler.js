@@ -28,6 +28,20 @@ export function errorHandler(err, req, res, next) {
     })
   }
 
+  // ── Multer upload errors ───────────────────────────────────────────────────
+  if (err.name === 'MulterError') {
+    let message = 'File upload failed'
+    if (err.code === 'LIMIT_FILE_SIZE') message = 'File size is too large (max 10MB)'
+    else if (err.code === 'LIMIT_FILE_COUNT') message = 'Too many files uploaded'
+    else if (err.code === 'LIMIT_UNEXPECTED_FILE') message = 'Unexpected file field'
+
+    return res.status(422).json({
+      success: false,
+      message,
+      error: { code: err.code || 'UPLOAD_ERROR' },
+    })
+  }
+
   // ── PostgreSQL invalid enum value ────────────────────────────────────────────
   if (err.code === '22P02' || err.code === '22007') {
     return res.status(422).json({
