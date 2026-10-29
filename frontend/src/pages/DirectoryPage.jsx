@@ -1110,7 +1110,7 @@ export default function DirectoryPage() {
                 </div>
               ) : (
                 <div
-                  className="grid grid-cols-2 sm:grid-cols-3 gap-4"
+                  className="grid grid-cols-1 min-[420px]:grid-cols-2 sm:grid-cols-3 gap-3.5 sm:gap-4"
                   role="list"
                   aria-label="Search results"
                 >

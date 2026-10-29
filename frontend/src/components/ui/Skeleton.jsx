@@ -30,13 +30,13 @@ export function SkeletonCard() {
   return (
     <div className="bg-surface border border-border rounded-2xl overflow-hidden">
       {/* Cover */}
-      <Skeleton className="h-32 rounded-none" />
+      <Skeleton className="h-28 sm:h-32 rounded-none" />
 
-      <div className="px-4 pt-3 pb-4">
-        {/* Avatar row (mirrors -mt-9 overlap) */}
-        <div className="flex items-end justify-between mb-3 -mt-9">
-          <Skeleton className="w-[52px] h-[52px] rounded-xl border-2 border-surface shrink-0" />
-          <Skeleton className="h-3.5 w-16 rounded mb-1" />
+      <div className="px-3.5 sm:px-4 pt-2.5 pb-3.5">
+        {/* Avatar row (mirrors -mt-8 overlap) */}
+        <div className="flex items-end justify-between mb-2.5 -mt-8 sm:-mt-9">
+          <Skeleton className="w-11 h-11 sm:w-[50px] sm:h-[50px] rounded-xl border-2 border-surface shrink-0" />
+          <Skeleton className="h-3.5 w-14 rounded mb-1" />
         </div>
 
         {/* Name */}

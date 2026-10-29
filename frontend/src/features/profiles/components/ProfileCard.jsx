@@ -45,21 +45,21 @@ export function ProfileCard({ profile }) {
   const city    = profile.city || profile.country || null
 
   return (
-    <article className="group relative">
+    <article className="group relative h-full">
       <Link
         to={`/p/${profile.slug}`}
         aria-label={`View ${profile.display_name}'s profile`}
         className="
-          block bg-surface rounded-2xl overflow-hidden
+          flex flex-col h-full bg-surface rounded-2xl overflow-hidden
           border border-border cursor-pointer
           transition-all duration-200 ease-out
-          hover:border-brand-border hover:shadow-[0_4px_24px_rgba(0,0,0,0.08)]
+          hover:border-brand-border hover:shadow-[0_6px_28px_rgba(0,0,0,0.08)]
           hover:-translate-y-0.5 hover:no-underline
           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2
         "
       >
-        {/* ── Cover image ───────────────────────────────────────────────────── */}
-        <div className="relative h-32 overflow-hidden bg-surface-2">
+        {/* ── Cover image + Floating badges ─────────────────────────────────── */}
+        <div className="relative h-28 sm:h-32 overflow-hidden bg-surface-2 shrink-0">
           {profile.cover_url ? (
             <img
               src={profile.cover_url}
@@ -86,19 +86,32 @@ export function ProfileCard({ profile }) {
             </div>
           )}
 
-          {/* Featured badge */}
+          {/* Top-left: Featured badge */}
           {profile.is_featured && (
-            <div className="absolute top-2.5 left-2.5 flex items-center gap-1 bg-amber-400 text-amber-950 text-[10px] font-bold px-2 py-0.5 rounded-full leading-none">
+            <div className="absolute top-2.5 left-2.5 flex items-center gap-1 bg-amber-400 text-amber-950 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs leading-none">
               Featured
+            </div>
+          )}
+
+          {/* Top-right: Floating glass rating badge — avoids avatar collision on mobile */}
+          {reviews > 0 && (
+            <div className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white shadow-xs">
+              <Star size={11} className="text-amber-400 fill-amber-400 shrink-0" aria-hidden="true" />
+              <span className="text-[11.5px] font-bold tabular-nums leading-none">
+                {rating.toFixed(1)}
+              </span>
+              <span className="text-[10px] text-white/75 leading-none">
+                ({reviews})
+              </span>
             </div>
           )}
         </div>
 
         {/* ── Content ───────────────────────────────────────────────────────── */}
-        <div className="px-4 pt-3 pb-4">
-          {/* Avatar row */}
-          <div className="flex items-end justify-between mb-3 -mt-9">
-            <div className="relative w-[52px] h-[52px] rounded-xl overflow-hidden border-2 border-surface shadow-sm bg-surface-2 shrink-0">
+        <div className="px-3.5 sm:px-4 pt-2.5 pb-3.5 flex flex-col flex-1">
+          {/* Avatar row + User Type badge */}
+          <div className="flex items-end justify-between mb-2.5 -mt-8 sm:-mt-9">
+            <div className="relative w-11 h-11 sm:w-[50px] sm:h-[50px] rounded-xl overflow-hidden border-2 border-surface shadow-sm bg-surface-2 shrink-0">
               {profile.avatar_url ? (
                 <img
                   src={profile.avatar_url}
@@ -108,35 +121,29 @@ export function ProfileCard({ profile }) {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-brand-light" aria-hidden="true">
-                  <span className="text-lg font-bold text-brand leading-none">
+                  <span className="text-base sm:text-lg font-bold text-brand leading-none">
                     {profile.display_name?.[0]?.toUpperCase() || '?'}
                   </span>
                 </div>
               )}
             </div>
 
-            {/* Rating */}
-            {reviews > 0 && (
-              <div className="flex items-center gap-1 mb-1">
-                <Star size={12} className="text-amber-400 fill-amber-400 shrink-0" aria-hidden="true" />
-                <span className="text-[12.5px] font-semibold text-ink tabular-nums">
-                  {rating.toFixed(1)}
-                </span>
-                <span className="text-[11px] text-ink-2">
-                  <span aria-hidden="true">(</span>{reviews} review{reviews !== 1 ? 's' : ''}<span aria-hidden="true">)</span>
-                </span>
-              </div>
+            {/* Type badge next to avatar */}
+            {profile.profile_type && (
+              <span className={`text-[11px] font-medium px-2 py-0.5 rounded-md bg-surface-2 border border-border/80 shrink-0 ${TYPE_STYLES[profile.profile_type] || 'text-ink-2'}`}>
+                {TYPE_LABELS[profile.profile_type] || profile.profile_type}
+              </span>
             )}
           </div>
 
           {/* Name + verified */}
-          <div className="flex items-center gap-1.5 mb-0.5">
-            <h3 className="text-[14.5px] font-semibold text-ink leading-snug line-clamp-1 flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 mb-1">
+            <h3 className="text-[13.5px] sm:text-[14.5px] font-semibold text-ink leading-snug line-clamp-1 flex-1 min-w-0">
               {profile.display_name}
             </h3>
             {profile.is_verified && (
               <BadgeCheck
-                size={15}
+                size={14}
                 className="text-brand shrink-0"
                 aria-label="Verified profile"
               />
@@ -145,38 +152,28 @@ export function ProfileCard({ profile }) {
 
           {/* Headline */}
           {profile.headline && (
-            <p className="text-[12.5px] text-ink-2 line-clamp-2 leading-relaxed mb-3">
+            <p className="text-[11.5px] sm:text-[12.5px] text-ink-2 line-clamp-2 leading-relaxed mb-3 flex-1">
               {profile.headline}
             </p>
           )}
 
-          {/* Footer metadata */}
-          <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-border">
-            <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
-              {profile.category_name && (
-                <span className="flex items-center gap-1 text-[11.5px] text-ink-2 truncate">
-                  <CategoryIconInline
-                    slug={profile.category_slug}
-                    name={profile.category_name}
-                    size={11}
-                  />
-                  {profile.category_name}
-                </span>
-              )}
-              {profile.profile_type && profile.category_name && (
-                <span className="text-ink-4 text-[11px]" aria-hidden="true">·</span>
-              )}
-              {profile.profile_type && (
-                <span className={`text-[11.5px] font-medium shrink-0 ${TYPE_STYLES[profile.profile_type] || 'text-ink-2'}`}>
-                  {TYPE_LABELS[profile.profile_type] || profile.profile_type}
-                </span>
-              )}
-            </div>
+          {/* Footer metadata: Category (left) and Location (right) */}
+          <div className="flex items-center justify-between gap-1.5 pt-2.5 mt-auto border-t border-border">
+            {profile.category_name ? (
+              <span className="flex items-center gap-1 text-[11px] sm:text-[11.5px] text-ink-2 truncate min-w-0">
+                <CategoryIconInline
+                  slug={profile.category_slug}
+                  name={profile.category_name}
+                  size={11}
+                />
+                <span className="truncate">{profile.category_name}</span>
+              </span>
+            ) : <span />}
 
             {city && (
-              <div className="flex items-center gap-0.5 shrink-0 text-ink-2">
+              <div className="flex items-center gap-0.5 shrink-0 text-ink-3">
                 <MapPin size={10} aria-hidden="true" />
-                <span className="text-[11px] truncate max-w-[80px]">{city}</span>
+                <span className="text-[10.5px] sm:text-[11px] truncate max-w-[85px]">{city}</span>
               </div>
             )}
           </div>
@@ -198,8 +195,8 @@ export function ProfileCardLarge({ profile }) {
         to={`/p/${profile.slug}`}
         aria-label={`View ${profile.display_name}'s profile`}
         className="
-          block bg-surface rounded-2xl overflow-hidden
-          border border-border cursor-pointer h-full
+          flex flex-col h-full bg-surface rounded-2xl overflow-hidden
+          border border-border cursor-pointer
           transition-all duration-200 ease-out
           hover:border-brand-border hover:shadow-[0_6px_32px_rgba(0,0,0,0.10)]
           hover:-translate-y-0.5 hover:no-underline
@@ -207,7 +204,7 @@ export function ProfileCardLarge({ profile }) {
         "
       >
         {/* Cover */}
-        <div className="relative h-52 sm:h-64 overflow-hidden bg-surface-2">
+        <div className="relative h-48 sm:h-64 overflow-hidden bg-surface-2 shrink-0">
           {profile.cover_url ? (
             <img
               src={profile.cover_url}
@@ -235,16 +232,28 @@ export function ProfileCardLarge({ profile }) {
           )}
 
           {profile.is_featured && (
-            <div className="absolute top-3 left-3 bg-amber-400 text-amber-950 text-[10px] font-bold px-2.5 py-1 rounded-full leading-none">
+            <div className="absolute top-3 left-3 bg-amber-400 text-amber-950 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-xs leading-none">
               Featured
+            </div>
+          )}
+
+          {reviews > 0 && (
+            <div className="absolute top-3 right-3 flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white shadow-xs">
+              <Star size={12} className="text-amber-400 fill-amber-400 shrink-0" aria-hidden="true" />
+              <span className="text-[12px] font-bold tabular-nums leading-none">
+                {rating.toFixed(1)}
+              </span>
+              <span className="text-[10.5px] text-white/75 leading-none">
+                ({reviews})
+              </span>
             </div>
           )}
         </div>
 
         {/* Content */}
-        <div className="px-5 pt-3 pb-5">
-          <div className="flex items-end justify-between mb-4 -mt-10">
-            <div className="relative w-[60px] h-[60px] rounded-xl overflow-hidden border-2 border-surface shadow-sm bg-surface-2 shrink-0">
+        <div className="px-4 sm:px-5 pt-3 pb-4 sm:pb-5 flex flex-col flex-1">
+          <div className="flex items-end justify-between mb-3 -mt-9 sm:-mt-10">
+            <div className="relative w-12 h-12 sm:w-[60px] sm:h-[60px] rounded-xl overflow-hidden border-2 border-surface shadow-sm bg-surface-2 shrink-0">
               {profile.avatar_url ? (
                 <img
                   src={profile.avatar_url}
@@ -254,28 +263,22 @@ export function ProfileCardLarge({ profile }) {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-brand-light" aria-hidden="true">
-                  <span className="text-xl font-bold text-brand leading-none">
+                  <span className="text-lg sm:text-xl font-bold text-brand leading-none">
                     {profile.display_name?.[0]?.toUpperCase() || '?'}
                   </span>
                 </div>
               )}
             </div>
 
-            {reviews > 0 && (
-              <div className="flex items-center gap-1 mb-1">
-                <Star size={13} className="text-amber-400 fill-amber-400" aria-hidden="true" />
-                <span className="text-[13px] font-semibold text-ink tabular-nums">
-                  {rating.toFixed(1)}
-                </span>
-                <span className="text-[12px] text-ink-2">
-                  ({reviews} review{reviews !== 1 ? 's' : ''})
-                </span>
-              </div>
+            {profile.profile_type && (
+              <span className={`text-[11.5px] font-medium px-2.5 py-0.5 rounded-md bg-surface-2 border border-border/80 shrink-0 ${TYPE_STYLES[profile.profile_type] || 'text-ink-2'}`}>
+                {TYPE_LABELS[profile.profile_type] || profile.profile_type}
+              </span>
             )}
           </div>
 
           <div className="flex items-center gap-1.5 mb-1">
-            <h3 className="text-[16px] font-semibold text-ink leading-snug line-clamp-1 flex-1 min-w-0">
+            <h3 className="text-[15px] sm:text-[16px] font-semibold text-ink leading-snug line-clamp-1 flex-1 min-w-0">
               {profile.display_name}
             </h3>
             {profile.is_verified && (
@@ -284,32 +287,23 @@ export function ProfileCardLarge({ profile }) {
           </div>
 
           {profile.headline && (
-            <p className="text-[13px] text-ink-2 line-clamp-2 leading-relaxed mb-4">
+            <p className="text-[12.5px] sm:text-[13px] text-ink-2 line-clamp-2 leading-relaxed mb-4 flex-1">
               {profile.headline}
             </p>
           )}
 
-          <div className="flex items-center justify-between gap-2 pt-3 border-t border-border">
-            <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
-              {profile.category_name && (
-                <span className="flex items-center gap-1 text-[12px] text-ink-2 truncate">
-                  <CategoryIconInline slug={profile.category_slug} name={profile.category_name} size={12} />
-                  {profile.category_name}
-                </span>
-              )}
-              {profile.profile_type && profile.category_name && (
-                <span className="text-ink-4 text-[11px]" aria-hidden="true">·</span>
-              )}
-              {profile.profile_type && (
-                <span className={`text-[12px] font-medium shrink-0 ${TYPE_STYLES[profile.profile_type] || 'text-ink-2'}`}>
-                  {TYPE_LABELS[profile.profile_type] || profile.profile_type}
-                </span>
-              )}
-            </div>
+          <div className="flex items-center justify-between gap-2 pt-3 mt-auto border-t border-border">
+            {profile.category_name ? (
+              <span className="flex items-center gap-1 text-[11.5px] sm:text-[12px] text-ink-2 truncate min-w-0">
+                <CategoryIconInline slug={profile.category_slug} name={profile.category_name} size={12} />
+                <span className="truncate">{profile.category_name}</span>
+              </span>
+            ) : <span />}
+
             {city && (
-              <div className="flex items-center gap-0.5 shrink-0 text-ink-2">
+              <div className="flex items-center gap-0.5 shrink-0 text-ink-3">
                 <MapPin size={11} aria-hidden="true" />
-                <span className="text-[11.5px] truncate max-w-[90px]">{city}</span>
+                <span className="text-[11px] sm:text-[11.5px] truncate max-w-[90px]">{city}</span>
               </div>
             )}
           </div>

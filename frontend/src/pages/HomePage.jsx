@@ -619,8 +619,8 @@ export default function HomePage() {
                   ))}
                 </div>
 
-                {/* Mobile: standard single-column stack */}
-                <div className="sm:hidden grid grid-cols-2 gap-3">
+                {/* Mobile: adaptive 1-to-2 column grid for clean proportions */}
+                <div className="sm:hidden grid grid-cols-1 min-[420px]:grid-cols-2 gap-3.5">
                   {featured.slice(0, 6).map(profile => (
                     <ProfileCard key={profile.id} profile={profile} />
                   ))}
