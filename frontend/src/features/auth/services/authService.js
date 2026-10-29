@@ -18,6 +18,11 @@ export async function logout(refreshToken) {
   return res.data
 }
 
+export async function refreshAccessToken(refreshToken) {
+  const res = await apiClient.post('/auth/refresh-token', { refreshToken })
+  return res.data.data
+}
+
 /**
  * Verify an email address using the token from the verification link.
  * @param {string} token - Raw token from ?token= query param

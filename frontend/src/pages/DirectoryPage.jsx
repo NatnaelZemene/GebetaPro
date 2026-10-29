@@ -20,10 +20,14 @@ import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import {
   Search, SlidersHorizontal, X, MapPin, LayoutGrid, List, Map,
   ChevronDown, ChevronUp, Users, BadgeCheck, LocateFixed, ArrowRight,
-  ArrowUpRight,
+  ArrowUpRight, History, Clock, Star,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toEnglishSearchTerm, toEnglishCity } from '../lib/searchTermMap.js'
+import {
+  getSearchHistory, saveSearchHistory, removeSearchHistoryItem, clearSearchHistory,
+  getViewedProfiles, removeViewedProfile, clearViewedProfiles,
+} from '../utils/historyStorage.js'
 import { Navbar }    from '../components/layout/Navbar.jsx'
 import { Footer }    from '../components/layout/Footer.jsx'
 import { Button }    from '../components/ui/Button.jsx'
@@ -612,6 +616,51 @@ export default function DirectoryPage() {
   // Same pattern for the inline city field in the top bar
   const [cityInput, setCityInput] = useState(filters.city)
 
+  /* ── Device History (Persistent across sessions if logged in / on device) ── */
+  const [recentSearches, setRecentSearches] = useState(() => getSearchHistory())
+  const [viewedProfiles, setViewedProfiles] = useState(() => getViewedProfiles())
+
+  useEffect(() => {
+    function refreshHistory() {
+      setRecentSearches(getSearchHistory())
+      setViewedProfiles(getViewedProfiles())
+    }
+    window.addEventListener('gebetapro:history_updated', refreshHistory)
+    return () => window.removeEventListener('gebetapro:history_updated', refreshHistory)
+  }, [])
+
+  function handleSelectRecentSearch(item) {
+    const s = item.search || ''
+    const c = item.city || ''
+    setSearchInput(s)
+    setCityInput(c)
+    updateFilter('search', toEnglishSearchTerm(s))
+    updateFilter('city', toEnglishCity(c))
+  }
+
+  function handleRemoveRecentSearch(e, id) {
+    e.stopPropagation()
+    removeSearchHistoryItem(id)
+    setRecentSearches(getSearchHistory())
+  }
+
+  function handleClearAllSearches() {
+    clearSearchHistory()
+    setRecentSearches([])
+  }
+
+  function handleRemoveViewedProfile(e, slug) {
+    e.stopPropagation()
+    e.preventDefault()
+    removeViewedProfile(slug)
+    setViewedProfiles(getViewedProfiles())
+  }
+
+  function handleClearAllViewedProfiles() {
+    clearViewedProfiles()
+    setViewedProfiles([])
+  }
+
   /* ── Categories ─────────────────────────────────────────────────────────── */
   const { data: categoriesData } = useCategories()
   const categories = useMemo(
@@ -658,11 +707,17 @@ export default function DirectoryPage() {
 
   function submitSearch(e) {
     e?.preventDefault()
+    const cleanSearch = searchInput.trim()
+    const cleanCity = cityInput.trim()
+    if (cleanSearch || cleanCity) {
+      saveSearchHistory({ search: cleanSearch, city: cleanCity })
+      setRecentSearches(getSearchHistory())
+    }
     // Resolve any translated term to its English canonical before sending to
     // the backend. Unknown freeform text passes through unchanged.
-    updateFilter('search', toEnglishSearchTerm(searchInput.trim()))
+    updateFilter('search', toEnglishSearchTerm(cleanSearch))
     // Also commit the inline city field
-    updateFilter('city', toEnglishCity(cityInput.trim()))
+    updateFilter('city', toEnglishCity(cleanCity))
   }
 
   function clearFilters() {
@@ -819,6 +874,59 @@ export default function DirectoryPage() {
               </div>
             </form>
 
+            {/* ── Recent searches history chips ─────────────────────── */}
+            {recentSearches.length > 0 && (
+              <div
+                className="
+                  flex items-center gap-2 mb-4 overflow-x-auto pb-1 text-[12.5px]
+                  -mx-5 px-5 sm:mx-0 sm:px-0
+                "
+                style={{ scrollbarWidth: 'none' }}
+                aria-label="Recent searches"
+              >
+                <span className="flex items-center gap-1.5 text-ink-3 font-medium shrink-0">
+                  <Clock size={13} className="text-brand shrink-0" />
+                  <span className="text-[12px]">{t('directory.recentSearches')}:</span>
+                </span>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {recentSearches.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleSelectRecentSearch(item)}
+                      className="
+                        group inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full
+                        bg-surface-2 border border-border/80 text-ink-2
+                        hover:border-brand-border hover:text-ink hover:bg-brand-light/20
+                        transition-all duration-150 text-[12px] cursor-pointer
+                      "
+                      title={item.search + (item.city ? ` · ${item.city}` : '')}
+                    >
+                      <span className="truncate max-w-[140px]">
+                        {item.search || t('home.all', 'All')}
+                        {item.city && <span className="text-ink-4"> · {item.city}</span>}
+                      </span>
+                      <span
+                        role="button"
+                        onClick={(e) => handleRemoveRecentSearch(e, item.id)}
+                        className="w-3.5 h-3.5 rounded-full flex items-center justify-center text-ink-4 hover:text-danger hover:bg-danger-light transition-colors ml-0.5"
+                        aria-label="Remove search"
+                      >
+                        ×
+                      </span>
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={handleClearAllSearches}
+                    className="text-[11.5px] text-ink-4 hover:text-danger transition-colors underline-offset-2 hover:underline ml-1 shrink-0 cursor-pointer"
+                  >
+                    {t('directory.clearHistory')}
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* ── Category quick-nav ──────────────────────────────────── */}
             {categories.filter(c => !c.isChild).length > 0 && (
               <div
@@ -901,6 +1009,107 @@ export default function DirectoryPage() {
 
             {/* ── Results column ─────────────────────────────────────── */}
             <div className="flex-1 min-w-0">
+
+              {/* ── Recently Viewed Profiles on Device ────────────────── */}
+              {viewedProfiles.length > 0 && !filters.search && !filters.category_id && filters.page === 1 && (
+                <section
+                  className="mb-6 p-4 sm:p-5 rounded-2xl bg-surface border border-border shadow-xs"
+                  aria-label={t('directory.resumeWhereYouLeftOff')}
+                >
+                  <div className="flex items-center justify-between gap-3 mb-3.5">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-brand-light text-brand shrink-0">
+                        <History size={15} />
+                      </span>
+                      <div>
+                        <h2 className="text-[14px] font-bold text-ink leading-tight">
+                          {t('directory.resumeWhereYouLeftOff')}
+                        </h2>
+                        <p className="text-[11.5px] text-ink-3 hidden sm:block mt-0.5">
+                          {t('directory.recentlyViewedSub')}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleClearAllViewedProfiles}
+                      className="text-[12px] text-ink-3 hover:text-danger hover:underline transition-colors shrink-0 cursor-pointer"
+                    >
+                      {t('directory.clearRecentProfiles')}
+                    </button>
+                  </div>
+
+                  {/* Horizontal scroll strip */}
+                  <div
+                    className="flex items-stretch gap-3 overflow-x-auto pb-1.5 -mx-1 px-1"
+                    style={{ scrollbarWidth: 'none' }}
+                  >
+                    {viewedProfiles.map((p) => (
+                      <div
+                        key={p.slug}
+                        className="
+                          group relative flex-shrink-0 w-44 sm:w-48
+                          p-3 rounded-xl bg-canvas border border-border
+                          hover:border-brand-border hover:shadow-md
+                          transition-all duration-150 flex flex-col justify-between
+                        "
+                      >
+                        {/* Remove button */}
+                        <button
+                          type="button"
+                          onClick={(e) => handleRemoveViewedProfile(e, p.slug)}
+                          className="
+                            absolute top-2 right-2 z-10 w-5 h-5 rounded-full
+                            bg-surface/90 border border-border text-ink-3
+                            hover:text-danger hover:border-danger hover:bg-surface
+                            flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 sm:group-hover:opacity-100
+                            transition-opacity duration-150 cursor-pointer
+                          "
+                          title="Remove from history"
+                          aria-label="Remove from history"
+                        >
+                          ×
+                        </button>
+
+                        <Link
+                          to={`/@${p.slug}`}
+                          className="flex items-center gap-2.5 mb-2 hover:no-underline"
+                        >
+                          {p.avatar_url ? (
+                            <img
+                              src={p.avatar_url}
+                              alt={p.full_name}
+                              className="w-10 h-10 rounded-full object-cover border border-border shrink-0"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-brand-light text-brand flex items-center justify-center text-sm font-bold shrink-0">
+                              {p.full_name?.charAt(0) || 'P'}
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1 pr-3">
+                            <p className="text-[13px] font-semibold text-ink truncate group-hover:text-brand transition-colors">
+                              {p.full_name}
+                            </p>
+                            <p className="text-[11.5px] text-ink-3 truncate">
+                              {p.title || p.category_name || t('directory.profileTypes.PROFESSIONAL')}
+                            </p>
+                          </div>
+                        </Link>
+
+                        <div className="flex items-center justify-between text-[11px] text-ink-3 border-t border-border/60 pt-2 mt-auto">
+                          <span className="truncate max-w-[95px]">{p.city || 'Ethiopia'}</span>
+                          {p.avg_rating > 0 && (
+                            <span className="flex items-center gap-0.5 text-amber-500 font-semibold shrink-0">
+                              <Star size={10} className="fill-amber-400 text-amber-400" />
+                              <span>{Number(p.avg_rating).toFixed(1)}</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
 
               {/* ── Results toolbar ──────────────────────────────────── */}
               <div className="flex items-center justify-between gap-4 mb-4">

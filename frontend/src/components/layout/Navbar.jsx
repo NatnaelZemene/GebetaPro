@@ -117,7 +117,7 @@ export function Navbar() {
 
           {/* Wordmark */}
           <Link
-            to="/"
+            to={isLoggedIn ? '/directory' : '/'}
             className="shrink-0 hover:no-underline group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 rounded-sm"
             aria-label={t('nav.logoLabel')}
           >

@@ -28,6 +28,7 @@ import {
   usePublicReviews, useSubmitReview, useDeleteReview,
   useAddReviewReply, useDeleteReviewReply, useMyProfile,
 } from '../features/profiles/hooks/useProfile.js'
+import { saveViewedProfile } from '../utils/historyStorage.js'
 
 /* ── Shared primitives ───────────────────────────────────────────────────────── */
 
@@ -268,6 +269,13 @@ export default function PublicProfilePage() {
   const deleteReviewReply = useDeleteReviewReply(slug)
 
   const isProfileOwner = !!(myProfile && profile && myProfile.slug === profile.slug)
+
+  /* ── Save to device viewing history ───────────────────────────────────── */
+  useEffect(() => {
+    if (profile?.slug) {
+      saveViewedProfile(profile)
+    }
+  }, [profile])
 
   /* ── Handlers ──────────────────────────────────────────────────────────── */
   async function handleReviewSubmit(data) {

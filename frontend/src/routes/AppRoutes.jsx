@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { Skeleton } from '../components/ui/Skeleton.jsx'
 import { AdminGuard } from '../components/common/AdminGuard.jsx'
 
@@ -64,12 +64,20 @@ function PageLoader() {
   )
 }
 
+function HomeRoute() {
+  const token = localStorage.getItem('accessToken')
+  if (token) {
+    return <Navigate to="/directory" replace />
+  }
+  return <HomePage />
+}
+
 export default function AppRoutes() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* ── Public ──────────────────────────────────────────────────── */}
-        <Route path="/"              element={<HomePage />} />
+        <Route path="/"              element={<HomeRoute />} />
         <Route path="/login"         element={<LoginPage />} />
         <Route path="/register"      element={<RegisterPage />} />
         <Route path="/pricing"       element={<PricingPage />} />

@@ -27,6 +27,7 @@ import { useCategories } from '../features/profiles/hooks/useCategories.js'
 import { ProfileCard, ProfileCardLarge } from '../features/profiles/components/ProfileCard.jsx'
 import { CategoryIconInline } from '../features/profiles/components/CategoryIcon.jsx'
 import { toEnglishSearchTerm, toEnglishCity } from '../lib/searchTermMap.js'
+import { saveSearchHistory } from '../utils/historyStorage.js'
 
 /* ── Static city keys (actual names stay the same for URL params) ─────────── */
 const CITY_KEYS = [
@@ -280,6 +281,7 @@ export default function HomePage() {
 
   /* ── Handlers ──────────────────────────────────────────────────────────── */
   function handleSearch(search, city) {
+    saveSearchHistory({ search, city })
     const params = new URLSearchParams()
     if (search) params.set('search', search)
     if (city)   params.set('city', city)

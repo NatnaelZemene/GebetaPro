@@ -29,17 +29,88 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error),
 )
 
-// Response interceptor — centralised error handling
+// Response interceptor — centralised error handling with silent refresh token renewal
+let isRefreshing = false
+let failedQueue = []
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error)
+    } else {
+      prom.resolve(token)
+    }
+  })
+  failedQueue = []
+}
+
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Clear stale token and redirect to login
-      localStorage.removeItem('accessToken')
-      localStorage.removeItem('refreshToken')
-      // Dispatch a custom event that AuthContext can listen to
-      window.dispatchEvent(new CustomEvent('auth:expired'))
+  async (error) => {
+    const originalRequest = error.config
+
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      // Do not attempt refresh on auth endpoints (login, register, refresh-token itself)
+      if (
+        originalRequest.url?.includes('/auth/login') ||
+        originalRequest.url?.includes('/auth/refresh-token') ||
+        originalRequest.url?.includes('/auth/register')
+      ) {
+        return Promise.reject(error)
+      }
+
+      const refreshToken = localStorage.getItem('refreshToken')
+      if (!refreshToken) {
+        localStorage.removeItem('accessToken')
+        window.dispatchEvent(new CustomEvent('auth:expired'))
+        return Promise.reject(error)
+      }
+
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject })
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`
+            return apiClient(originalRequest)
+          })
+          .catch((err) => Promise.reject(err))
+      }
+
+      originalRequest._retry = true
+      isRefreshing = true
+
+      try {
+        const baseURL = import.meta.env.VITE_API_BASE_URL || '/api'
+        // Raw axios call to bypass apiClient interceptors and prevent loops
+        const refreshResponse = await axios.post(`${baseURL}/auth/refresh-token`, { refreshToken })
+        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = refreshResponse.data?.data || {}
+
+        if (newAccessToken) {
+          localStorage.setItem('accessToken', newAccessToken)
+          if (newRefreshToken) {
+            localStorage.setItem('refreshToken', newRefreshToken)
+          }
+
+          apiClient.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
+
+          processQueue(null, newAccessToken)
+          return apiClient(originalRequest)
+        } else {
+          throw new Error('No access token returned from refresh')
+        }
+      } catch (refreshErr) {
+        processQueue(refreshErr, null)
+        localStorage.removeItem('accessToken')
+        localStorage.removeItem('refreshToken')
+        window.dispatchEvent(new CustomEvent('auth:expired'))
+        return Promise.reject(refreshErr)
+      } finally {
+        isRefreshing = false
+      }
     }
+
     return Promise.reject(error)
   },
 )
