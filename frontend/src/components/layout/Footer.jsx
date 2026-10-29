@@ -15,6 +15,7 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { LanguageSelectorDark } from '../ui/LanguageSelector.jsx'
+import { ThemeToggle } from '../ui/ThemeToggle.jsx'
 
 /* Design constants */
 const BG         = '#1a1917'
@@ -90,8 +91,11 @@ export function Footer() {
               {t('footer.tagline')}
             </p>
 
-            {/* Language selector */}
-            <LanguageSelectorDark className="mb-6" />
+            {/* Language & Theme selector */}
+            <div className="flex flex-wrap items-center gap-3 mb-6">
+              <LanguageSelectorDark />
+              <ThemeToggle variant="segmented" className="scale-90 origin-left" />
+            </div>
 
             {/* Ethiopian identity — flag dots + location */}
             <div className="flex items-center gap-2.5">

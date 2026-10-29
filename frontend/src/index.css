@@ -1,40 +1,122 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&display=swap');
 @import "tailwindcss";
 
-/* ── Tailwind v4 theme ─────────────────────────────────────────────────────── */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Tailwind v4 theme mapping ──────────────────────────────────────────────── */
 @theme {
   /* Brand */
-  --color-brand:         #1a6b5e;
-  --color-brand-hover:   #155a4e;
-  --color-brand-light:   #e8f4f1;
-  --color-brand-border:  #b3dbd4;
+  --color-brand:         var(--brand);
+  --color-brand-hover:   var(--brand-hover);
+  --color-brand-light:   var(--brand-light);
+  --color-brand-border:  var(--brand-border);
 
   /* Canvas / surfaces */
-  --color-canvas:        #faf9f7;
-  --color-surface:       #ffffff;
-  --color-surface-2:     #f5f4f1;
+  --color-canvas:        var(--canvas);
+  --color-surface:       var(--surface);
+  --color-surface-2:     var(--surface-2);
 
   /* Borders */
-  --color-border:        #e4e2dd;
-  --color-border-2:      #cbc9c3;
+  --color-border:        var(--border);
+  --color-border-2:      var(--border-2);
 
   /* Text */
-  --color-ink:           #1a1917;
-  --color-ink-2:         #5a5853;
-  --color-ink-3:         #9b9890;
-  --color-ink-4:         #c4c1b8;
+  --color-ink:           var(--ink);
+  --color-ink-2:         var(--ink-2);
+  --color-ink-3:         var(--ink-3);
+  --color-ink-4:         var(--ink-4);
 
   /* Status */
-  --color-success:       #166534;
-  --color-success-bg:    #f0fdf4;
-  --color-warning:       #92600a;
-  --color-warning-bg:    #fffbeb;
-  --color-danger:        #b91c1c;
-  --color-danger-bg:     #fef2f2;
+  --color-success:       var(--success);
+  --color-success-bg:    var(--success-bg);
+  --color-warning:       var(--warning);
+  --color-warning-bg:    var(--warning-bg);
+  --color-danger:        var(--danger);
+  --color-danger-bg:     var(--danger-bg);
 
   /* Font */
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, 'Cascadia Code', Consolas, monospace;
+}
+
+/* ── Theme Definitions: Light (Warm Editorial) & Dark (Deep Obsidian) ──────── */
+:root {
+  color-scheme: light;
+
+  /* Brand: Rich Forest Jade */
+  --brand:         #1a6b5e;
+  --brand-hover:   #14564b;
+  --brand-light:   #e8f4f1;
+  --brand-border:  #b3dbd4;
+
+  /* Canvas / surfaces: Warm pearl & editorial silk */
+  --canvas:        #faf9f7;
+  --surface:       #ffffff;
+  --surface-2:     #f4f3ef;
+
+  /* Borders: Soft hairline dividers */
+  --border:        #e4e2dd;
+  --border-2:      #cbc9c3;
+
+  /* Text: Deep charcoal ink & readable slate */
+  --ink:           #141312;
+  --ink-2:         #52504b;
+  --ink-3:         #8a877f;
+  --ink-4:         #c4c1b8;
+
+  /* Status */
+  --success:       #166534;
+  --success-bg:    #f0fdf4;
+  --warning:       #92600a;
+  --warning-bg:    #fffbeb;
+  --danger:        #b91c1c;
+  --danger-bg:     #fef2f2;
+}
+
+.dark {
+  color-scheme: dark;
+
+  /* Brand: Vibrant glowing mint-emerald */
+  --brand:         #2dd4bf;
+  --brand-hover:   #14b8a6;
+  --brand-light:   rgba(45, 212, 191, 0.12);
+  --brand-border:  rgba(45, 212, 191, 0.28);
+
+  /* Canvas / surfaces: OLED midnight obsidian & cyber slate */
+  --canvas:        #090d12;
+  --surface:       #111720;
+  --surface-2:     #18222f;
+
+  /* Borders: Luminescent glass dividers */
+  --border:        rgba(255, 255, 255, 0.08);
+  --border-2:      rgba(255, 255, 255, 0.15);
+
+  /* Text: Crisp ivory & cool metallic secondary */
+  --ink:           #f3f4f6;
+  --ink-2:         #9ca3af;
+  --ink-3:         #6b7280;
+  --ink-4:         #4b5563;
+
+  /* Status */
+  --success:       #34d399;
+  --success-bg:    rgba(52, 211, 153, 0.14);
+  --warning:       #fbbf24;
+  --warning-bg:    rgba(251, 191, 36, 0.14);
+  --danger:        #f87171;
+  --danger-bg:     rgba(248, 113, 113, 0.14);
+}
+
+/* ── Hardware-accelerated smooth theme transition (only on user toggle) ───── */
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+  transition: background-color 240ms cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 240ms cubic-bezier(0.4, 0, 0.2, 1),
+              color 240ms cubic-bezier(0.4, 0, 0.2, 1),
+              fill 240ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 240ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition-delay: 0ms !important;
 }
 
 /* ── Base reset ────────────────────────────────────────────────────────────── */

@@ -23,6 +23,7 @@ import {
   ChevronLeft, ChevronRight, ArrowLeft, Layers, ShieldCheck,
 } from 'lucide-react'
 import { useFocusTrap } from '../../hooks/useFocusTrap.js'
+import { ThemeToggle } from '../ui/ThemeToggle.jsx'
 
 /* ── Nav definition ──────────────────────────────────────────────────────── */
 const NAV = [
@@ -348,8 +349,9 @@ export function AdminLayout({ children, title }) {
             </h1>
           </nav>
 
-          {/* Right side — Admin badge */}
+          {/* Right side — Theme toggle & Admin badge */}
           <div className="flex items-center gap-2 shrink-0">
+            <ThemeToggle />
             <span
               className="
                 text-[10px] font-bold uppercase tracking-[0.1em]

@@ -10,30 +10,45 @@
  *  - disconnect()  : gracefully ends the pool (used during shutdown)
  */
 import pg from 'pg'
+import { URL } from 'node:url'
 import { config } from '../config/index.js'
 import logger from '../utils/logger.js'
 
 const { Pool } = pg
 
-// Build pool options — prefer DATABASE_URL when available
-// NOTE: pg misparses usernames with dots (e.g. postgres.projectid) from a URL,
-// so we use explicit fields when connecting to Supabase pooler.
-const poolOptions = config.db.url
-  ? {
-      host:     'aws-0-us-west-1.pooler.supabase.com',
-      port:     5432,
-      database: 'postgres',
-      user:     'postgres.zldifznsngefciqfxded',
-      password: 'interProject1881!',
-      ssl: { rejectUnauthorized: false },
+function getPoolOptions() {
+  if (config.db.url) {
+    try {
+      const u = new URL(config.db.url)
+      const isRemote = u.hostname.includes('supabase') || process.env.NODE_ENV === 'production'
+      return {
+        host: u.hostname,
+        port: parseInt(u.port || '5432', 10),
+        database: u.pathname.replace(/^\//, '') || 'postgres',
+        user: decodeURIComponent(u.username),
+        password: decodeURIComponent(u.password),
+        ssl: isRemote ? { rejectUnauthorized: false } : false,
+      }
+    } catch {
+      return {
+        connectionString: config.db.url,
+        ssl: { rejectUnauthorized: false },
+      }
     }
-  : {
-      host: config.db.host,
-      port: config.db.port,
-      database: config.db.name,
-      user: config.db.user,
-      password: config.db.password,
-    }
+  }
+
+  const isRemote = config.db.host !== 'localhost' && config.db.host !== '127.0.0.1'
+  return {
+    host: config.db.host,
+    port: config.db.port,
+    database: config.db.name,
+    user: config.db.user,
+    password: config.db.password,
+    ssl: isRemote ? { rejectUnauthorized: false } : false,
+  }
+}
+
+const poolOptions = getPoolOptions()
 
 const pool = new Pool({
   ...poolOptions,

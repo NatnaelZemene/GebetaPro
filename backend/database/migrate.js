@@ -17,26 +17,47 @@ import 'dotenv/config'
 import pg from 'pg'
 import fs from 'node:fs'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, URL } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // ── Database connection ───────────────────────────────────────────────────────
 
-const connectionString = process.env.DATABASE_URL
-if (!connectionString) {
-  console.error('[migrate] DATABASE_URL is not set.')
-  process.exit(1)
+function getPoolConfig() {
+  const urlStr = process.env.DATABASE_URL
+  if (urlStr) {
+    try {
+      const u = new URL(urlStr)
+      const isRemote = u.hostname.includes('supabase') || process.env.NODE_ENV === 'production'
+      return {
+        host: u.hostname,
+        port: parseInt(u.port || '5432', 10),
+        database: u.pathname.replace(/^\//, '') || 'postgres',
+        user: decodeURIComponent(u.username),
+        password: decodeURIComponent(u.password),
+        ssl: isRemote ? { rejectUnauthorized: false } : false,
+      }
+    } catch {
+      return {
+        connectionString: urlStr,
+        ssl: { rejectUnauthorized: false },
+      }
+    }
+  }
+
+  const host = process.env.DB_HOST || 'localhost'
+  const isRemote = host !== 'localhost' && host !== '127.0.0.1'
+  return {
+    host,
+    port: parseInt(process.env.DB_PORT || '5432', 10),
+    database: process.env.DB_NAME || 'local_discovery',
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || '',
+    ssl: isRemote ? { rejectUnauthorized: false } : false,
+  }
 }
 
-const pool = new pg.Pool({
-  host:     'aws-0-us-west-1.pooler.supabase.com',
-  port:     5432,
-  database: 'postgres',
-  user:     'postgres.zldifznsngefciqfxded',
-  password: 'interProject1881!',
-  ssl: { rejectUnauthorized: false },
-})
+const pool = new pg.Pool(getPoolConfig())
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

@@ -48,3 +48,7 @@ postgres_data/
 
 # Uploaded files (local dev)
 uploads/
+
+# Supabase temp
+.temp/
+**/.temp/

@@ -17,6 +17,7 @@ import { Search, Menu, X, LayoutDashboard, LogOut } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '../ui/Button.jsx'
 import { LanguageSelector } from '../ui/LanguageSelector.jsx'
+import { ThemeToggle } from '../ui/ThemeToggle.jsx'
 import { useFocusTrap } from '../../hooks/useFocusTrap.js'
 
 export function Navbar() {
@@ -154,6 +155,9 @@ export function Navbar() {
 
           {/* Right side controls */}
           <div className="flex items-center gap-2 shrink-0">
+
+            {/* Theme toggle */}
+            <ThemeToggle />
 
             {/* Language selector — visible on sm+ */}
             <LanguageSelector className="hidden sm:inline-flex" />
@@ -294,12 +298,21 @@ export function Navbar() {
             })}
           </nav>
 
-          {/* Language selector */}
-          <div className="px-5 py-4 border-t border-border">
-            <p className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-ink-3 mb-2.5">
-              {t('lang.select', 'Language')}
-            </p>
-            <LanguageSelector />
+          {/* Language & Theme controls */}
+          <div className="px-5 py-4 border-t border-border space-y-4">
+            <div>
+              <p className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-ink-3 mb-2.5">
+                {t('lang.select', 'Language')}
+              </p>
+              <LanguageSelector />
+            </div>
+
+            <div>
+              <p className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-ink-3 mb-2.5">
+                Theme
+              </p>
+              <ThemeToggle variant="segmented" />
+            </div>
           </div>
 
           {/* Auth CTAs — pinned to bottom */}

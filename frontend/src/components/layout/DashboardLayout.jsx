@@ -23,6 +23,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { LanguageSelector } from '../ui/LanguageSelector.jsx'
+import { ThemeToggle } from '../ui/ThemeToggle.jsx'
 import { useFocusTrap } from '../../hooks/useFocusTrap.js'
 import * as api from '../../services/profiles.service.js'
 
@@ -379,6 +380,9 @@ export function DashboardLayout({ children, title }) {
           </button>
 
           <h1 className="text-[15px] font-semibold text-ink flex-1">{title}</h1>
+
+          {/* Theme toggle */}
+          <ThemeToggle />
 
           {/* Language selector in top bar */}
           <LanguageSelector />
