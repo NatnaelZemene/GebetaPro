@@ -190,55 +190,88 @@ function MobileContactBar({ profile }) {
   let primaryLabel = null
   let PrimaryIcon  = null
 
-  if (c.whatsapp) {
-    primaryHref  = `https://wa.me/${c.whatsapp.replace(/\D/g, '')}`
-    primaryLabel = t('profile.public.whatsapp')
-    PrimaryIcon  = MessageCircle
-  } else if (c.phone) {
+  // 1. Phone is the top priority — direct call action
+  if (c.phone) {
     primaryHref  = `tel:${c.phone}`
-    primaryLabel = t('profile.public.call')
+    primaryLabel = t('profile.public.callDirectly', 'Call directly')
     PrimaryIcon  = Phone
+  } else if (c.whatsapp) {
+    primaryHref  = `https://wa.me/${c.whatsapp.replace(/\D/g, '')}`
+    primaryLabel = t('profile.public.whatsapp', 'WhatsApp')
+    PrimaryIcon  = MessageCircle
   } else if (c.email) {
     primaryHref  = `mailto:${c.email}`
-    primaryLabel = t('profile.public.email')
+    primaryLabel = t('profile.public.email', 'Email')
     PrimaryIcon  = Mail
   }
 
   if (!primaryHref) return null
 
+  const isPhonePrimary = primaryHref.startsWith('tel:')
+
   return (
     <div
-      className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-surface/95 backdrop-blur-sm border-t border-border px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 flex items-center gap-2"
+      className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-surface/95 backdrop-blur-md border-t border-border px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 flex items-center gap-2.5 shadow-[0_-4px_20px_rgba(0,0,0,0.15)]"
       role="complementary"
       aria-label="Contact actions"
     >
-      {c.phone && primaryLabel !== t('profile.public.call') && (
+      {/* Secondary: WhatsApp icon button (when Phone is the primary call action) */}
+      {c.whatsapp && isPhonePrimary && (
         <a
-          href={`tel:${c.phone}`}
-          className="h-11 w-11 flex items-center justify-center border border-border rounded-xl text-ink-2 hover:border-brand-border hover:text-brand transition-all shrink-0"
-          aria-label={t('profile.public.call')}
+          href={`https://wa.me/${c.whatsapp.replace(/\D/g, '')}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="h-11 w-11 flex items-center justify-center border border-border bg-surface rounded-xl text-emerald-500 hover:text-emerald-400 hover:border-emerald-500/50 hover:bg-emerald-500/10 active:scale-95 transition-all shrink-0 shadow-xs"
+          aria-label={t('profile.public.whatsapp', 'WhatsApp')}
+          title={t('profile.public.whatsapp', 'WhatsApp')}
         >
-          <Phone size={16} />
+          <MessageCircle size={18} aria-hidden="true" />
         </a>
       )}
+
+      {/* Secondary: Phone icon button (only if Phone is somehow NOT primary) */}
+      {c.phone && !isPhonePrimary && (
+        <a
+          href={`tel:${c.phone}`}
+          className="h-11 w-11 flex items-center justify-center border border-border bg-surface rounded-xl text-ink-2 hover:border-emerald-500/50 hover:text-emerald-500 hover:bg-emerald-500/10 active:scale-95 transition-all shrink-0 shadow-xs"
+          aria-label={t('profile.public.callDirectly', 'Call directly')}
+          title={c.phone}
+        >
+          <Phone size={18} aria-hidden="true" />
+        </a>
+      )}
+
+      {/* Secondary: Telegram icon button */}
       {c.telegram && (
         <a
           href={`https://t.me/${c.telegram.replace('@', '')}`}
-          target="_blank" rel="noopener noreferrer"
-          className="h-11 w-11 flex items-center justify-center border border-border rounded-xl text-ink-2 hover:border-brand-border hover:text-brand transition-all shrink-0"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="h-11 w-11 flex items-center justify-center border border-border bg-surface rounded-xl text-sky-500 hover:text-sky-400 hover:border-sky-500/50 hover:bg-sky-500/10 active:scale-95 transition-all shrink-0 shadow-xs"
           aria-label="Telegram"
+          title="Telegram"
         >
-          <Send size={16} />
+          <Send size={18} aria-hidden="true" />
         </a>
       )}
+
+      {/* Prominent High-Contrast Call / Primary Button */}
       <a
         href={primaryHref}
-        target={primaryLabel === t('profile.public.whatsapp') ? '_blank' : undefined}
-        rel={primaryLabel === t('profile.public.whatsapp') ? 'noopener noreferrer' : undefined}
-        className="flex-1 h-11 rounded-xl bg-brand text-white text-[14px] font-semibold inline-flex items-center justify-center gap-2 hover:bg-brand-hover active:scale-[0.98] transition-all duration-150"
+        target={primaryHref.startsWith('http') ? '_blank' : undefined}
+        rel={primaryHref.startsWith('http') ? 'noopener noreferrer' : undefined}
+        className="
+          flex-1 h-11 px-4 rounded-xl
+          bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700
+          text-white font-bold text-[14.5px] tracking-wide
+          shadow-[0_2px_12px_rgba(5,150,105,0.4)] ring-1 ring-emerald-400/30
+          inline-flex items-center justify-center gap-2.5
+          active:scale-[0.98] transition-all duration-150 cursor-pointer
+        "
+        aria-label={primaryLabel}
       >
-        {PrimaryIcon && <PrimaryIcon size={16} aria-hidden="true" />}
-        {primaryLabel}
+        {PrimaryIcon && <PrimaryIcon size={18} className="fill-current shrink-0" aria-hidden="true" />}
+        <span className="truncate">{primaryLabel}</span>
       </a>
     </div>
   )
@@ -544,7 +577,7 @@ export default function PublicProfilePage() {
 
   /* ── Render ────────────────────────────────────────────────────────────── */
   return (
-    <div className="flex flex-col min-h-screen bg-canvas">
+    <div className="flex flex-col min-h-screen bg-canvas pb-20 sm:pb-0">
       <Navbar />
 
       <main className="flex-1" id="main-content">
