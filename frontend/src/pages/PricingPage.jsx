@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   Check, X as XIcon, Star, Zap, Shield, Crown,
   Wrench, FolderOpen, FileText, Image, Link2,
-  BadgeCheck, TrendingUp, Users
+  BadgeCheck, TrendingUp, Users, Sparkles
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Navbar } from '../components/layout/Navbar.jsx'
@@ -81,17 +81,49 @@ export default function PricingPage() {
       <main className="flex-1" id="main-content">
 
         {/* Header */}
-        <div className="bg-gradient-to-br from-brand to-indigo-700 text-white">
-          <div className="max-w-4xl mx-auto px-4 py-14 text-center">
-            <h1 className="text-3xl sm:text-4xl font-extrabold mb-3 tracking-tight">
+        <section className="relative overflow-hidden bg-gradient-to-br from-brand via-brand to-indigo-800 dark:from-brand-hover dark:via-brand dark:to-slate-950 text-white py-16 sm:py-20 px-4 border-b border-brand-border/40">
+          {/* Ambient subtle glow */}
+          <div
+            className="absolute -top-28 left-1/2 -translate-x-1/2 w-[720px] h-[360px] bg-white/12 dark:bg-white/8 rounded-full blur-3xl pointer-events-none"
+            aria-hidden="true"
+          />
+          {/* Subtle grid pattern matching brand theme */}
+          <div
+            className="absolute inset-0 pointer-events-none opacity-10"
+            style={{
+              backgroundImage:
+                'linear-gradient(rgba(255,255,255,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.2) 1px, transparent 1px)',
+              backgroundSize: '48px 48px',
+            }}
+            aria-hidden="true"
+          />
+
+          <div className="relative max-w-3xl mx-auto flex flex-col items-center justify-center text-center">
+            {/* Pill badge */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white/15 dark:bg-white/10 border border-white/25 text-white shadow-xs backdrop-blur-md mb-4 tracking-wide">
+              <Sparkles size={13} className="text-amber-300" aria-hidden="true" />
+              <span>{t('pricing.badge', 'Plans for every stage')}</span>
+            </div>
+
+            {/* Title */}
+            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-4 text-balance">
               {t('pricing.title')}
             </h1>
-            <p className="text-white/80 text-base max-w-xl mx-auto">
+
+            {/* Subtitle - Centered & balanced */}
+            <p className="text-base sm:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed font-normal text-balance">
               {t('pricing.subtitle')}
             </p>
-            <p className="text-white/50 text-sm mt-3">{t('pricing.currency')}</p>
+
+            {/* Currency & billing notice — Centered modern pill */}
+            <div className="mt-6 flex items-center justify-center">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 dark:bg-black/25 border border-white/20 text-xs sm:text-[13px] text-white/95 font-medium backdrop-blur-md shadow-xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" aria-hidden="true" />
+                <span>{t('pricing.currency')}</span>
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
 
         <div className="max-w-6xl mx-auto px-4 py-12">
 
