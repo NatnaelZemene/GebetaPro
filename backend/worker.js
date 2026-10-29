@@ -1,32 +1,21 @@
-import { env } from 'cloudflare:workers'
 import { handleAsNodeRequest } from 'cloudflare:node'
-
-// Cloudflare bindings are available at the Worker entry point. Copy string
-// bindings into process.env before importing the Express app, whose config is
-// read during module initialization.
-for (const [key, value] of Object.entries(env)) {
-  if (typeof value === 'string') process.env[key] = value
-}
-
-process.env.CLOUDFLARE_WORKER = 'true'
-process.env.CLOUDFLARE_HYPERDRIVE = 'true'
-process.env.DATABASE_URL = env.HYPERDRIVE.connectionString
-
-const [{ default: app }, { runExpiryJob }, { default: logger }] = await Promise.all([
-  import('./src/app.js'),
-  import('./src/modules/subscriptions/subscriptions.cron.js'),
-  import('./src/utils/logger.js'),
-])
+import app from './src/app.js'
+import { runExpiryJob } from './src/modules/subscriptions/subscriptions.expiry.js'
+import logger from './src/utils/logger.js'
 
 const port = Number(process.env.PORT || 3000)
 app.listen(port)
 
 export default {
-  fetch(request) {
+  fetch(request, workerEnv) {
+    // Access Hyperdrive only while handling a request; Cloudflare does not
+    // permit opening its connection binding during global module startup.
+    globalThis.__HYPERDRIVE_CONNECTION_STRING = workerEnv.HYPERDRIVE.connectionString
     return handleAsNodeRequest(port, request)
   },
 
-  scheduled(_controller, _workerEnv, context) {
+  scheduled(_controller, workerEnv, context) {
+    globalThis.__HYPERDRIVE_CONNECTION_STRING = workerEnv.HYPERDRIVE.connectionString
     context.waitUntil(
       runExpiryJob().catch((error) => {
         logger.error({ err: error }, 'Scheduled subscription expiry sweep failed')

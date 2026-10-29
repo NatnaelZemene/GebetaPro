@@ -13,8 +13,7 @@
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
-import pinoHttp from 'pino-http';
-import swaggerUi from 'swagger-ui-express';
+import { createRequire } from 'node:module'
 import { swaggerSpec } from './config/swagger.js';
 
 import { config } from './config/index.js'
@@ -34,6 +33,16 @@ import adminRouter from './modules/admin/admin.routes.js'
 import notificationsRouter from './modules/notifications/notifications.routes.js'
 import categoriesRouter from './modules/categories/categories.routes.js'
 import { publicProfilesRouter, dashboardProfileRouter } from './modules/profiles/profiles.routes.js'
+
+// pino-http currently uses Node internals that are not available in Workers.
+// Keep it for the regular Node server and skip request middleware there.
+let pinoHttp
+let swaggerUi
+if (process.env.CLOUDFLARE_WORKER !== 'true') {
+  const localRequire = createRequire(import.meta.url)
+  pinoHttp = localRequire('pino-http')
+  swaggerUi = localRequire('swagger-ui-express')
+}
 
 // ── CORS configuration ───────────────────────────────────────────────────────
 
@@ -65,8 +74,8 @@ app.use(helmet())
 app.use(cors(corsOptions))
 
 // ── Request logging ───────────────────────────────────────────────────────────
-app.use(
-  pinoHttp({
+if (pinoHttp) {
+  app.use(pinoHttp({
     logger,
     // Don't log the health endpoint on every poll — keeps logs clean
     autoLogging: {
@@ -74,8 +83,8 @@ app.use(
     },
     // Redact sensitive headers from log output
     redact: ['req.headers.authorization', 'req.headers.cookie'],
-  }),
-)
+  }))
+}
 
 // ── Routes that need raw body MUST come before express.json() ─────────────────
 // The subscriptions webhook route uses express.raw() inline so it gets the
@@ -104,7 +113,11 @@ app.get('/api-docs/swagger.json', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.send(swaggerSpec);
 });
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+if (swaggerUi) {
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+} else {
+  app.get('/api-docs', (_req, res) => res.redirect('/api-docs/swagger.json'))
+}
 // ── 404 handler (after all routes) ───────────────────────────────────────────
 app.use(notFound)
 

@@ -14,16 +14,18 @@ import { URL } from 'node:url'
 import { config } from '../config/index.js'
 import logger from '../utils/logger.js'
 
-const { Pool } = pg
+const { Pool, Client } = pg
 
 function getPoolOptions() {
-  if (config.db.url) {
-    // Hyperdrive provides the connection pool for Cloudflare Workers. Pass its
-    // connection string through directly so pg uses the Hyperdrive binding.
-    if (process.env.CLOUDFLARE_HYPERDRIVE === 'true') {
-      return { connectionString: config.db.url }
+  if (process.env.CLOUDFLARE_HYPERDRIVE === 'true') {
+    const connectionString = globalThis.__HYPERDRIVE_CONNECTION_STRING
+    if (!connectionString) {
+      throw new Error('Hyperdrive connection is only available inside a Cloudflare request handler.')
     }
+    return { connectionString }
+  }
 
+  if (config.db.url) {
     try {
       const u = new URL(config.db.url)
       const isRemote = u.hostname.includes('supabase') || process.env.NODE_ENV === 'production'
@@ -54,20 +56,64 @@ function getPoolOptions() {
   }
 }
 
-const poolOptions = getPoolOptions()
+const isCloudflareWorker = process.env.CLOUDFLARE_HYPERDRIVE === 'true'
+let nodePool
 
-const pool = new Pool({
-  ...poolOptions,
-  // Connection pool sizing
-  max: 10,
-  idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 5_000,
-})
+function getNodePool() {
+  if (!nodePool) {
+    nodePool = new Pool({
+      ...getPoolOptions(),
+      max: 10,
+      idleTimeoutMillis: 30_000,
+      connectionTimeoutMillis: 5_000,
+    })
 
-// Log unexpected pool-level errors so they are never silently swallowed
-pool.on('error', (err) => {
-  logger.error({ err }, 'Unexpected error on idle PostgreSQL client')
-})
+    nodePool.on('error', (err) => {
+      logger.error({ err }, 'Unexpected error on idle PostgreSQL client')
+    })
+  }
+  return nodePool
+}
+
+async function withWorkerClient(callback) {
+  const client = new Client({
+    ...getPoolOptions(),
+    connectionTimeoutMillis: 5_000,
+  })
+
+  await client.connect()
+  try {
+    return await callback(client)
+  } finally {
+    await client.end()
+  }
+}
+
+const pool = {
+  query(...args) {
+    return isCloudflareWorker
+      ? withWorkerClient((client) => client.query(...args))
+      : getNodePool().query(...args)
+  },
+  async connect() {
+    if (!isCloudflareWorker) return getNodePool().connect()
+
+    const client = new Client({
+      ...getPoolOptions(),
+      connectionTimeoutMillis: 5_000,
+    })
+    await client.connect()
+    client.release = () => client.end()
+    return client
+  },
+  on(event, listener) {
+    if (!isCloudflareWorker) getNodePool().on(event, listener)
+    return this
+  },
+  async end() {
+    if (nodePool) await nodePool.end()
+  },
+}
 
 /**
  * Verify the database connection is alive by running a trivial query.
