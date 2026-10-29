@@ -93,7 +93,7 @@ export default function LoginPage() {
   const serverErrorId = 'login-server-error'
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col">
+    <div className="min-h-screen bg-canvas flex flex-col">
       <Navbar />
 
       <main
@@ -102,20 +102,20 @@ export default function LoginPage() {
       >
         <div className="w-full max-w-[440px]">
           {/* Main Login Card */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xl shadow-slate-200/50 p-7 sm:p-10">
+          <div className="bg-surface rounded-2xl border border-border shadow-xl shadow-black/5 dark:shadow-black/40 p-7 sm:p-10">
             {/* Header */}
             <div className="text-center mb-8">
-              <div className="w-12 h-12 rounded-2xl bg-[#1a6b5e] text-white flex items-center justify-center font-bold text-xl shadow-md shadow-[#1a6b5e]/25 mx-auto mb-4 select-none">
+              <div className="w-12 h-12 rounded-2xl bg-brand text-brand-fg flex items-center justify-center font-bold text-xl shadow-md shadow-brand/20 mx-auto mb-4 select-none">
                 G
               </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">
                 {t('auth.login.title')}
               </h1>
-              <p className="text-slate-600 text-[14.5px] mt-1.5 font-normal">
+              <p className="text-ink-2 text-[14.5px] mt-1.5 font-normal">
                 {t('auth.login.newAccount')}{' '}
                 <Link
                   to="/register"
-                  className="text-[#1a6b5e] font-semibold hover:underline"
+                  className="text-brand font-semibold hover:underline"
                 >
                   {t('auth.login.createFree')}
                 </Link>
@@ -127,11 +127,11 @@ export default function LoginPage() {
               <div
                 role="status"
                 aria-live="polite"
-                className="flex items-start gap-2.5 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 text-[13.5px] text-emerald-900 font-medium mb-6"
+                className="flex items-start gap-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-4 py-3 text-[13.5px] text-emerald-800 dark:text-emerald-300 font-medium mb-6"
               >
                 <CheckCircle2
                   size={16}
-                  className="text-emerald-600 mt-0.5 shrink-0"
+                  className="text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0"
                   aria-hidden="true"
                 />
                 <span>
@@ -151,14 +151,14 @@ export default function LoginPage() {
               <div className="space-y-1.5">
                 <label
                   htmlFor="login-email"
-                  className="block text-[13.5px] font-semibold text-slate-800"
+                  className="block text-[13.5px] font-semibold text-ink"
                 >
                   {t('auth.login.emailLabel')}
                 </label>
                 <div className="relative">
                   <Mail
                     size={16}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none"
                     aria-hidden="true"
                   />
                   <input
@@ -172,7 +172,7 @@ export default function LoginPage() {
                     autoFocus
                     required
                     aria-describedby={error ? serverErrorId : undefined}
-                    className="w-full h-11 pl-10 pr-4 rounded-xl bg-white border border-slate-300 text-slate-900 text-[14.5px] placeholder:text-slate-400 focus:border-[#1a6b5e] focus:ring-2 focus:ring-[#1a6b5e]/20 outline-none transition-all"
+                    className="w-full h-11 pl-10 pr-4 rounded-xl bg-surface border border-border text-ink text-[14.5px] placeholder:text-ink-3 focus:border-brand focus:ring-2 focus:ring-brand/20 outline-none transition-all"
                   />
                 </div>
               </div>
@@ -182,13 +182,13 @@ export default function LoginPage() {
                 <div className="flex items-center justify-between">
                   <label
                     htmlFor="login-password"
-                    className="block text-[13.5px] font-semibold text-slate-800"
+                    className="block text-[13.5px] font-semibold text-ink"
                   >
                     {t('auth.login.passwordLabel')}
                   </label>
                   <Link
                     to="/forgot-password"
-                    className="text-[12.5px] font-semibold text-[#1a6b5e] hover:underline"
+                    className="text-[12.5px] font-semibold text-brand hover:underline"
                   >
                     {t('auth.login.forgotPassword')}
                   </Link>
@@ -197,7 +197,7 @@ export default function LoginPage() {
                 <div className="relative">
                   <Lock
                     size={16}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none"
                     aria-hidden="true"
                   />
                   <input
@@ -210,12 +210,12 @@ export default function LoginPage() {
                     autoComplete="current-password"
                     required
                     aria-describedby={error ? serverErrorId : undefined}
-                    className="w-full h-11 pl-10 pr-11 rounded-xl bg-white border border-slate-300 text-slate-900 text-[14.5px] placeholder:text-slate-400 focus:border-[#1a6b5e] focus:ring-2 focus:ring-[#1a6b5e]/20 outline-none transition-all"
+                    className="w-full h-11 pl-10 pr-11 rounded-xl bg-surface border border-border text-ink text-[14.5px] placeholder:text-ink-3 focus:border-brand focus:ring-2 focus:ring-brand/20 outline-none transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPass((s) => !s)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors p-1"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-3 hover:text-ink transition-colors p-1"
                     aria-label={
                       showPass
                         ? t('auth.register.hidePass')
@@ -237,16 +237,16 @@ export default function LoginPage() {
                   id={serverErrorId}
                   role="alert"
                   aria-live="assertive"
-                  className="bg-red-50 border border-red-200 rounded-xl p-3.5 text-[13.5px] text-red-700 font-medium"
+                  className="bg-red-500/10 border border-red-500/30 rounded-xl p-3.5 text-[13.5px] text-red-700 dark:text-red-400 font-medium"
                 >
                   <div className="flex items-start gap-2">
-                    <AlertTriangle size={15} aria-hidden="true" className="shrink-0 text-red-600" />
+                    <AlertTriangle size={15} aria-hidden="true" className="shrink-0 text-red-600 dark:text-red-400" />
                     <span className="flex-1">{error}</span>
                   </div>
                   {isUnverified && (
-                    <div className="mt-2.5 pt-2.5 border-t border-red-200 text-left">
+                    <div className="mt-2.5 pt-2.5 border-t border-red-500/20 text-left">
                       {resendDone ? (
-                        <p className="text-emerald-800 font-semibold">
+                        <p className="text-emerald-700 dark:text-emerald-400 font-semibold">
                           {t('auth.login.verificationSent')}
                         </p>
                       ) : (
@@ -254,7 +254,7 @@ export default function LoginPage() {
                           type="button"
                           onClick={handleResendVerification}
                           disabled={resendLoading}
-                          className="text-[#1a6b5e] font-semibold underline hover:no-underline disabled:opacity-50"
+                          className="text-brand font-semibold underline hover:no-underline disabled:opacity-50"
                         >
                           {resendLoading
                             ? t('auth.login.sending')
@@ -270,10 +270,10 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full h-11 mt-1 rounded-xl bg-[#1a6b5e] hover:bg-[#155a4e] text-white font-semibold text-[15px] shadow-md shadow-[#1a6b5e]/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full h-11 mt-1 rounded-xl bg-brand hover:bg-brand-hover text-brand-fg font-semibold text-[15px] shadow-md shadow-brand/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {loading ? (
-                  <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span className="inline-block w-4 h-4 border-2 border-brand-fg/30 border-t-brand-fg rounded-full animate-spin" />
                 ) : (
                   <>
                     <span>{t('auth.login.loginBtn')}</span>
@@ -285,15 +285,15 @@ export default function LoginPage() {
           </div>
 
           {/* Footer Terms */}
-          <p className="text-center text-[12.5px] text-slate-500 mt-6 leading-relaxed">
+          <p className="text-center text-[12.5px] text-ink-3 mt-6 leading-relaxed">
             {t('auth.login.termsNotice')}{' '}
-            <Link to="/terms" className="underline hover:text-slate-800 font-medium">
+            <Link to="/terms" className="underline hover:text-ink font-medium">
               {t('auth.login.terms')}
             </Link>{' '}
             {t('auth.login.and')}{' '}
             <Link
               to="/privacy-policy"
-              className="underline hover:text-slate-800 font-medium"
+              className="underline hover:text-ink font-medium"
             >
               {t('auth.login.privacyPolicy')}
             </Link>
