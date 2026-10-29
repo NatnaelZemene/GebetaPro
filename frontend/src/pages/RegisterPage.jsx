@@ -33,6 +33,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [showPass, setShowPass] = useState(false)
   const [registered, setRegistered] = useState(false)
+  const [emailSent, setEmailSent] = useState(false)
 
   const [resendLoading, setResendLoading] = useState(false)
   const [resendDone, setResendDone] = useState(false)
@@ -63,10 +64,11 @@ export default function RegisterPage() {
     }
     setLoading(true)
     try {
-      await register({
+      const result = await register({
         email: form.email.trim().toLowerCase(),
         password: form.password,
       })
+      setEmailSent(result?.emailSent === true)
       setRegistered(true)
     } catch (err) {
       setServerError(err?.response?.data?.message || t('auth.register.failed'))
@@ -100,21 +102,27 @@ export default function RegisterPage() {
         >
           <div className="w-full max-w-[460px]">
             <div className="bg-surface rounded-2xl border border-border shadow-xl shadow-black/5 dark:shadow-black/40 p-8 sm:p-10 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-brand-light border border-brand-border flex items-center justify-center mx-auto mb-5 shadow-sm text-brand">
-                <Mail size={30} />
+              <div className={`w-16 h-16 rounded-2xl border flex items-center justify-center mx-auto mb-5 shadow-sm ${emailSent ? 'bg-brand-light border-brand-border text-brand' : 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300'}`}>
+                {emailSent ? <Mail size={30} /> : <AlertTriangle size={28} />}
               </div>
 
               <h1 className="text-2xl sm:text-3xl font-extrabold text-ink mb-2 tracking-tight">
-                {t('auth.register.checkInbox')}
+                {emailSent
+                  ? t('auth.register.checkInbox')
+                  : t('auth.register.emailNotSentTitle', 'Account created, but email could not be sent')}
               </h1>
               <p className="text-[14.5px] text-ink-2 mb-2">
-                {t('auth.register.sentTo')}
+                {emailSent
+                  ? t('auth.register.sentTo')
+                  : t('auth.register.emailNotSentMessage', 'Your account was created, but our mail service could not send the verification link. Please try again later or contact support.')}
               </p>
               <div className="inline-block px-3.5 py-1.5 rounded-lg bg-surface-2 border border-border text-[14.5px] font-bold text-ink mb-4">
                 {form.email}
               </div>
               <p className="text-[13.5px] text-ink-3 leading-relaxed mb-6 max-w-sm mx-auto">
-                {t('auth.register.clickLink')}
+                {emailSent
+                  ? t('auth.register.clickLink')
+                  : t('auth.register.emailNotSentHint', 'You will need the verification link before you can log in. Request another link below, and contact support if it still does not arrive.')}
               </p>
 
               {resendDone ? (
@@ -124,7 +132,7 @@ export default function RegisterPage() {
                   className="inline-flex items-center gap-2 text-[13.5px] text-emerald-800 dark:text-emerald-300 font-medium bg-emerald-500/10 border border-emerald-500/30 px-4 py-2 rounded-xl mb-6 shadow-sm"
                 >
                   <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400" />
-                  {t('auth.register.resentSuccess')}
+                  {t('auth.register.resendRequested', 'If this account needs verification, a new link has been requested. Check your inbox and spam folder.')}
                 </div>
               ) : (
                 <button
