@@ -361,16 +361,16 @@ export default function HomePage() {
             }}
           />
 
-          <div className="relative max-w-4xl mx-auto px-5 sm:px-8 pt-16 pb-20 sm:pt-24 sm:pb-28 text-center">
+          <div className="relative max-w-4xl mx-auto px-4 sm:px-8 pt-10 pb-14 sm:pt-24 sm:pb-28 text-center">
 
             {/* Eyebrow label — same style, adapted for light bg */}
-            <div className="animate-fade-up flex justify-center mb-6">
+            <div className="animate-fade-up flex justify-center mb-5 sm:mb-6">
               <span
                 className="
                   inline-flex items-center gap-2
-                  text-[11.5px] font-semibold uppercase tracking-[0.12em]
+                  text-[11px] sm:text-[11.5px] font-semibold uppercase tracking-[0.12em]
                   text-ink-3 border border-border
-                  px-3.5 py-1.5 rounded-full bg-surface/80
+                  px-3 sm:px-3.5 py-1.5 rounded-full bg-surface/80
                 "
               >
                 <span
@@ -385,10 +385,10 @@ export default function HomePage() {
             <h1
               className="
                 animate-fade-up delay-75
-                text-[38px] sm:text-[54px] lg:text-[64px]
+                text-[30px] sm:text-[54px] lg:text-[64px]
                 font-extrabold text-ink
-                leading-[1.08] tracking-[-0.03em]
-                mb-5
+                leading-[1.12] sm:leading-[1.08] tracking-[-0.03em]
+                mb-4 sm:mb-5
               "
             >
               {t('home.heroTitle1')}{' '}
@@ -408,10 +408,10 @@ export default function HomePage() {
 
             {/* Supporting message — styled like the "Why GebetaPro" body text */}
             {/* Supporting message — two intentional centered lines */}
-            <div className="animate-fade-up delay-150 flex flex-col items-center gap-1.5 mb-10">
+            <div className="animate-fade-up delay-150 flex flex-col items-center gap-1.5 mb-8 sm:mb-10">
               {/* Line 1 — heavier, the promise */}
               <p className="
-                text-[17px] sm:text-[20px] font-semibold text-ink
+                text-[15px] sm:text-[20px] font-semibold text-ink
                 text-center tracking-[-0.02em] leading-snug
               ">
                 {t('home.heroSub1')}
@@ -419,8 +419,8 @@ export default function HomePage() {
               </p>
               {/* Line 2 — lighter, the instruction */}
               <p className="
-                text-[14px] sm:text-[15px] font-normal text-ink-3
-                text-center tracking-wide leading-relaxed
+                text-[12px] sm:text-[14px] font-medium text-ink-3
+                text-center tracking-wider leading-relaxed
                 uppercase
               ">
                 {t('home.heroSub2')}

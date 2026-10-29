@@ -158,110 +158,114 @@ export function Navbar() {
           {/* Right side controls */}
           <div className="flex items-center gap-2 shrink-0">
 
-            {/* Theme toggle */}
-            <ThemeToggle />
+            {/* Desktop Controls (768px+) */}
+            <div className="hidden md:flex items-center gap-2">
+              <ThemeToggle />
+              <LanguageSelector />
 
-            {/* Language selector — visible on sm+ */}
-            <LanguageSelector className="hidden sm:inline-flex" />
-
-            {/* Search pill — desktop only */}
-            <button
-              type="button"
-              onClick={() => navigate('/directory')}
-              aria-label={t('common.search')}
-              className="
-                hidden lg:flex items-center gap-2 h-8 px-3
-                bg-surface-2 border border-border text-ink-3
-                rounded-lg cursor-pointer
-                hover:border-brand-border hover:text-ink-2
-                transition-all duration-150
-                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1
-              "
-            >
-              <Search size={13} aria-hidden="true" className="shrink-0" />
-              <span className="text-[12.5px]">{t('nav.search')}</span>
-              <kbd
-                className="ml-1 text-[10px] text-ink-4 font-mono bg-surface border border-border px-1 py-0.5 rounded"
-                aria-label="keyboard shortcut: slash"
+              {/* Search pill — desktop only */}
+              <button
+                type="button"
+                onClick={() => navigate('/directory')}
+                aria-label={t('common.search')}
+                className="
+                  hidden lg:flex items-center gap-2 h-8 px-3
+                  bg-surface-2 border border-border text-ink-3
+                  rounded-lg cursor-pointer
+                  hover:border-brand-border hover:text-ink-2
+                  transition-all duration-150
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1
+                "
               >
-                /
-              </kbd>
-            </button>
+                <Search size={13} aria-hidden="true" className="shrink-0" />
+                <span className="text-[12.5px]">{t('nav.search')}</span>
+                <kbd
+                  className="ml-1 text-[10px] text-ink-4 font-mono bg-surface border border-border px-1 py-0.5 rounded"
+                  aria-label="keyboard shortcut: slash"
+                >
+                  /
+                </kbd>
+              </button>
 
-            {/* Auth controls */}
-            {isLoggedIn ? (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  icon={<LayoutDashboard size={13} aria-hidden="true" />}
-                  onClick={() => navigate('/dashboard')}
-                  className="hidden sm:inline-flex text-ink-2"
-                >
-                  {t('nav.dashboard')}
-                </Button>
-                <button
-                  type="button"
-                  onClick={() => setLogoutConfirmOpen(true)}
-                  aria-label={t('nav.logout')}
-                  title={t('nav.logout')}
-                  className="
-                    h-8 w-8 flex items-center justify-center
-                    border border-border rounded-lg text-ink-3
-                    hover:text-danger hover:border-red-200 hover:bg-red-50
-                    transition-all duration-150
-                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1
-                  "
-                >
-                  <LogOut size={13} aria-hidden="true" />
-                </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="
-                    hidden sm:block text-[13.5px] font-medium
-                    text-ink-2 hover:text-ink hover:no-underline
-                    px-3 py-1.5 rounded-md hover:bg-surface-2
-                    transition-colors duration-150
-                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1
-                  "
-                >
-                  {t('nav.login')}
-                </Link>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => navigate('/register')}
-                  className="rounded-lg text-[13px]"
-                >
-                  {t('nav.getStarted')}
-                </Button>
-              </>
-            )}
+              {/* Auth controls for desktop */}
+              {isLoggedIn ? (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    icon={<LayoutDashboard size={13} aria-hidden="true" />}
+                    onClick={() => navigate('/dashboard')}
+                    className="text-ink-2"
+                  >
+                    {t('nav.dashboard')}
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => setLogoutConfirmOpen(true)}
+                    aria-label={t('nav.logout')}
+                    title={t('nav.logout')}
+                    className="
+                      h-8 w-8 flex items-center justify-center
+                      border border-border rounded-lg text-ink-3
+                      hover:text-danger hover:border-red-200 hover:bg-red-50 dark:hover:bg-red-500/10
+                      transition-all duration-150
+                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1
+                    "
+                  >
+                    <LogOut size={13} aria-hidden="true" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    className="
+                      text-[13.5px] font-medium
+                      text-ink-2 hover:text-ink hover:no-underline
+                      px-3 py-1.5 rounded-md hover:bg-surface-2
+                      transition-colors duration-150
+                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1
+                    "
+                  >
+                    {t('nav.login')}
+                  </Link>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => navigate('/register')}
+                    className="rounded-lg text-[13px]"
+                  >
+                    {t('nav.getStarted')}
+                  </Button>
+                </>
+              )}
+            </div>
 
-            {/* Hamburger — mobile only */}
-            <button
-              ref={hamburgerRef}
-              type="button"
-              onClick={() => setOpen(o => !o)}
-              aria-label={open ? t('nav.closeMenu') : t('nav.openMenu')}
-              aria-expanded={open}
-              aria-controls="mobile-nav-drawer"
-              className="
-                md:hidden h-8 w-8 flex items-center justify-center
-                border border-border rounded-lg text-ink-2
-                hover:bg-surface-2 active:bg-surface-2
-                transition-colors duration-150
-                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1
-              "
-            >
-              {open
-                ? <X    size={16} aria-hidden="true" />
-                : <Menu size={16} aria-hidden="true" />
-              }
-            </button>
+            {/* Mobile Controls (< 768px): Only ThemeToggle + Hamburger */}
+            <div className="flex md:hidden items-center gap-2">
+              <ThemeToggle />
+              <button
+                ref={hamburgerRef}
+                type="button"
+                onClick={() => setOpen(o => !o)}
+                aria-label={open ? t('nav.closeMenu') : t('nav.openMenu')}
+                aria-expanded={open}
+                aria-controls="mobile-nav-drawer"
+                className="
+                  h-9 w-9 flex items-center justify-center
+                  border border-border rounded-xl text-ink bg-surface-2/60
+                  hover:bg-surface-2 active:bg-surface-2
+                  transition-colors duration-150
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1
+                "
+              >
+                {open
+                  ? <X    size={18} aria-hidden="true" />
+                  : <Menu size={18} aria-hidden="true" />
+                }
+              </button>
+            </div>
+
           </div>
         </div>
       </header>
@@ -276,11 +280,28 @@ export function Navbar() {
           aria-label={t('nav.mobileMenuLabel', 'Navigation menu')}
           className="
             fixed inset-0 top-[60px] z-40
-            bg-surface border-t border-border
+            bg-surface/98 backdrop-blur-xl border-t border-border
             flex flex-col overflow-y-auto
             md:hidden animate-fade-in
           "
         >
+          {/* Quick search input button inside drawer */}
+          <div className="px-5 pt-4 pb-2">
+            <button
+              type="button"
+              onClick={() => { setOpen(false); navigate('/directory') }}
+              className="
+                w-full flex items-center gap-3 h-10 px-3.5
+                bg-surface-2 border border-border text-ink-3
+                rounded-xl cursor-pointer hover:border-brand-border hover:text-ink
+                transition-all duration-150 text-[13.5px]
+              "
+            >
+              <Search size={15} aria-hidden="true" className="shrink-0 text-brand" />
+              <span>{t('home.searchPlaceholder')}</span>
+            </button>
+          </div>
+
           {/* Nav links */}
           <nav className="flex flex-col pt-1 pb-2" aria-label="Mobile navigation">
             {NAV_LINKS.map(({ to, label }) => {
@@ -293,6 +314,7 @@ export function Navbar() {
                   to={to}
                   aria-current={active ? 'page' : undefined}
                   className={mobileNavClass(active)}
+                  onClick={() => setOpen(false)}
                 >
                   {label}
                 </Link>
@@ -303,14 +325,14 @@ export function Navbar() {
           {/* Language & Theme controls */}
           <div className="px-5 py-4 border-t border-border space-y-4">
             <div>
-              <p className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-ink-3 mb-2.5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-3 mb-2.5">
                 {t('lang.select', 'Language')}
               </p>
               <LanguageSelector />
             </div>
 
             <div>
-              <p className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-ink-3 mb-2.5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-3 mb-2.5">
                 Theme
               </p>
               <ThemeToggle variant="segmented" />
@@ -318,24 +340,26 @@ export function Navbar() {
           </div>
 
           {/* Auth CTAs — pinned to bottom */}
-          <div className="mt-auto px-5 py-5 border-t border-border flex flex-col gap-2.5">
+          <div className="mt-auto px-5 py-5 border-t border-border flex flex-col gap-2.5 bg-surface/50">
             {isLoggedIn ? (
               <>
                 <Button
                   variant="primary"
                   size="lg"
                   fullWidth
-                  icon={<LayoutDashboard size={15} aria-hidden="true" />}
-                  onClick={() => navigate('/dashboard')}
+                  icon={<LayoutDashboard size={16} aria-hidden="true" />}
+                  onClick={() => { setOpen(false); navigate('/dashboard') }}
+                  className="rounded-xl font-semibold"
                 >
                   {t('nav.dashboard')}
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant="secondary"
                   size="md"
                   fullWidth
-                  icon={<LogOut size={14} aria-hidden="true" />}
-                  onClick={() => setLogoutConfirmOpen(true)}
+                  icon={<LogOut size={15} aria-hidden="true" />}
+                  onClick={() => { setOpen(false); setLogoutConfirmOpen(true) }}
+                  className="rounded-xl text-danger border-border hover:bg-red-500/10"
                 >
                   {t('nav.logout')}
                 </Button>
@@ -346,7 +370,8 @@ export function Navbar() {
                   variant="primary"
                   size="lg"
                   fullWidth
-                  onClick={() => navigate('/register')}
+                  onClick={() => { setOpen(false); navigate('/register') }}
+                  className="rounded-xl font-semibold"
                 >
                   {t('nav.getStartedFree')}
                 </Button>
@@ -354,7 +379,8 @@ export function Navbar() {
                   variant="secondary"
                   size="md"
                   fullWidth
-                  onClick={() => navigate('/login')}
+                  onClick={() => { setOpen(false); navigate('/login') }}
+                  className="rounded-xl font-semibold"
                 >
                   {t('nav.login')}
                 </Button>
