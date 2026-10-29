@@ -168,10 +168,10 @@
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
-/* Ensure inputs, select, textareas look rich and native in dark mode */
-.dark input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
-.dark textarea,
-.dark select {
+/* Ensure form inputs, select, textareas look rich and native in dark mode (excluding transparent search inputs) */
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not(.bg-transparent):not([class*="bg-transparent"]),
+.dark textarea:not(.bg-transparent):not([class*="bg-transparent"]),
+.dark select:not(.bg-transparent):not([class*="bg-transparent"]) {
   background-color: var(--surface) !important;
   color: var(--ink) !important;
   border-color: var(--border) !important;
@@ -179,6 +179,24 @@
 .dark input::placeholder,
 .dark textarea::placeholder {
   color: var(--ink-3) !important;
+}
+
+/* Explicit rule for transparent search / header inputs — guarantees no rectangular outlines or boxes */
+input.bg-transparent,
+input[class*="bg-transparent"] {
+  background-color: transparent !important;
+  border: 0 !important;
+  border-color: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-appearance: none;
+}
+input.bg-transparent:focus,
+input[class*="bg-transparent"]:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  border-color: transparent !important;
 }
 
 /* ── Hardware-accelerated smooth theme transition (only on user toggle) ───── */

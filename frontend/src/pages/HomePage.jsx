@@ -91,31 +91,37 @@ function HeroSearchForm({ onSearch }) {
       <form
         onSubmit={handleSubmit}
         className="
-          search-ring-focus
-          relative flex flex-col sm:flex-row
-          bg-white rounded-2xl overflow-hidden
-          shadow-[0_8px_40px_rgba(0,0,0,0.18)]
-          transition-shadow duration-200
+          group relative flex flex-col sm:flex-row items-center
+          bg-surface/95 dark:bg-[#111720]/95 backdrop-blur-xl
+          rounded-2xl p-1.5 sm:p-2
+          border border-border/90 dark:border-white/12
+          shadow-[0_8px_30px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]
+          dark:shadow-[0_12px_40px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.05)]
+          transition-all duration-300 ease-out
+          hover:border-brand-border dark:hover:border-white/20
+          focus-within:border-brand dark:focus-within:border-brand
+          focus-within:ring-4 focus-within:ring-brand/15 dark:focus-within:ring-brand/20
+          focus-within:shadow-[0_16px_48px_rgba(26,107,94,0.15)] dark:focus-within:shadow-[0_16px_48px_rgba(45,212,191,0.15)]
         "
         aria-label="Search GebetaPro"
       >
         {/* What */}
-        <div className="flex items-center flex-1 gap-3 px-4 py-3.5 sm:py-0 sm:h-14">
-          <Search size={17} className="text-ink-3 shrink-0" aria-hidden="true" />
+        <div className="flex items-center flex-1 w-full gap-3 px-3.5 h-12 sm:h-14">
+          <Search size={18} className="text-ink-3 group-focus-within:text-brand transition-colors duration-200 shrink-0" aria-hidden="true" />
           <input
             ref={searchRef}
             type="text"
             placeholder={t('home.searchPlaceholder')}
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="flex-1 bg-transparent text-[15px] text-ink placeholder:text-ink-3 outline-none min-w-0"
+            className="flex-1 bg-transparent border-0 outline-none ring-0 shadow-none text-[15px] text-ink placeholder:text-ink-3 min-w-0"
             aria-label="Search query"
           />
           {search && (
             <button
               type="button"
               onClick={() => { setSearch(''); searchRef.current?.focus() }}
-              className="text-ink-3 hover:text-ink transition-colors shrink-0"
+              className="w-6 h-6 rounded-full flex items-center justify-center text-ink-3 hover:text-ink hover:bg-surface-2 transition-colors shrink-0 text-sm font-medium"
               aria-label={t('home.clearSearch')}
             >
               ×
@@ -124,35 +130,37 @@ function HeroSearchForm({ onSearch }) {
         </div>
 
         {/* Divider */}
-        <div className="hidden sm:block w-px bg-border self-stretch my-3" aria-hidden="true" />
-        <div className="block sm:hidden h-px bg-border mx-4" aria-hidden="true" />
+        <div className="hidden sm:block w-px h-8 bg-border self-center shrink-0 mx-1" aria-hidden="true" />
+        <div className="block sm:hidden h-px w-full bg-border" aria-hidden="true" />
 
         {/* Where */}
-        <div className="flex items-center gap-3 px-4 py-3.5 sm:py-0 sm:h-14 sm:w-48">
-          <MapPin size={15} className="text-ink-3 shrink-0" aria-hidden="true" />
+        <div className="flex items-center w-full sm:w-56 gap-3 px-3.5 h-12 sm:h-14">
+          <MapPin size={17} className="text-ink-3 group-focus-within:text-brand transition-colors duration-200 shrink-0" aria-hidden="true" />
           <input
             type="text"
             placeholder={t('home.locationPlaceholder')}
             value={city}
             onChange={e => setCity(e.target.value)}
-            className="flex-1 bg-transparent text-[15px] text-ink placeholder:text-ink-3 outline-none min-w-0"
+            className="flex-1 bg-transparent border-0 outline-none ring-0 shadow-none text-[15px] text-ink placeholder:text-ink-3 min-w-0"
             aria-label="Location"
           />
         </div>
 
         {/* Submit */}
-        <div className="p-2">
+        <div className="w-full sm:w-auto p-1 sm:p-0">
           <button
             type="submit"
             className="
-              h-10 sm:h-full px-5 rounded-xl
-              bg-brand text-white text-[14px] font-semibold
+              h-11 sm:h-12 px-6 sm:px-7 rounded-xl
+              bg-brand text-brand-fg text-[14.5px] font-semibold
               hover:bg-brand-hover active:scale-[0.98]
-              transition-all duration-150 w-full sm:w-auto
+              shadow-md shadow-brand/20 hover:shadow-lg hover:shadow-brand/30
+              transition-all duration-200 w-full sm:w-auto
+              flex items-center justify-center gap-2
               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2
             "
           >
-            {t('home.searchBtn')}
+            <span>{t('home.searchBtn')}</span>
           </button>
         </div>
       </form>
