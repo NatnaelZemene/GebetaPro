@@ -11,7 +11,7 @@
  * - Submit button is inside the form so Enter submits naturally.
  */
 import { useState } from 'react'
-import { Star } from 'lucide-react'
+import { Star, AlertTriangle } from 'lucide-react'
 import { Button } from '../../../components/ui/Button.jsx'
 import { Link } from 'react-router-dom'
 
@@ -121,7 +121,7 @@ export function ReviewForm({ slug, onSubmit, loading = false, isLoggedIn = false
           {/* Error — role="alert" so it is immediately announced */}
           {error && (
             <p id={errorId} role="alert" className="text-[12px] text-danger flex items-center gap-1">
-              <span aria-hidden="true">⚠</span> {error}
+              <AlertTriangle size={13} aria-hidden="true" className="shrink-0" /> {error}
             </p>
           )}
         </div>

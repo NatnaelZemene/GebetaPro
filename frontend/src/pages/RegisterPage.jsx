@@ -10,7 +10,7 @@
  */
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Mail, Lock, Eye, EyeOff, CheckCircle2, RefreshCw, ArrowRight } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, CheckCircle2, RefreshCw, ArrowRight, AlertTriangle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Navbar } from '../components/layout/Navbar.jsx'
 import { register, resendVerification } from '../features/auth/services/authService.js'
@@ -418,9 +418,7 @@ export default function RegisterPage() {
                   aria-live="assertive"
                   className="bg-red-50 border border-red-200 rounded-xl p-3 text-[13.5px] text-red-700 font-medium flex items-start gap-2"
                 >
-                  <span aria-hidden="true" className="font-bold text-red-600">
-                    ⚠
-                  </span>
+                  <AlertTriangle size={15} aria-hidden="true" className="shrink-0 text-red-600" />
                   <span>{serverError}</span>
                 </div>
               )}

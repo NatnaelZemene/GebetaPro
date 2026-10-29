@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Camera, CheckCircle, ExternalLink, X, Plus,
-  Upload, FileText, AlertTriangle, Info, Clock,
+  Upload, FileText, Image as ImageIcon, AlertTriangle, Info, Clock, Eye, EyeOff,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { DashboardLayout } from '../../components/layout/DashboardLayout.jsx'
@@ -135,8 +135,6 @@ function DocumentUploadSection({ profileId, currentDoc, profile }) {
   }
 
   const displayDoc = currentDoc
-  const fileIcon = (mime) => mime === 'application/pdf' ? '📄' : '🖼️'
-
   return (
     <div className="space-y-3">
       <div className="flex items-start justify-between gap-2 flex-wrap">
@@ -219,7 +217,9 @@ function DocumentUploadSection({ profileId, currentDoc, profile }) {
 
       {displayDoc && (
         <div className="flex items-center gap-3 p-3 bg-surface border border-border rounded-xl">
-          <span className="text-xl" aria-hidden="true">{fileIcon(displayDoc.mime_type)}</span>
+          {displayDoc.mime_type === 'application/pdf'
+            ? <FileText size={20} className="text-ink-3 shrink-0" aria-hidden="true" />
+            : <ImageIcon size={20} className="text-ink-3 shrink-0" aria-hidden="true" />}
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-medium text-ink truncate">{displayDoc.document_name}</p>
             <p className="text-[11.5px] text-ink-3">
@@ -537,9 +537,9 @@ function CreateProfileSetup({ onCreated }) {
     const roots = categoriesData.filter(c => !c.parent_id)
     const children = categoriesData.filter(c => c.parent_id)
     for (const root of roots) {
-      categoryOptions.push({ value: root.id, label: `${root.icon || ''} ${root.name}`.trim(), isParent: true })
+      categoryOptions.push({ value: root.id, label: root.name, isParent: true })
       for (const sub of children.filter(c => c.parent_id === root.id)) {
-        categoryOptions.push({ value: sub.id, label: `  ${sub.icon || ''}  ${sub.name}`.trim(), isParent: false })
+        categoryOptions.push({ value: sub.id, label: `  ${sub.name}`, isParent: false })
       }
     }
   }
@@ -638,9 +638,9 @@ export default function ProfileEditPage() {
     const roots = categoriesData.filter(c => !c.parent_id)
     const children = categoriesData.filter(c => c.parent_id)
     for (const root of roots) {
-      categoryOptions.push({ value: root.id, label: `${root.icon || ''} ${root.name}`.trim(), isParent: true })
+      categoryOptions.push({ value: root.id, label: root.name, isParent: true })
       for (const sub of children.filter(c => c.parent_id === root.id)) {
-        categoryOptions.push({ value: sub.id, label: `  ${sub.icon || ''}  ${sub.name}`.trim(), isParent: false })
+        categoryOptions.push({ value: sub.id, label: `  ${sub.name}`, isParent: false })
       }
     }
   }
@@ -941,7 +941,8 @@ export default function ProfileEditPage() {
             {!needsVerification && (
               <div className={`flex items-center justify-between gap-4 p-3.5 rounded-xl border ${form.is_published ? 'bg-emerald-50 border-emerald-200' : 'bg-surface-2 border-border'}`}>
                 <div>
-                  <p className={`text-[13px] font-semibold ${form.is_published ? 'text-emerald-700' : 'text-ink'}`}>
+                  <p className={`flex items-center gap-1.5 text-[13px] font-semibold ${form.is_published ? 'text-emerald-700' : 'text-ink'}`}>
+                    {form.is_published ? <Eye size={14} aria-hidden="true" /> : <EyeOff size={14} aria-hidden="true" />}
                     {form.is_published ? t('profile.edit.profilePublic') : t('profile.edit.profileHidden')}
                   </p>
                   <p className="text-[11.5px] text-ink-3 mt-0.5">

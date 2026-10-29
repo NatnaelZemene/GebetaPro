@@ -10,7 +10,7 @@ import {
   Utensils, Coffee, ShoppingBag,
   Laptop, Smartphone, Code, Globe,
   Briefcase, Scale, HeartPulse, Calculator,
-  Home, Zap, Droplets, Leaf, Shield,
+  Home, Zap, Droplets, Leaf, KeyRound,
   Car, Truck, Package,
   ShoppingCart,
   LayoutGrid
@@ -57,7 +57,7 @@ const ICON_MAP = {
   'cleaning':         { icon: Sparkles,    bg: 'bg-cyan-50',    text: 'text-cyan-500' },
   'painting':         { icon: Pen,         bg: 'bg-lime-50',    text: 'text-lime-600' },
   'gardening':        { icon: Leaf,        bg: 'bg-green-50',   text: 'text-green-600' },
-  'security-systems': { icon: Shield,      bg: 'bg-slate-50',   text: 'text-slate-600' },
+  'security-systems': { icon: KeyRound,    bg: 'bg-slate-50',   text: 'text-slate-600' },
 
   // ── Professional Services ─────────────────────────────────────
   'professional':     { icon: Briefcase,   bg: 'bg-blue-50',    text: 'text-blue-600' },

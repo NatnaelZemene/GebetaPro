@@ -123,7 +123,7 @@ export function LanguageSelector({ className = '' }) {
                 <MapPin size={13} className="text-brand shrink-0" />
               )}
               <span className="truncate">
-                {detecting ? 'Detecting region…' : '📍 Auto-detect location'}
+                {detecting ? 'Detecting region…' : 'Auto-detect location'}
               </span>
             </button>
           </li>
@@ -262,7 +262,7 @@ export function LanguageSelectorDark({ className = '' }) {
                 <MapPin size={13} className="text-blue-300 shrink-0" />
               )}
               <span className="truncate">
-                {detecting ? 'Detecting region…' : '📍 Auto-detect location'}
+                {detecting ? 'Detecting region…' : 'Auto-detect location'}
               </span>
             </button>
           </li>

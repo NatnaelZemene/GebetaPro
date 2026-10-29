@@ -2,7 +2,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import {
   Eye, TrendingUp, CreditCard, ArrowRight, Star,
   CheckCircle2, Circle, AlertCircle, Users, MessageSquare,
-  Plus, BadgeCheck, Edit3, FileText, Clock, XCircle,
+  Plus, BadgeCheck, Edit3, FileText, Clock, XCircle, Megaphone, EyeOff,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { DashboardLayout } from '../components/layout/DashboardLayout.jsx'
@@ -148,7 +148,7 @@ export default function DashboardPage() {
                   score >= 80 ? 'text-emerald-700 dark:text-emerald-300' : score >= 50 ? 'text-amber-700 dark:text-amber-300' : 'text-red-700 dark:text-red-300'
                 }`}>
                   {t('dashboard.profileComplete', { score })}
-                  {score >= 80 && ' 🎉'}
+                  {score >= 80 && <CheckCircle2 size={14} className="inline-block ml-1 text-emerald-600 dark:text-emerald-400" aria-label="Complete" />}
                 </p>
                 <p className="text-[12px] text-ink-2 mt-0.5">
                   {score < 100 ? t('dashboard.rankHigher') : t('dashboard.fullyComplete')}
@@ -263,6 +263,7 @@ export default function DashboardPage() {
             <Button
               variant={isPublished ? 'secondary' : 'primary'}
               size="sm"
+              icon={isPublished ? <EyeOff size={13} /> : <Megaphone size={13} />}
               loading={isPending}
               disabled={!isPublished && !publishAllowed}
               onClick={handleTogglePublish}

@@ -4,6 +4,7 @@
  */
 import { Link } from 'react-router-dom'
 import { MapPin, Star, BadgeCheck, ExternalLink } from 'lucide-react'
+import { CategoryIconInline } from '../../profiles/components/CategoryIcon.jsx'
 
 export function MapProfilePopup({ profile }) {
   return (
@@ -44,7 +45,7 @@ export function MapProfilePopup({ profile }) {
       {/* Category */}
       {profile.category_name && (
         <p className="text-[11px] text-ink-3 mb-1">
-          {profile.category_icon && <span className="mr-1">{profile.category_icon}</span>}
+          <CategoryIconInline slug={profile.category_slug} name={profile.category_name} size={12} className="mr-1 inline-block align-[-2px]" />
           {profile.category_name}
         </p>
       )}

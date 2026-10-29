@@ -12,6 +12,7 @@ import { AdminLayout }  from '../../components/layout/AdminLayout.jsx'
 import { Badge }        from '../../components/ui/Badge.jsx'
 import { Button }       from '../../components/ui/Button.jsx'
 import { Skeleton }     from '../../components/ui/Skeleton.jsx'
+import { CategoryIcon, CategoryIconInline } from '../../features/profiles/components/CategoryIcon.jsx'
 import { PageHeader, EmptyState } from '../../features/admin/components/AdminTable.jsx'
 import {
   useAdminCategories, useCreateCategory,
@@ -28,7 +29,7 @@ function slugify(str) {
     .slice(0, 100)
 }
 
-const EMPTY_FORM = { name: '', slug: '', description: '', icon: '', parent_id: '' }
+const EMPTY_FORM = { name: '', slug: '', description: '', parent_id: '' }
 
 /* ── Category form ─────────────────────────────────────────────────────── */
 function CategoryForm({ initial = EMPTY_FORM, parents = [], onSubmit, onCancel, loading, error }) {
@@ -50,7 +51,6 @@ function CategoryForm({ initial = EMPTY_FORM, parents = [], onSubmit, onCancel, 
       name:        form.name.trim(),
       slug:        form.slug.trim(),
       description: form.description.trim() || undefined,
-      icon:        form.icon.trim()        || undefined,
       parent_id:   form.parent_id          || undefined,
     })
   }
@@ -81,8 +81,11 @@ function CategoryForm({ initial = EMPTY_FORM, parents = [], onSubmit, onCancel, 
           <p className="text-[11px] text-ink-3 mt-1">Lowercase, numbers, hyphens only.</p>
         </div>
         <div>
-          <label className={labelCls}>Icon / Emoji</label>
-          <input className={inputCls} value={form.icon} onChange={e => set('icon', e.target.value)} maxLength={50} placeholder="e.g. 📱 or icon-id" />
+          <label className={labelCls}>Professional icon</label>
+          <div className="h-9 flex items-center gap-2 text-[12px] text-ink-3">
+            <CategoryIcon slug={form.slug} name={form.name} size={16} boxSize="w-8 h-8" rounded="rounded-lg" />
+            <span>Selected automatically from the category</span>
+          </div>
         </div>
         <div>
           <label className={labelCls}>Parent category</label>
@@ -256,13 +259,13 @@ export default function AdminCategoriesPage() {
                   )}
 
                   {/* Icon */}
-                  <span className="text-[18px] w-6 shrink-0 leading-none">{cat.icon || '📁'}</span>
+                  <CategoryIcon slug={cat.slug} name={cat.name} size={14} boxSize="w-7 h-7" rounded="rounded-lg" />
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     {editId === cat.id ? (
                       <CategoryForm
-                        initial={{ name: cat.name, slug: cat.slug, description: cat.description || '', icon: cat.icon || '', parent_id: '' }}
+                        initial={{ name: cat.name, slug: cat.slug, description: cat.description || '', parent_id: '' }}
                         parents={topLevel.filter(p => p.id !== cat.id)}
                         onSubmit={data => update.mutate({ catId: cat.id, data }, { onSuccess: () => setEditId(null) })}
                         onCancel={() => setEditId(null)}
@@ -310,11 +313,11 @@ export default function AdminCategoriesPage() {
                         key={child.id}
                         className={`flex items-center gap-3 px-4 py-2.5 pl-12 ${idx < kids.length - 1 ? 'border-b border-border' : ''}`}
                       >
-                        <span className="text-[15px] w-5 shrink-0">{child.icon || '·'}</span>
+                        <CategoryIconInline slug={child.slug} name={child.name} size={14} className="shrink-0" />
                         <div className="flex-1 min-w-0">
                           {editId === child.id ? (
                             <CategoryForm
-                              initial={{ name: child.name, slug: child.slug, description: child.description || '', icon: child.icon || '', parent_id: child.parent_id || '' }}
+                              initial={{ name: child.name, slug: child.slug, description: child.description || '', parent_id: child.parent_id || '' }}
                               parents={topLevel}
                               onSubmit={data => update.mutate({ catId: child.id, data }, { onSuccess: () => setEditId(null) })}
                               onCancel={() => setEditId(null)}

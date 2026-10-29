@@ -9,7 +9,7 @@
  */
 import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { Mail, Lock, Eye, EyeOff, CheckCircle2, ArrowRight } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, CheckCircle2, ArrowRight, AlertTriangle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Navbar } from '../components/layout/Navbar.jsx'
 import { Button } from '../components/ui/Button.jsx'
@@ -240,9 +240,7 @@ export default function LoginPage() {
                   className="bg-red-50 border border-red-200 rounded-xl p-3.5 text-[13.5px] text-red-700 font-medium"
                 >
                   <div className="flex items-start gap-2">
-                    <span aria-hidden="true" className="font-bold text-red-600">
-                      ⚠
-                    </span>
+                    <AlertTriangle size={15} aria-hidden="true" className="shrink-0 text-red-600" />
                     <span className="flex-1">{error}</span>
                   </div>
                   {isUnverified && (

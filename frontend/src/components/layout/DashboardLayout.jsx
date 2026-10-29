@@ -17,7 +17,7 @@ import { NavLink, useNavigate, Link } from 'react-router-dom'
 import {
   LayoutDashboard, CreditCard,
   User, Wrench, FolderOpen, FileText, Award,
-  LogOut, X, Menu, Bell, Link2, Clock
+  LogOut, X, Menu, Bell, Link2, Clock, Star, MessageCircle, BadgeCheck,
 } from 'lucide-react'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -28,9 +28,9 @@ import { useFocusTrap } from '../../hooks/useFocusTrap.js'
 import * as api from '../../services/profiles.service.js'
 
 const TYPE_ICON = {
-  new_review:       '⭐',
-  review_reply:     '💬',
-  profile_verified: '✅',
+  new_review:       Star,
+  review_reply:     MessageCircle,
+  profile_verified: BadgeCheck,
 }
 
 function timeAgo(dateStr, t) {
@@ -180,7 +180,10 @@ function NotificationBell() {
                   aria-label={`${n.title}${!n.is_read ? ' — unread' : ''}`}
                 >
                   <div className="w-8 h-8 rounded-full bg-surface-2 border border-border flex items-center justify-center shrink-0 text-base" aria-hidden="true">
-                    {TYPE_ICON[n.type] || '🔔'}
+                    {(() => {
+                      const NotificationIcon = TYPE_ICON[n.type] || Bell
+                      return <NotificationIcon size={15} className="text-brand shrink-0" aria-hidden="true" />
+                    })()}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-1">
