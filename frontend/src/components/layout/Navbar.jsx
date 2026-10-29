@@ -325,17 +325,17 @@ export function Navbar() {
           {/* Language & Theme controls */}
           <div className="px-5 py-4 border-t border-border space-y-4">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-3 mb-2.5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-3 mb-2">
                 {t('lang.select', 'Language')}
               </p>
-              <LanguageSelector />
+              <LanguageSelector variant="segmented" />
             </div>
 
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-3 mb-2.5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-3 mb-2">
                 Theme
               </p>
-              <ThemeToggle variant="segmented" />
+              <ThemeToggle variant="segmented" className="w-full" />
             </div>
           </div>
 

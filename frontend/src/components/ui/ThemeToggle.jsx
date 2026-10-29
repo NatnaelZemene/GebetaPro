@@ -30,9 +30,15 @@ export function ThemeToggle({
   }[size] || 15
 
   if (variant === 'segmented') {
+    const isFullWidth = className.includes('w-full') || className.includes('grid')
     return (
       <div
-        className={`inline-flex items-center p-0.5 rounded-lg bg-surface-2 border border-border select-none ${className}`}
+        className={`
+          ${isFullWidth
+            ? 'w-full grid grid-cols-3 gap-1 p-1 rounded-xl'
+            : 'inline-flex items-center p-0.5 rounded-lg'}
+          bg-surface-2 border border-border select-none ${className}
+        `}
         role="group"
         aria-label="Theme selection"
       >
@@ -42,13 +48,14 @@ export function ThemeToggle({
           aria-pressed={theme === 'light'}
           aria-label="Light theme"
           className={`
-            flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[12px] font-medium transition-all
+            flex items-center justify-center gap-1.5 ${isFullWidth ? 'py-2 px-2 rounded-lg' : 'px-2.5 py-1 rounded-md'} text-[12px] font-medium transition-all cursor-pointer
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand
             ${theme === 'light'
-              ? 'bg-surface text-ink shadow-xs border border-border/80'
+              ? 'bg-surface text-ink shadow-xs border border-border/80 font-semibold'
               : 'text-ink-3 hover:text-ink hover:bg-surface/50 border border-transparent'}
           `}
         >
-          <Sun size={12} className="shrink-0" />
+          <Sun size={13} className="shrink-0" />
           <span>Light</span>
         </button>
 
@@ -58,13 +65,14 @@ export function ThemeToggle({
           aria-pressed={theme === 'dark'}
           aria-label="Dark theme"
           className={`
-            flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[12px] font-medium transition-all
+            flex items-center justify-center gap-1.5 ${isFullWidth ? 'py-2 px-2 rounded-lg' : 'px-2.5 py-1 rounded-md'} text-[12px] font-medium transition-all cursor-pointer
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand
             ${theme === 'dark'
-              ? 'bg-surface text-ink shadow-xs border border-border/80'
+              ? 'bg-surface text-ink shadow-xs border border-border/80 font-semibold'
               : 'text-ink-3 hover:text-ink hover:bg-surface/50 border border-transparent'}
           `}
         >
-          <Moon size={12} className="shrink-0" />
+          <Moon size={13} className="shrink-0" />
           <span>Dark</span>
         </button>
 
@@ -74,13 +82,14 @@ export function ThemeToggle({
           aria-pressed={theme === 'system'}
           aria-label="System theme"
           className={`
-            flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[12px] font-medium transition-all
+            flex items-center justify-center gap-1.5 ${isFullWidth ? 'py-2 px-2 rounded-lg' : 'px-2.5 py-1 rounded-md'} text-[12px] font-medium transition-all cursor-pointer
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand
             ${theme === 'system'
-              ? 'bg-surface text-ink shadow-xs border border-border/80'
+              ? 'bg-surface text-ink shadow-xs border border-border/80 font-semibold'
               : 'text-ink-3 hover:text-ink hover:bg-surface/50 border border-transparent'}
           `}
         >
-          <Monitor size={12} className="shrink-0" />
+          <Monitor size={13} className="shrink-0" />
           <span>System</span>
         </button>
       </div>

@@ -27,7 +27,11 @@ const LANGUAGES = [
 /* ─────────────────────────────────────────────────────────────────────────
    LanguageSelector — light surface (Navbar / DashboardLayout)
 ───────────────────────────────────────────────────────────────────────── */
-export function LanguageSelector({ className = '' }) {
+export function LanguageSelector({
+  className = '',
+  variant = 'dropdown',
+  align = 'right',
+}) {
   const { i18n, t }  = useTranslation()
   const current       = LANGUAGES.find(l => l.code === i18n.language) || LANGUAGES[0]
   const [open, setOpen] = useState(false)
@@ -67,6 +71,66 @@ export function LanguageSelector({ className = '' }) {
     }
   }
 
+  /* ── Mobile-First Segmented Pill Variant (for drawers & settings) ───── */
+  if (variant === 'segmented') {
+    return (
+      <div className={`w-full space-y-2 ${className}`}>
+        <div
+          role="group"
+          aria-label={t('lang.select', 'Language')}
+          className="w-full grid grid-cols-4 gap-1 p-1 bg-surface-2 border border-border rounded-xl select-none"
+        >
+          {LANGUAGES.map(({ code, native, label }) => {
+            const isActive = code === i18n.language
+            return (
+              <button
+                key={code}
+                type="button"
+                onClick={() => select(code)}
+                aria-pressed={isActive}
+                className={`
+                  py-2 px-1 rounded-lg text-center transition-all duration-150 cursor-pointer flex flex-col items-center justify-center
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand
+                  ${isActive
+                    ? 'bg-brand text-brand-fg font-semibold shadow-xs'
+                    : 'text-ink-2 hover:text-ink hover:bg-surface/60 font-medium'}
+                `}
+              >
+                <span className="text-[12px] leading-tight truncate max-w-full">
+                  {code === 'om' ? 'Oromoo' : native}
+                </span>
+                <span className={`text-[10px] uppercase tracking-wide leading-none mt-0.5 ${isActive ? 'text-brand-fg/80' : 'text-ink-4'}`}>
+                  {label}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* GPS Auto-detect button */}
+        <button
+          type="button"
+          onClick={handleAutoDetect}
+          disabled={detecting}
+          className="
+            w-full flex items-center justify-center gap-2 py-2 px-3
+            text-[12px] font-medium text-brand hover:text-brand-hover
+            bg-brand-light/30 border border-brand-border/40 rounded-xl
+            hover:bg-brand-light/50 transition-all duration-150 cursor-pointer disabled:opacity-50
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand
+          "
+        >
+          {detecting ? (
+            <Loader2 size={13} className="animate-spin text-brand shrink-0" />
+          ) : (
+            <MapPin size={13} className="text-brand shrink-0" />
+          )}
+          <span>{detecting ? 'Detecting region…' : t('lang.autoDetect', 'Auto-detect language by location')}</span>
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div ref={containerRef} className={`relative inline-block ${className}`}>
       {/* Trigger button */}
@@ -102,7 +166,9 @@ export function LanguageSelector({ className = '' }) {
           aria-label={t('lang.select', 'Language')}
           aria-activedescendant={`lang-opt-${current.code}`}
           className={[
-            'absolute right-0 top-[calc(100%+6px)] z-[200]',
+            align === 'left'
+              ? 'absolute left-0 top-[calc(100%+6px)] z-[200]'
+              : 'absolute right-0 top-[calc(100%+6px)] z-[200]',
             'w-48 rounded-xl border border-border',
             'bg-surface shadow-lg shadow-black/10',
             'py-1 overflow-hidden',
@@ -115,7 +181,7 @@ export function LanguageSelector({ className = '' }) {
               type="button"
               onClick={handleAutoDetect}
               disabled={detecting}
-              className="w-full flex items-center gap-2 px-3 py-2 text-left text-[12px] font-medium text-brand hover:bg-brand-light/30 transition-colors disabled:opacity-50"
+              className="w-full flex items-center gap-2 px-3 py-2 text-left text-[12px] font-medium text-brand hover:bg-brand-light/30 transition-colors disabled:opacity-50 cursor-pointer"
             >
               {detecting ? (
                 <Loader2 size={13} className="animate-spin text-brand" />
@@ -142,7 +208,7 @@ export function LanguageSelector({ className = '' }) {
                   onClick={() => select(code)}
                   className={[
                     'w-full flex items-center justify-between gap-2 px-3 py-2',
-                    'text-left text-[13px] transition-colors duration-100',
+                    'text-left text-[13px] transition-colors duration-100 cursor-pointer',
                     'focus-visible:outline-none focus-visible:bg-surface-2',
                     isActive
                       ? 'text-brand bg-brand-light/40 font-semibold'
