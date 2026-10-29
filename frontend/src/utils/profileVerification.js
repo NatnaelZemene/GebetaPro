@@ -82,13 +82,13 @@ export function statusLabel(status) {
  */
 export function statusBadgeClasses(status) {
   const map = {
-    UNVERIFIED:   { bg: 'bg-surface-2',   text: 'text-ink-3',    border: 'border-border',    dot: 'bg-ink-3'     },
-    PENDING:      { bg: 'bg-amber-50',    text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-500' },
-    UNDER_REVIEW: { bg: 'bg-blue-50',     text: 'text-blue-700',  border: 'border-blue-200',  dot: 'bg-blue-500'  },
-    ACTIVE:       { bg: 'bg-emerald-50',  text: 'text-emerald-700', border: 'border-emerald-200', dot: 'bg-emerald-500' },
-    VERIFIED:     { bg: 'bg-emerald-50',  text: 'text-emerald-700', border: 'border-emerald-200', dot: 'bg-emerald-500' },
-    REJECTED:     { bg: 'bg-red-50',      text: 'text-red-700',   border: 'border-red-200',   dot: 'bg-red-500'   },
-    SUSPENDED:    { bg: 'bg-orange-50',   text: 'text-orange-700', border: 'border-orange-200', dot: 'bg-orange-500' },
+    UNVERIFIED:   { bg: 'bg-surface-2',       text: 'text-ink-3',                         border: 'border-border',          dot: 'bg-ink-3'     },
+    PENDING:      { bg: 'bg-amber-500/10',    text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-500/30',   dot: 'bg-amber-500' },
+    UNDER_REVIEW: { bg: 'bg-blue-500/10',     text: 'text-blue-700 dark:text-blue-300',   border: 'border-blue-500/30',    dot: 'bg-blue-500'  },
+    ACTIVE:       { bg: 'bg-emerald-500/10',  text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-500/30', dot: 'bg-emerald-500' },
+    VERIFIED:     { bg: 'bg-emerald-500/10',  text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-500/30', dot: 'bg-emerald-500' },
+    REJECTED:     { bg: 'bg-red-500/10',      text: 'text-red-700 dark:text-red-300',     border: 'border-red-500/30',      dot: 'bg-red-500'   },
+    SUSPENDED:    { bg: 'bg-orange-500/10',   text: 'text-orange-700 dark:text-orange-300', border: 'border-orange-500/30', dot: 'bg-orange-500' },
   }
   return map[status] || map.UNVERIFIED
 }

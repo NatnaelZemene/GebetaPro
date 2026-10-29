@@ -3,11 +3,11 @@ import { Loader2 } from 'lucide-react'
 const base = 'inline-flex items-center justify-center gap-2 font-medium font-sans rounded leading-none transition-all duration-150 select-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1'
 
 const variants = {
-  primary:   'bg-brand text-white border border-brand hover:bg-brand-hover active:bg-brand-hover',
-  secondary: 'bg-surface text-ink border border-border-2 hover:bg-surface-2 active:bg-surface-2',
+  primary:   'bg-brand text-brand-fg font-semibold border border-brand hover:bg-brand-hover active:bg-brand-hover shadow-xs',
+  secondary: 'bg-surface text-ink border border-border hover:bg-surface-2 active:bg-surface-2 shadow-xs',
   ghost:     'bg-transparent text-ink-2 border border-transparent hover:bg-surface-2 hover:text-ink',
-  outline:   'bg-transparent text-brand border border-brand hover:bg-brand-light',
-  danger:    'bg-danger text-white border border-danger hover:opacity-90',
+  outline:   'bg-transparent text-brand border border-brand/60 hover:bg-brand-light',
+  danger:    'bg-danger text-white border border-danger hover:opacity-90 shadow-xs',
 }
 
 const sizes = {

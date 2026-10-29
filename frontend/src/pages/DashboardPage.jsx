@@ -135,10 +135,18 @@ export default function DashboardPage() {
 
         {/* Profile completion */}
         {!completionLoading && (
-          <div className={`rounded-2xl border p-5 ${score >= 80 ? 'bg-emerald-50 border-emerald-200' : score >= 50 ? 'bg-amber-50 border-amber-200' : 'bg-red-50 border-red-200'}`}>
+          <div className={`rounded-2xl border p-5 transition-colors ${
+            score >= 80
+              ? 'bg-emerald-500/10 border-emerald-500/30'
+              : score >= 50
+              ? 'bg-amber-500/10 border-amber-500/30'
+              : 'bg-red-500/10 border-red-500/30'
+          }`}>
             <div className="flex items-start justify-between gap-4 mb-3">
               <div>
-                <p className={`text-[13.5px] font-bold ${score >= 80 ? 'text-emerald-700' : score >= 50 ? 'text-amber-700' : 'text-red-700'}`}>
+                <p className={`text-[13.5px] font-bold ${
+                  score >= 80 ? 'text-emerald-700 dark:text-emerald-300' : score >= 50 ? 'text-amber-700 dark:text-amber-300' : 'text-red-700 dark:text-red-300'
+                }`}>
                   {t('dashboard.profileComplete', { score })}
                   {score >= 80 && ' 🎉'}
                 </p>
@@ -146,11 +154,13 @@ export default function DashboardPage() {
                   {score < 100 ? t('dashboard.rankHigher') : t('dashboard.fullyComplete')}
                 </p>
               </div>
-              <span className={`text-xl font-extrabold ${score >= 80 ? 'text-emerald-600' : score >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+              <span className={`text-xl font-extrabold ${
+                score >= 80 ? 'text-emerald-600 dark:text-emerald-400' : score >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'
+              }`}>
                 {score}%
               </span>
             </div>
-            <div className="w-full bg-border rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-surface-2 border border-border/60 rounded-full h-2 overflow-hidden">
               <div
                 className={`h-2 rounded-full transition-all duration-500 ${score >= 80 ? 'bg-emerald-500' : score >= 50 ? 'bg-amber-400' : 'bg-red-400'}`}
                 style={{ width: `${score}%` }}
@@ -159,8 +169,8 @@ export default function DashboardPage() {
             {incompleteChecks.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {incompleteChecks.map(c => (
-                  <span key={c.key} className="inline-flex items-center gap-1 text-[11.5px] text-ink-2 bg-white/70 px-2.5 py-1 rounded-full border border-white">
-                    <Circle size={9} className="text-ink-3" /> {c.label}
+                  <span key={c.key} className="inline-flex items-center gap-1.5 text-[11.5px] text-ink-2 bg-surface border border-border px-2.5 py-1 rounded-full shadow-xs">
+                    <Circle size={8} className="text-ink-3" /> {c.label}
                   </span>
                 ))}
               </div>
@@ -182,22 +192,22 @@ export default function DashboardPage() {
                     Verification Status: {statusLabel(verStatus)}
                   </p>
                   {verStatus === VERIFICATION_STATUS.UNDER_REVIEW && (
-                    <p className="text-[12px] text-blue-600 mt-0.5">
+                    <p className="text-[12px] text-blue-600 dark:text-blue-400 mt-0.5">
                       Your profile and verification documents are waiting for admin review. Your profile will become public after approval.
                     </p>
                   )}
                   {verStatus === VERIFICATION_STATUS.ACTIVE && (
-                    <p className="text-[12px] text-emerald-600 mt-0.5">
+                    <p className="text-[12px] text-emerald-600 dark:text-emerald-400 mt-0.5">
                       Your profile has been approved. You can now publish it publicly.
                     </p>
                   )}
                   {verStatus === VERIFICATION_STATUS.REJECTED && (
                     <div>
-                      <p className="text-[12px] text-red-600 mt-0.5">
+                      <p className="text-[12px] text-red-600 dark:text-red-400 mt-0.5">
                         Your profile verification was not approved.
                       </p>
                       {profile.rejection_reason && (
-                        <p className="text-[12px] text-red-700 mt-1 font-medium">
+                        <p className="text-[12px] text-red-700 dark:text-red-300 mt-1 font-medium">
                           Reason: {profile.rejection_reason}
                         </p>
                       )}
@@ -218,14 +228,18 @@ export default function DashboardPage() {
         )}
 
         {/* ── Publish / unpublish ── */}
-        <div className={`flex items-center justify-between gap-4 px-5 py-4 rounded-2xl border ${isPublished ? 'bg-emerald-50 border-emerald-200' : 'bg-surface border-border'}`}>
+        <div className={`flex items-center justify-between gap-4 px-5 py-4 rounded-2xl border transition-colors ${
+          isPublished
+            ? 'bg-emerald-500/10 border-emerald-500/30'
+            : 'bg-surface border-border'
+        }`}>
           <div className="flex items-center gap-3">
             {isPublished
-              ? <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
+              ? <CheckCircle2 size={18} className="text-emerald-500 dark:text-emerald-400 shrink-0" />
               : <AlertCircle size={18} className="text-amber-500 shrink-0" />
             }
             <div>
-              <p className={`text-[13.5px] font-semibold ${isPublished ? 'text-emerald-700' : 'text-ink'}`}>
+              <p className={`text-[13.5px] font-semibold ${isPublished ? 'text-emerald-700 dark:text-emerald-300' : 'text-ink'}`}>
                 {isPublished ? t('dashboard.profileLive') : t('dashboard.notPublished')}
               </p>
               {publishError && !isPublished && (
@@ -272,9 +286,15 @@ export default function DashboardPage() {
 
         {/* Subscription */}
         {!subLoading && subscription && (
-          <div className={`flex items-center justify-between gap-4 px-5 py-3.5 rounded-xl border ${subscription.status === 'ACTIVE' ? 'bg-blue-50 border-blue-200' : 'bg-warning-bg border-yellow-200'}`}>
+          <div className={`flex items-center justify-between gap-4 px-5 py-3.5 rounded-xl border transition-colors ${
+            subscription.status === 'ACTIVE'
+              ? 'bg-blue-500/10 border-blue-500/30'
+              : 'bg-surface border-border'
+          }`}>
             <div>
-              <p className={`text-[13px] font-bold ${subscription.status === 'ACTIVE' ? 'text-blue-700' : 'text-warning'}`}>
+              <p className={`text-[13px] font-bold ${
+                subscription.status === 'ACTIVE' ? 'text-blue-700 dark:text-blue-300' : 'text-ink'
+              }`}>
                 {planName} · {subscription.status}
               </p>
               {subscription.days_remaining != null && (

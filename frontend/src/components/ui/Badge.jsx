@@ -1,11 +1,11 @@
 const variants = {
   default: 'bg-surface-2 text-ink-2 border border-border',
-  success: 'bg-success-bg text-success border border-green-200',
-  warning: 'bg-warning-bg text-warning border border-yellow-200',
-  danger:  'bg-danger-bg  text-danger  border border-red-200',
-  info:    'bg-blue-50    text-blue-700 border border-blue-200',
+  success: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25',
+  warning: 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/25',
+  danger:  'bg-red-500/10 text-red-700 dark:text-red-300 border border-red-500/25',
+  info:    'bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/25',
   brand:   'bg-brand-light text-brand border border-brand-border',
-  dark:    'bg-ink text-white border border-ink',
+  dark:    'bg-surface-2 text-ink border border-border',
 }
 
 const sizes = {

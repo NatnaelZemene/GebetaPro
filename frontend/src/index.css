@@ -10,6 +10,7 @@
   --color-brand-hover:   var(--brand-hover);
   --color-brand-light:   var(--brand-light);
   --color-brand-border:  var(--brand-border);
+  --color-brand-fg:      var(--brand-fg);
 
   /* Canvas / surfaces */
   --color-canvas:        var(--canvas);
@@ -48,6 +49,7 @@
   --brand-hover:   #14564b;
   --brand-light:   #e8f4f1;
   --brand-border:  #b3dbd4;
+  --brand-fg:      #ffffff;
 
   /* Canvas / surfaces: Warm pearl & editorial silk */
   --canvas:        #faf9f7;
@@ -81,6 +83,7 @@
   --brand-hover:   #14b8a6;
   --brand-light:   rgba(45, 212, 191, 0.12);
   --brand-border:  rgba(45, 212, 191, 0.28);
+  --brand-fg:      #042f2e;
 
   /* Canvas / surfaces: OLED midnight obsidian & cyber slate */
   --canvas:        #090d12;
@@ -104,6 +107,78 @@
   --warning-bg:    rgba(251, 191, 36, 0.14);
   --danger:        #f87171;
   --danger-bg:     rgba(248, 113, 113, 0.14);
+}
+
+/* ── Universal Dark-Mode Status & Surface Harmonies ────────────────────────── */
+.dark .bg-emerald-50 {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+}
+.dark .border-emerald-200,
+.dark .border-emerald-300 {
+  border-color: rgba(16, 185, 129, 0.28) !important;
+}
+.dark .text-emerald-600,
+.dark .text-emerald-700,
+.dark .text-emerald-800,
+.dark .text-emerald-900 {
+  color: #34d399 !important;
+}
+
+.dark .bg-amber-50,
+.dark .bg-yellow-50 {
+  background-color: rgba(245, 158, 11, 0.12) !important;
+}
+.dark .border-amber-200,
+.dark .border-yellow-200 {
+  border-color: rgba(245, 158, 11, 0.28) !important;
+}
+.dark .text-amber-600,
+.dark .text-amber-700,
+.dark .text-amber-800 {
+  color: #fbbf24 !important;
+}
+
+.dark .bg-blue-50 {
+  background-color: rgba(59, 130, 246, 0.12) !important;
+}
+.dark .border-blue-200 {
+  border-color: rgba(59, 130, 246, 0.28) !important;
+}
+.dark .text-blue-600,
+.dark .text-blue-700,
+.dark .text-blue-800 {
+  color: #60a5fa !important;
+}
+
+.dark .bg-red-50 {
+  background-color: rgba(239, 68, 68, 0.12) !important;
+}
+.dark .border-red-200 {
+  border-color: rgba(239, 68, 68, 0.28) !important;
+}
+.dark .text-red-600,
+.dark .text-red-700,
+.dark .text-red-800 {
+  color: #f87171 !important;
+}
+
+.dark .bg-white\/70,
+.dark .bg-white\/80 {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Ensure inputs, select, textareas look rich and native in dark mode */
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+.dark textarea,
+.dark select {
+  background-color: var(--surface) !important;
+  color: var(--ink) !important;
+  border-color: var(--border) !important;
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--ink-3) !important;
 }
 
 /* ── Hardware-accelerated smooth theme transition (only on user toggle) ───── */
