@@ -13,8 +13,6 @@ const K = {
   users:      (p) => ['admin', 'users', p],
   user:       (id) => ['admin', 'user', id],
   userAds:    (id, p) => ['admin', 'user-ads', id, p],
-  ads:        (p) => ['admin', 'ads', p],
-  ad:         (id) => ['admin', 'ad', id],
   categories: ['admin', 'categories'],
   subs:       (p) => ['admin', 'subs', p],
   payments:   (p) => ['admin', 'payments', p],
@@ -69,23 +67,6 @@ export function useAdminUserAds(userId, params = {}) {
     queryKey: K.userAds(userId, params),
     queryFn: () => api.getUserAds(userId, params),
     enabled: !!userId,
-  })
-}
-
-// ── Advertisements ────────────────────────────────────────────────────────────
-
-export function useAdminAds(params = {}) {
-  return useQuery({
-    queryKey: K.ads(params),
-    queryFn: () => api.getAds(params),
-  })
-}
-
-export function useAdminAdDetail(adId) {
-  return useQuery({
-    queryKey: K.ad(adId),
-    queryFn: () => api.getAdDetail(adId),
-    enabled: !!adId,
   })
 }
 
@@ -169,28 +150,6 @@ export function useDeleteUser() {
     mutationFn: (id) => api.deleteUser(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'users'] })
-      qc.invalidateQueries({ queryKey: ['admin', 'stats'] })
-    },
-  })
-}
-
-export function useSetAdStatus() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: ({ adId, status }) => api.setAdStatus(adId, status),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin', 'ads'] })
-      qc.invalidateQueries({ queryKey: ['admin', 'stats'] })
-    },
-  })
-}
-
-export function useAdminDeleteAd() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (id) => api.deleteAd(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin', 'ads'] })
       qc.invalidateQueries({ queryKey: ['admin', 'stats'] })
     },
   })

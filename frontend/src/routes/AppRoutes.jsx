@@ -45,7 +45,6 @@ const SubscriptionSuccessPage = lazy(() => import('../pages/SubscriptionSuccessP
 // Admin
 const AdminOverviewPage      = lazy(() => import('../pages/admin/AdminOverviewPage.jsx'))
 const AdminUsersPage         = lazy(() => import('../pages/admin/AdminUsersPage.jsx'))
-const AdminAdsPage           = lazy(() => import('../pages/admin/AdminAdsPage.jsx'))
 const AdminCategoriesPage    = lazy(() => import('../pages/admin/AdminCategoriesPage.jsx'))
 const AdminSubscriptionsPage = lazy(() => import('../pages/admin/AdminSubscriptionsPage.jsx'))
 const AdminRevenuePage       = lazy(() => import('../pages/admin/AdminRevenuePage.jsx'))
@@ -113,7 +112,6 @@ export default function AppRoutes() {
         {/* ── Admin ────────────────────────────────────────────────────── */}
         <Route path="/admin"               element={<AdminGuard><AdminOverviewPage /></AdminGuard>} />
         <Route path="/admin/users"         element={<AdminGuard><AdminUsersPage /></AdminGuard>} />
-        <Route path="/admin/ads"           element={<AdminGuard><AdminAdsPage /></AdminGuard>} />
         <Route path="/admin/categories"    element={<AdminGuard><AdminCategoriesPage /></AdminGuard>} />
         <Route path="/admin/subscriptions" element={<AdminGuard><AdminSubscriptionsPage /></AdminGuard>} />
         <Route path="/admin/revenue"       element={<AdminGuard><AdminRevenuePage /></AdminGuard>} />

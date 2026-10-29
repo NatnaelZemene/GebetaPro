@@ -1,6 +1,6 @@
 # features/admin/
 
-Admin dashboard for platform management — user moderation, ad approvals, subscription oversight.
+Admin dashboard for platform management — user moderation, category management, subscription oversight, analytics, and profile verification.
 
 Access is restricted to users with the `admin` role (enforced via ProtectedRoute in Phase 4).
 
@@ -8,8 +8,8 @@ Access is restricted to users with the `admin` role (enforced via ProtectedRoute
 
 ```
 admin/
-├── components/       # UserTable, AdModerationQueue, StatsPanel
-├── hooks/            # useAdminUsers.js, useAdminAds.js
+├── components/       # Shared admin tables, cards, and dashboard charts
+├── hooks/            # useAdmin.js
 ├── services/         # adminService.js  (API calls)
 └── pages/            # AdminDashboardPage.jsx, AdminUsersPage.jsx
 ```

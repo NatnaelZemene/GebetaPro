@@ -18,7 +18,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
 import {
-  LayoutDashboard, Users, Megaphone, CreditCard,
+  LayoutDashboard, Users, CreditCard,
   Tag, BarChart2, TrendingUp, LogOut, Menu, X,
   ChevronLeft, ChevronRight, ArrowLeft, Layers, ShieldCheck,
 } from 'lucide-react'
@@ -31,7 +31,6 @@ const NAV = [
   { group: 'Workspace', to: '/admin',               label: 'Overview',           icon: LayoutDashboard, end: true },
   { group: 'Directory', to: '/admin/users',         label: 'Users',              icon: Users },
   { group: 'Directory', to: '/admin/verifications', label: 'Verifications',      icon: ShieldCheck },
-  { group: 'Directory', to: '/admin/ads',           label: 'Advertisements',     icon: Megaphone },
   { group: 'Directory', to: '/admin/categories',    label: 'Categories',         icon: Tag },
   { group: 'Billing',   to: '/admin/subscriptions', label: 'Subscriptions',      icon: CreditCard },
   { group: 'Billing',   to: '/admin/plans',         label: 'Plans',              icon: Layers },

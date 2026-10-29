@@ -63,28 +63,6 @@ export async function deleteUser(userId) {
   return r.data.data
 }
 
-// ── Advertisements ────────────────────────────────────────────────────────────
-
-export async function getAds(params = {}) {
-  const r = await apiClient.get('/admin/ads', { params })
-  return r.data.data
-}
-
-export async function getAdDetail(adId) {
-  const r = await apiClient.get(`/admin/ads/${adId}`)
-  return r.data.data
-}
-
-export async function setAdStatus(adId, status) {
-  const r = await apiClient.patch(`/admin/ads/${adId}/status`, { status })
-  return r.data.data
-}
-
-export async function deleteAd(adId) {
-  const r = await apiClient.delete(`/admin/ads/${adId}`)
-  return r.data.data
-}
-
 // ── Categories ────────────────────────────────────────────────────────────────
 
 export async function getCategories() {

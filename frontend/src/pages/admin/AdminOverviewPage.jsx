@@ -4,7 +4,7 @@
  */
 import { Link } from 'react-router-dom'
 import {
-  Users, Megaphone, CreditCard, TrendingUp, AlertCircle,
+  Users, CreditCard, TrendingUp, AlertCircle,
   CheckCircle2, Clock, ArrowUpRight, ShieldCheck,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -97,9 +97,7 @@ export default function AdminOverviewPage() {
           <Link to="/admin/users" className="rounded-2xl hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
             <StatCard label={t('admin.stats.totalUsers')} value={fmt(stats?.total_users)} sub={t('admin.stats.thisWeek', { count: fmt(stats?.new_users_7d) })} icon={<Users size={16} />} iconBg="bg-brand-light" iconColor="text-brand" loading={isLoading} />
           </Link>
-          <Link to="/admin/ads" className="rounded-2xl hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
-            <StatCard label={t('admin.stats.publishedAds')} value={fmt(stats?.published_ads)} sub={`${fmt(stats?.new_ads_7d)} ${t('admin.stats.newAds7d')}`} icon={<Megaphone size={16} />} iconBg="bg-success-bg" iconColor="text-success" loading={isLoading} />
-          </Link>
+          <StatCard label={t('admin.stats.active')} value={fmt(stats?.active_users)} icon={<CheckCircle2 size={16} />} iconBg="bg-success-bg" iconColor="text-success" loading={isLoading} />
           <Link to="/admin/revenue" className="rounded-2xl hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
             <StatCard label={t('admin.stats.totalRevenue')} value={money(stats?.total_revenue_etb)} sub={t('admin.stats.payments', { count: fmt(stats?.total_payments) })} icon={<TrendingUp size={16} />} iconBg="bg-success-bg" iconColor="text-success" loading={isLoading} />
           </Link>
