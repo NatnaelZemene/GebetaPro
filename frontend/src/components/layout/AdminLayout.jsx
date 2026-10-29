@@ -57,7 +57,7 @@ function Tip({ label, children, collapsed }) {
       <div
         className="
           pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50
-          bg-ink text-white text-[11.5px] font-medium
+          bg-slate-900 text-white dark:bg-slate-800 dark:text-slate-100 border border-white/10 text-[11.5px] font-medium
           px-2.5 py-1 rounded-lg whitespace-nowrap
           opacity-0 group-hover/tip:opacity-100
           transition-opacity duration-150

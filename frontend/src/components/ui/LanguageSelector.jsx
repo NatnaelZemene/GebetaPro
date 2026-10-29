@@ -241,9 +241,9 @@ export function LanguageSelectorDark({ className = '' }) {
           role="listbox"
           aria-label={t('lang.select', 'Language')}
           className={[
-            'absolute right-0 top-[calc(100%+6px)] z-[200]',
-            'w-48 rounded-xl border border-white/20',
-            'bg-ink shadow-lg shadow-black/30',
+            'absolute right-0 bottom-[calc(100%+8px)] sm:bottom-auto sm:top-[calc(100%+6px)] z-[200]',
+            'w-48 rounded-xl border border-white/15',
+            'bg-[#121820] shadow-2xl shadow-black/60',
             'py-1 overflow-hidden',
             'animate-fade-in',
           ].join(' ')}
@@ -254,14 +254,14 @@ export function LanguageSelectorDark({ className = '' }) {
               type="button"
               onClick={handleAutoDetect}
               disabled={detecting}
-              className="w-full flex items-center gap-2 px-3 py-2 text-left text-[12px] font-medium text-blue-300 hover:bg-white/10 transition-colors disabled:opacity-50"
+              className="w-full flex items-center gap-2 px-3 py-2 text-left text-[12px] font-medium text-brand hover:bg-white/10 transition-colors disabled:opacity-50"
             >
               {detecting ? (
-                <Loader2 size={13} className="animate-spin text-blue-300" />
+                <Loader2 size={13} className="animate-spin text-brand" />
               ) : (
-                <MapPin size={13} className="text-blue-300 shrink-0" />
+                <MapPin size={13} className="text-brand shrink-0" />
               )}
-              <span className="truncate">
+              <span className="truncate text-brand">
                 {detecting ? 'Detecting region…' : 'Auto-detect location'}
               </span>
             </button>
@@ -280,7 +280,7 @@ export function LanguageSelectorDark({ className = '' }) {
                     'focus-visible:outline-none focus-visible:bg-white/10',
                     isActive
                       ? 'text-white bg-white/15 font-semibold'
-                      : 'text-white/70 hover:bg-white/10 hover:text-white',
+                      : 'text-white/80 hover:bg-white/10 hover:text-white',
                   ].join(' ')}
                 >
                   <span className="flex items-center gap-2">
@@ -288,11 +288,11 @@ export function LanguageSelectorDark({ className = '' }) {
                       {label}
                     </span>
                     <span>
-                      <span className="block leading-tight">{native}</span>
-                      <span className="block text-[10.5px] text-white/40 leading-tight">{full}</span>
+                      <span className="block leading-tight text-white">{native}</span>
+                      <span className="block text-[10.5px] text-white/50 leading-tight">{full}</span>
                     </span>
                   </span>
-                  {isActive && <Check size={12} className="shrink-0 text-white" aria-hidden="true" />}
+                  {isActive && <Check size={12} className="shrink-0 text-brand" aria-hidden="true" />}
                 </button>
               </li>
             )
