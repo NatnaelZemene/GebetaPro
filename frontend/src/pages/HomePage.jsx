@@ -45,6 +45,24 @@ const POPULAR_SEARCH_KEYS = [
   'photographer','tutor','doctor','driver',
 ]
 
+const SAMPLE_PREVIEW_PROFILE = {
+  id: 'preview-sample',
+  slug: 'dawit-creative-studio',
+  display_name: 'Dawit Abebe',
+  headline: 'Commercial Photographer & Visual Storyteller based in Addis Ababa',
+  avatar_url: null,
+  cover_url: null,
+  is_verified: true,
+  is_featured: true,
+  city: 'Addis Ababa',
+  country: 'Ethiopia',
+  category_name: 'Photography',
+  category_slug: 'photography',
+  profile_type: 'FREELANCER',
+  avg_rating: 4.9,
+  review_count: 24,
+}
+
 /* ─────────────────────────────────────────────────────────────────────────────
    Hero search form
 ───────────────────────────────────────────────────────────────────────────── */
@@ -236,6 +254,7 @@ export default function HomePage() {
 
   const { data: featuredData, isLoading } = useProfileSearch({ page_size: 8 })
   const featured = featuredData?.profiles || []
+  const sampleProfile = featured[1] || featured[0] || SAMPLE_PREVIEW_PROFILE
 
   /* ── Handlers ──────────────────────────────────────────────────────────── */
   function handleSearch(search, city) {
@@ -949,62 +968,22 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Right: profile card preview — abstract */}
+              {/* Right: sample user card preview */}
               <div className="hidden lg:flex items-center justify-center">
-                <div
-                  className="
-                    relative w-[280px]
-                    rounded-2xl overflow-hidden
-                    border border-border
-                    bg-surface-2 shadow-xl shadow-black/5 dark:shadow-black/30
-                  "
-                  aria-hidden="true"
-                >
-                  {/* Fake cover */}
-                  <div
-                    className="h-28 w-full relative"
-                    style={{
-                      background:
-                        'linear-gradient(135deg, rgba(26,107,94,0.25) 0%, var(--color-surface-2) 100%)',
-                    }}
-                  >
-                    <div
-                      className="absolute inset-0 opacity-15"
-                      style={{
-                        backgroundImage:
-                          'linear-gradient(var(--color-ink) 1px, transparent 1px), linear-gradient(90deg, var(--color-ink) 1px, transparent 1px)',
-                        backgroundSize: '16px 16px',
-                      }}
-                    />
-                  </div>
-
-                  <div className="px-5 pt-3 pb-5">
-                    {/* Avatar placeholder */}
-                    <div className="-mt-8 mb-3 w-12 h-12 rounded-xl bg-brand/20 border-2 border-surface flex items-center justify-center shadow-sm">
-                      <span className="text-[18px] font-bold text-brand">Y</span>
-                    </div>
-                    {/* Name placeholder */}
-                    <div className="h-4 w-32 rounded bg-ink/15 mb-2" />
-                    {/* Headline placeholder */}
-                    <div className="h-3 w-44 rounded bg-ink/10 mb-1" />
-                    <div className="h-3 w-36 rounded bg-ink/10 mb-4" />
-                    {/* Meta row */}
-                    <div className="flex gap-2 pt-3 border-t border-border">
-                      <div className="h-3 w-20 rounded bg-ink/10" />
-                      <div className="h-3 w-16 rounded bg-ink/10" />
-                    </div>
-                  </div>
-
-                  {/* "Your profile" label */}
+                <div className="relative w-[280px]">
+                  {/* "Your profile" pill indicator */}
                   <div
                     className="
-                      absolute top-3 right-3
+                      absolute -top-3 right-3 z-10
                       text-[10px] font-semibold uppercase tracking-[0.1em]
-                      text-ink-2 bg-surface/80 backdrop-blur-sm border border-border
-                      px-2.5 py-1 rounded-full
+                      text-brand bg-surface border border-brand-border
+                      shadow-md px-2.5 py-0.5 rounded-full pointer-events-none
                     "
                   >
                     {t('home.yourProfile')}
+                  </div>
+                  <div className="shadow-2xl shadow-black/10 dark:shadow-black/40 rounded-2xl">
+                    <ProfileCard profile={sampleProfile} />
                   </div>
                 </div>
               </div>
