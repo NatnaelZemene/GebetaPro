@@ -113,7 +113,7 @@ export function Navbar() {
             : 'bg-surface border-b border-border',
         ].join(' ')}
       >
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 h-[60px] flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 h-[60px] flex items-center justify-between gap-3">
 
           {/* Wordmark */}
           <Link

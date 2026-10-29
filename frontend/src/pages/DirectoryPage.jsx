@@ -741,7 +741,7 @@ export default function DirectoryPage() {
             <form
               onSubmit={submitSearch}
               className="
-                flex flex-col sm:flex-row
+                flex items-stretch
                 bg-canvas border border-border rounded-xl overflow-hidden
                 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/10
                 transition-all duration-150
@@ -750,66 +750,71 @@ export default function DirectoryPage() {
               role="search"
               aria-label="Search the directory"
             >
-              {/* Query */}
-              <div className="flex items-center flex-1 gap-2.5 px-4 py-3 sm:py-0 sm:h-12">
-                <Search size={15} className="text-ink-3 shrink-0" aria-hidden="true" />
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  placeholder={t('directory.searchPlaceholder')}
-                  value={searchInput}
-                  onChange={e => setSearchInput(e.target.value)}
-                  className="
-                    flex-1 bg-transparent text-[14px] text-ink
-                    placeholder:text-ink-3 outline-none min-w-0
-                  "
-                  aria-label="Search query"
-                />
-                {searchInput && (
-                  <button
-                    type="button"
-                    onClick={() => { setSearchInput(''); updateFilter('search', '') }}
-                    className="text-ink-3 hover:text-ink transition-colors shrink-0 focus-visible:outline-none"
-                    aria-label="Clear search"
-                  >
-                    <X size={14} />
-                  </button>
-                )}
+              {/* Dual inputs container — compact vertical stack on mobile, horizontal on sm+ */}
+              <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center">
+                {/* Query */}
+                <div className="flex items-center flex-1 gap-2.5 px-3 sm:px-4 h-10 sm:h-12">
+                  <Search size={15} className="text-ink-3 shrink-0" aria-hidden="true" />
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    placeholder={t('directory.searchPlaceholder')}
+                    value={searchInput}
+                    onChange={e => setSearchInput(e.target.value)}
+                    className="
+                      flex-1 bg-transparent text-[13px] sm:text-[14px] text-ink
+                      placeholder:text-ink-3 outline-none min-w-0
+                    "
+                    aria-label="Search query"
+                  />
+                  {searchInput && (
+                    <button
+                      type="button"
+                      onClick={() => { setSearchInput(''); updateFilter('search', '') }}
+                      className="text-ink-3 hover:text-ink transition-colors shrink-0 focus-visible:outline-none cursor-pointer"
+                      aria-label="Clear search"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Divider */}
+                <div className="sm:hidden h-px bg-border/60 mx-3" aria-hidden="true" />
+                <div className="hidden sm:block w-px bg-border self-stretch my-2.5" aria-hidden="true" />
+
+                {/* Location */}
+                <div className="flex items-center gap-2.5 px-3 sm:px-4 h-10 sm:h-12 sm:w-44">
+                  <MapPin size={14} className="text-ink-3 shrink-0" aria-hidden="true" />
+                  <input
+                    type="text"
+                    placeholder={t('directory.locationPlaceholder')}
+                    value={cityInput}
+                    onChange={e => setCityInput(e.target.value)}
+                    className="
+                      flex-1 bg-transparent text-[13px] sm:text-[14px] text-ink
+                      placeholder:text-ink-3 outline-none min-w-0
+                    "
+                    aria-label={t('directory.locationPlaceholder')}
+                  />
+                </div>
               </div>
 
-              {/* Divider */}
-              <div className="hidden sm:block w-px bg-border self-stretch my-2.5" aria-hidden="true" />
-              <div className="sm:hidden h-px bg-border mx-4" aria-hidden="true" />
-
-              {/* Location */}
-              <div className="flex items-center gap-2.5 px-4 py-3 sm:py-0 sm:h-12 sm:w-44">
-                <MapPin size={14} className="text-ink-3 shrink-0" aria-hidden="true" />
-                <input
-                  type="text"
-                  placeholder={t('directory.locationPlaceholder')}
-                  value={cityInput}
-                  onChange={e => setCityInput(e.target.value)}
-                  className="
-                    flex-1 bg-transparent text-[14px] text-ink
-                    placeholder:text-ink-3 outline-none min-w-0
-                  "
-                  aria-label={t('directory.locationPlaceholder')}
-                />
-              </div>
-
-              {/* Submit */}
-              <div className="p-1.5">
+              {/* Submit docked on right side */}
+              <div className="p-1 sm:p-1.5 flex items-stretch shrink-0">
                 <button
                   type="submit"
                   className="
-                    h-9 sm:h-full px-5 rounded-lg
-                    bg-brand text-white text-[13.5px] font-semibold
+                    h-auto sm:h-full px-3.5 sm:px-5 rounded-lg
+                    bg-brand text-white text-[12px] sm:text-[13.5px] font-semibold
                     hover:bg-brand-hover active:scale-[0.98]
-                    transition-all duration-150 w-full sm:w-auto
+                    transition-all duration-150 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5
                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2
+                    cursor-pointer select-none
                   "
                 >
-                  {t('directory.searchBtn')}
+                  <Search size={14} className="shrink-0" />
+                  <span>{t('directory.searchBtn')}</span>
                 </button>
               </div>
             </form>
