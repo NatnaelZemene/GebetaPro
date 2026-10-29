@@ -32,6 +32,7 @@ export function UserProfileMenu({ onLogout }) {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const menuRef = useRef(null)
+  const closeTimeoutRef = useRef(null)
 
   const token = localStorage.getItem('accessToken')
   const jwt = decodeJwtPayload(token)
@@ -46,6 +47,37 @@ export function UserProfileMenu({ onLogout }) {
   const subtitle = profile?.professional_title || profile?.title || fallbackEmail || ''
   const publicSlug = profile?.slug || null
   const initial = (displayName.charAt(0) || 'U').toUpperCase()
+
+  /* Hover handlers with graceful debounce delay */
+  function handleMouseEnter() {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current)
+      closeTimeoutRef.current = null
+    }
+    setOpen(true)
+  }
+
+  function handleMouseLeave() {
+    if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
+    closeTimeoutRef.current = setTimeout(() => {
+      setOpen(false)
+    }, 200)
+  }
+
+  function handleClick() {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current)
+      closeTimeoutRef.current = null
+    }
+    setOpen((prev) => !prev)
+  }
+
+  /* Cleanup timeout on unmount */
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
+    }
+  }, [])
 
   /* Close on outside click */
   useEffect(() => {
@@ -72,16 +104,22 @@ export function UserProfileMenu({ onLogout }) {
   }, [open])
 
   function handleNavigate(path) {
+    if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
     setOpen(false)
     navigate(path)
   }
 
   return (
-    <div className="relative inline-block text-left" ref={menuRef}>
+    <div
+      className="relative inline-block text-left"
+      ref={menuRef}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       {/* ── Trigger: Circular avatar with emerald active dot ─────────────── */}
       <button
         type="button"
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={handleClick}
         aria-expanded={open}
         aria-haspopup="true"
         aria-label={t('nav.profile', 'User Profile')}
@@ -121,7 +159,8 @@ export function UserProfileMenu({ onLogout }) {
           role="menu"
           aria-orientation="vertical"
           className="
-            absolute right-0 top-full mt-2.5 w-64
+            absolute right-0 top-full mt-2 w-64
+            before:absolute before:-top-2.5 before:left-0 before:right-0 before:h-2.5 before:content-['']
             bg-surface/98 backdrop-blur-xl border border-border
             shadow-[0_16px_40px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)]
             dark:shadow-[0_20px_50px_rgba(0,0,0,0.6)]
