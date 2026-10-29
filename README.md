@@ -53,6 +53,15 @@ npm install
 npm run dev
 ```
 
+## Cloudflare deployment
+
+Pushing to `main` builds the frontend and deploys the Worker through GitHub Actions. To enable it, add these repository secrets in **GitHub → Settings → Secrets and variables → Actions**:
+
+- `CLOUDFLARE_API_TOKEN` — a Cloudflare API token scoped to the account with permission to edit Workers.
+- `CLOUDFLARE_ACCOUNT_ID` — the Cloudflare account ID that owns the `gebetapro` Worker.
+
+The deployment workflow is `.github/workflows/deploy-cloudflare.yml`. You can also run it manually from the repository’s **Actions** tab. Keep application credentials in Cloudflare Worker secrets; do not commit them to GitHub.
+
 ## Development Team
 
 Three-person team. See `docs/` for architecture decisions and contribution guidelines.
