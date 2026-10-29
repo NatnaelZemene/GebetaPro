@@ -1,7 +1,21 @@
 import { lazy, Suspense } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { Skeleton } from '../components/ui/Skeleton.jsx'
 import { AdminGuard } from '../components/common/AdminGuard.jsx'
+
+/**
+ * HandleRoute: Matches `/:handle` at root level.
+ * If the param starts with '@' (e.g. /@full-stack-developer), it renders the public profile.
+ * Otherwise, non-matching single-segment paths fall through to NotFoundPage.
+ */
+function HandleRoute() {
+  const { handle } = useParams()
+  const cleanHandle = decodeURIComponent(handle || '').trim()
+  if (cleanHandle.startsWith('@') && cleanHandle.length > 1) {
+    return <PublicProfilePage />
+  }
+  return <NotFoundPage />
+}
 
 import HomePage    from '../pages/HomePage.jsx'
 import NotFoundPage from '../pages/NotFoundPage.jsx'
@@ -97,10 +111,10 @@ export default function AppRoutes() {
         <Route path="/directory"     element={<DirectoryPage />} />
         <Route path="/directory/map" element={<DirectoryMapPage />} />
 
-        {/* Public profile — @slug pattern (both formats) */}
-        <Route path="/@:slug"        element={<PublicProfilePage />} />
+        {/* Public profile — @slug pattern and /p/ /profile/ fallbacks */}
         <Route path="/p/:slug"       element={<PublicProfilePage />} />
         <Route path="/profile/:slug" element={<PublicProfilePage />} />
+        <Route path="/:handle"       element={<HandleRoute />} />
 
         {/* Post-payment */}
         <Route path="/subscription/callback" element={<PaymentCallbackPage />} />

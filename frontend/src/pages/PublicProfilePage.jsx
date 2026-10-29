@@ -249,7 +249,10 @@ function MobileContactBar({ profile }) {
 ══════════════════════════════════════════════════════════════════════════════ */
 export default function PublicProfilePage() {
   const { t } = useTranslation()
-  const { slug } = useParams()
+  const params = useParams()
+  const rawParam = params.slug || params.handle || ''
+  const decoded = decodeURIComponent(rawParam).trim()
+  const slug = decoded.startsWith('@') ? decoded.slice(1).trim() : decoded
   const [activeTab,  setActiveTab]  = useState('overview')
   const [reviewPage, setReviewPage] = useState(1)
   const isLoggedIn = !!localStorage.getItem('accessToken')

@@ -4,30 +4,37 @@
  */
 import apiClient from './apiClient.js'
 
+const sanitizeSlug = (slug) => String(slug || '').replace(/^@+/, '').trim()
+
 // ── Public profile ─────────────────────────────────────────────────────────────
 
 export async function getPublicProfile(slug) {
-  const res = await apiClient.get(`/profiles/@${slug}`)
+  const s = sanitizeSlug(slug)
+  const res = await apiClient.get(`/profiles/@${s}`)
   return res.data.data
 }
 
 export async function getPublicServices(slug, params = {}) {
-  const res = await apiClient.get(`/profiles/@${slug}/services`, { params })
+  const s = sanitizeSlug(slug)
+  const res = await apiClient.get(`/profiles/@${s}/services`, { params })
   return res.data.data
 }
 
 export async function getPublicPortfolio(slug, params = {}) {
-  const res = await apiClient.get(`/profiles/@${slug}/portfolio`, { params })
+  const s = sanitizeSlug(slug)
+  const res = await apiClient.get(`/profiles/@${s}/portfolio`, { params })
   return res.data.data
 }
 
 export async function getPublicPosts(slug, params = {}) {
-  const res = await apiClient.get(`/profiles/@${slug}/posts`, { params })
+  const s = sanitizeSlug(slug)
+  const res = await apiClient.get(`/profiles/@${s}/posts`, { params })
   return res.data.data
 }
 
 export async function getPublicAchievements(slug) {
-  const res = await apiClient.get(`/profiles/@${slug}/achievements`)
+  const s = sanitizeSlug(slug)
+  const res = await apiClient.get(`/profiles/@${s}/achievements`)
   return res.data.data
 }
 
@@ -220,34 +227,40 @@ export async function deleteAchievement(id) {
 // ── Reviews ───────────────────────────────────────────────────────────────────
 
 export async function getPublicReviews(slug, params = {}) {
-  const res = await apiClient.get(`/profiles/@${slug}/reviews`, { params })
+  const s = sanitizeSlug(slug)
+  const res = await apiClient.get(`/profiles/@${s}/reviews`, { params })
   return res.data.data
 }
 
 export async function submitReview(slug, data) {
-  const res = await apiClient.post(`/profile/${slug}/reviews`, data)
+  const s = sanitizeSlug(slug)
+  const res = await apiClient.post(`/profile/${s}/reviews`, data)
   return res.data.data
 }
 
 export async function updateReview(slug, reviewId, data) {
-  const res = await apiClient.patch(`/profile/${slug}/reviews/${reviewId}`, data)
+  const s = sanitizeSlug(slug)
+  const res = await apiClient.patch(`/profile/${s}/reviews/${reviewId}`, data)
   return res.data.data
 }
 
 export async function deleteReview(slug, reviewId) {
-  const res = await apiClient.delete(`/profile/${slug}/reviews/${reviewId}`)
+  const s = sanitizeSlug(slug)
+  const res = await apiClient.delete(`/profile/${s}/reviews/${reviewId}`)
   return res.data.data
 }
 
 // ── Review replies ────────────────────────────────────────────────────────────
 
 export async function addReviewReply(slug, reviewId, body) {
-  const res = await apiClient.post(`/profile/${slug}/reviews/${reviewId}/reply`, { body })
+  const s = sanitizeSlug(slug)
+  const res = await apiClient.post(`/profile/${s}/reviews/${reviewId}/reply`, { body })
   return res.data.data
 }
 
 export async function deleteReviewReply(slug, reviewId) {
-  const res = await apiClient.delete(`/profile/${slug}/reviews/${reviewId}/reply`)
+  const s = sanitizeSlug(slug)
+  const res = await apiClient.delete(`/profile/${s}/reviews/${reviewId}/reply`)
   return res.data.data
 }
 

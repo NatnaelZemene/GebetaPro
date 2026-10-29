@@ -787,6 +787,8 @@
     "notFound": "Page not found",
     "notFoundDesc": "The page you're looking for doesn't exist.",
     "goHome": "Go home",
+    "home": "Home",
+    "contents": "Contents",
     "or": "or",
     "and": "and",
     "more": "More",
@@ -974,9 +976,5 @@
       "body": "For questions about these Terms, please",
       "contactLink": "contact us"
     }
-  },
-
-  "common": {
-    "home": "Home"
   }
 }

@@ -13,16 +13,16 @@ export default function NotFoundPage() {
       <main className="flex-1 flex items-center justify-center px-4 py-16" id="main-content">
         <div className="text-center max-w-sm">
           <p className="text-[80px] font-bold text-border leading-none mb-4">404</p>
-          <h1 className="text-2xl font-bold text-ink mb-3">{t('common.notFound')}</h1>
+          <h1 className="text-2xl font-bold text-ink mb-3">{t('common.notFound', 'Page Not Found')}</h1>
           <p className="text-sm text-ink-2 mb-8 leading-relaxed">
-            {t('common.notFoundDesc')}
+            {t('common.notFoundDesc', "The page you're looking for doesn't exist.")}
           </p>
           <div className="flex gap-2.5 justify-center flex-wrap">
             <Button variant="primary" icon={<ArrowLeft size={14} />} onClick={() => navigate('/')}>
-              {t('common.goHome')}
+              {t('common.goHome', 'Go Home')}
             </Button>
             <Button variant="secondary" icon={<Search size={14} />} onClick={() => navigate('/directory')}>
-              {t('home.browseDirectory')}
+              {t('home.browseDirectory', 'Browse the directory')}
             </Button>
           </div>
         </div>
