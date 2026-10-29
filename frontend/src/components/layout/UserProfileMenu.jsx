@@ -151,11 +151,11 @@ export function UserProfileMenu({ onLogout }) {
           </div>
         )}
 
-        {/* Dribbble-style active emerald dot */}
+        {/* Dribbble-style active brand dot */}
         <span
           className="
             absolute bottom-0 right-0 block w-2.5 h-2.5
-            rounded-full bg-emerald-500 ring-2 ring-surface
+            rounded-full bg-brand ring-2 ring-surface
           "
           aria-hidden="true"
         />
@@ -194,7 +194,7 @@ export function UserProfileMenu({ onLogout }) {
               <span
                 className="
                   absolute bottom-0.5 right-0.5 block w-3 h-3
-                  rounded-full bg-emerald-500 ring-2 ring-surface
+                  rounded-full bg-brand ring-2 ring-surface
                 "
                 aria-hidden="true"
               />

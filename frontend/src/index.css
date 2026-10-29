@@ -44,11 +44,11 @@
 :root {
   color-scheme: light;
 
-  /* Brand: Rich Forest Jade */
-  --brand:         #1a6b5e;
-  --brand-hover:   #14564b;
-  --brand-light:   #e8f4f1;
-  --brand-border:  #b3dbd4;
+  /* Brand: Vibrant GebetaPro Teal */
+  --brand:         #0d9488;
+  --brand-hover:   #0f766e;
+  --brand-light:   #f0fdfa;
+  --brand-border:  #99f6e4;
   --brand-fg:      #ffffff;
 
   /* Canvas / surfaces: Warm pearl & editorial silk */

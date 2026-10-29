@@ -221,7 +221,7 @@ function MobileContactBar({ profile }) {
           href={`https://wa.me/${c.whatsapp.replace(/\D/g, '')}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="h-11 w-11 flex items-center justify-center border border-border bg-surface rounded-xl text-emerald-500 hover:text-emerald-400 hover:border-emerald-500/50 hover:bg-emerald-500/10 active:scale-95 transition-all shrink-0 shadow-xs"
+          className="h-11 w-11 flex items-center justify-center border border-border bg-surface rounded-xl text-brand hover:border-brand-border hover:bg-brand-light active:scale-95 transition-all shrink-0 shadow-xs"
           aria-label={t('profile.public.whatsapp', 'WhatsApp')}
           title={t('profile.public.whatsapp', 'WhatsApp')}
         >
@@ -262,9 +262,9 @@ function MobileContactBar({ profile }) {
         rel={primaryHref.startsWith('http') ? 'noopener noreferrer' : undefined}
         className="
           flex-1 h-11 px-4 rounded-xl
-          bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700
-          text-white font-bold text-[14.5px] tracking-wide
-          shadow-[0_2px_12px_rgba(5,150,105,0.4)] ring-1 ring-emerald-400/30
+          bg-brand hover:bg-brand-hover active:bg-brand-hover
+          text-brand-fg font-bold text-[14.5px] tracking-wide
+          shadow-[0_2px_14px_rgba(45,212,191,0.35)] ring-1 ring-brand-border
           inline-flex items-center justify-center gap-2.5
           active:scale-[0.98] transition-all duration-150 cursor-pointer
         "
