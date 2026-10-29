@@ -522,7 +522,7 @@ export default function HomePage() {
             <div className="sm:hidden mt-4 text-center">
               <button
                 onClick={() => navigate('/directory')}
-                className="text-[13px] font-medium text-brand flex items-center gap-1 mx-auto hover:underline"
+                className="text-[13px] font-medium text-brand flex items-center gap-1 mx-auto hover:text-brand-hover hover:no-underline transition-colors"
               >
                 {t('home.viewAllCategories')} <ChevronRight size={13} />
               </button>

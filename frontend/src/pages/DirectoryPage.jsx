@@ -179,7 +179,7 @@ function FilterPanel({
               <button
                 type="button"
                 onClick={() => { setUseNearMe(false); geo.clear?.(); updateFilter('page', 1) }}
-                className="text-[12px] text-danger hover:underline text-left"
+                className="text-[12px] text-danger hover:opacity-80 hover:no-underline transition-opacity text-left"
               >
                 {t('directory.clearLocation')}
               </button>
@@ -325,7 +325,7 @@ function FilterPanel({
           onClick={clearFilters}
           className="
             mt-3 flex items-center gap-1.5 text-[12.5px] text-danger
-            hover:underline transition-colors duration-150
+            hover:opacity-80 hover:no-underline transition-opacity duration-150
           "
         >
           <X size={12} />
@@ -884,7 +884,7 @@ export default function DirectoryPage() {
                     <button
                       type="button"
                       onClick={clearFilters}
-                      className="text-[12px] text-danger hover:underline transition-colors"
+                      className="text-[12px] text-danger hover:opacity-80 hover:no-underline transition-opacity"
                     >
                       {t('directory.clearAll')}
                     </button>
@@ -1197,7 +1197,7 @@ export default function DirectoryPage() {
                   <button
                     type="button"
                     onClick={() => { clearFilters(); setSheetOpen(false) }}
-                    className="text-[13px] text-danger hover:underline"
+                    className="text-[13px] text-danger hover:opacity-80 hover:no-underline transition-opacity"
                   >
                     {t('directory.clearAll')}
                   </button>
