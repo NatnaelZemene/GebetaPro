@@ -39,7 +39,15 @@ export function UserProfileMenu({ onLogout }) {
   const isAdmin = jwt?.role === 'ADMIN'
   const fallbackEmail = jwt?.email || ''
 
-  const { data: profile, isLoading } = useMyProfile()
+  const { data: profile, isLoading, refetch } = useMyProfile()
+
+  useEffect(() => {
+    function onProfileUpdated() {
+      refetch()
+    }
+    window.addEventListener('gebetapro:profile_updated', onProfileUpdated)
+    return () => window.removeEventListener('gebetapro:profile_updated', onProfileUpdated)
+  }, [refetch])
 
   // User details
   const displayName = profile?.full_name || fallbackEmail?.split('@')[0] || t('nav.profile', 'Profile')

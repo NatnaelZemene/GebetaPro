@@ -76,6 +76,11 @@ export function useUploadAvatar() {
         qc.setQueryData(KEYS.myProfile, (old) => old ? { ...old, avatar_url: data.avatar_url } : old)
       }
       qc.invalidateQueries({ queryKey: KEYS.myProfile })
+      qc.invalidateQueries({ queryKey: ['profiles'] })
+      qc.invalidateQueries({ queryKey: KEYS.completion })
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('gebetapro:profile_updated', { detail: { type: 'avatar', url: data?.avatar_url } }))
+      }
     },
   })
 }
@@ -87,6 +92,11 @@ export function useDeleteAvatar() {
     onSuccess: () => {
       qc.setQueryData(KEYS.myProfile, (old) => old ? { ...old, avatar_url: null } : old)
       qc.invalidateQueries({ queryKey: KEYS.myProfile })
+      qc.invalidateQueries({ queryKey: ['profiles'] })
+      qc.invalidateQueries({ queryKey: KEYS.completion })
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('gebetapro:profile_updated', { detail: { type: 'avatar', url: null } }))
+      }
     },
   })
 }
@@ -100,6 +110,11 @@ export function useUploadCover() {
         qc.setQueryData(KEYS.myProfile, (old) => old ? { ...old, cover_url: data.cover_url } : old)
       }
       qc.invalidateQueries({ queryKey: KEYS.myProfile })
+      qc.invalidateQueries({ queryKey: ['profiles'] })
+      qc.invalidateQueries({ queryKey: KEYS.completion })
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('gebetapro:profile_updated', { detail: { type: 'cover', url: data?.cover_url } }))
+      }
     },
   })
 }
@@ -111,6 +126,11 @@ export function useDeleteCover() {
     onSuccess: () => {
       qc.setQueryData(KEYS.myProfile, (old) => old ? { ...old, cover_url: null } : old)
       qc.invalidateQueries({ queryKey: KEYS.myProfile })
+      qc.invalidateQueries({ queryKey: ['profiles'] })
+      qc.invalidateQueries({ queryKey: KEYS.completion })
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('gebetapro:profile_updated', { detail: { type: 'cover', url: null } }))
+      }
     },
   })
 }

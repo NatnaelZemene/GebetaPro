@@ -18,6 +18,7 @@ import {
 import * as profilesApi from '../../services/profiles.service.js'
 import { useCategories } from '../../features/profiles/hooks/useCategories.js'
 import { LocationPicker } from '../../features/locations/components/LocationPicker.jsx'
+import { compressImage } from '../../utils/imageCompressor.js'
 import {
   requiresVerification,
   statusLabel,
@@ -632,6 +633,77 @@ export default function ProfileEditPage() {
   const avatarRef = useRef()
   const coverRef  = useRef()
 
+  const [avatarPreview, setAvatarPreview] = useState(null)
+  const [coverPreview, setCoverPreview]   = useState(null)
+
+  async function handleAvatarChange(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+
+    // Instant optimistic preview (0ms latency!)
+    const localUrl = URL.createObjectURL(file)
+    setAvatarPreview(localUrl)
+
+    try {
+      // Compress in browser (~30ms) to reduce 5-10MB photos to ~70KB
+      const compressed = await compressImage(file, { maxWidth: 600, maxHeight: 600, quality: 0.88 })
+      uploadAvatar.mutate(compressed, {
+        onSuccess: () => {
+          setTimeout(() => {
+            URL.revokeObjectURL(localUrl)
+            setAvatarPreview(null)
+          }, 350)
+        },
+        onError: () => {
+          URL.revokeObjectURL(localUrl)
+          setAvatarPreview(null)
+        },
+      })
+    } catch {
+      uploadAvatar.mutate(file, {
+        onSettled: () => {
+          URL.revokeObjectURL(localUrl)
+          setAvatarPreview(null)
+        },
+      })
+    }
+  }
+
+  async function handleCoverChange(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+
+    // Instant optimistic preview (0ms latency!)
+    const localUrl = URL.createObjectURL(file)
+    setCoverPreview(localUrl)
+
+    try {
+      // Compress cover image in browser (~50ms)
+      const compressed = await compressImage(file, { maxWidth: 1600, maxHeight: 800, quality: 0.85 })
+      uploadCover.mutate(compressed, {
+        onSuccess: () => {
+          setTimeout(() => {
+            URL.revokeObjectURL(localUrl)
+            setCoverPreview(null)
+          }, 350)
+        },
+        onError: () => {
+          URL.revokeObjectURL(localUrl)
+          setCoverPreview(null)
+        },
+      })
+    } catch {
+      uploadCover.mutate(file, {
+        onSettled: () => {
+          URL.revokeObjectURL(localUrl)
+          setCoverPreview(null)
+        },
+      })
+    }
+  }
+
   const { data: categoriesData } = useCategories()
   const categoryOptions = []
   if (Array.isArray(categoriesData)) {
@@ -770,8 +842,8 @@ export default function ProfileEditPage() {
   if (!profile) return <CreateProfileSetup onCreated={() => {}} />
   if (!form) return null
 
-  const avatarUrl = profile?.avatar_url
-  const coverUrl  = profile?.cover_url
+  const avatarUrl = avatarPreview || profile?.avatar_url
+  const coverUrl  = coverPreview  || profile?.cover_url
   const score     = completion?.score ?? profile?.completion_score ?? 0
   const checks    = completion?.checks || []
   const needsVerification = requiresVerification(form.profile_type)
@@ -851,7 +923,7 @@ export default function ProfileEditPage() {
             )}
             {coverUrl && (
               <button type="button"
-                onClick={(e) => { e.stopPropagation(); deleteCoverMutation.mutate() }}
+                onClick={(e) => { e.stopPropagation(); setCoverPreview(null); deleteCoverMutation.mutate() }}
                 className="absolute top-2 right-2 w-6 h-6 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white"
                 aria-label={t('profile.edit.removeCover')}>
                 <X size={11} />
@@ -859,7 +931,7 @@ export default function ProfileEditPage() {
             )}
           </div>
           <input ref={coverRef} type="file" accept="image/*" className="hidden"
-            onChange={e => { if (e.target.files[0]) uploadCover.mutate(e.target.files[0]); e.target.value = '' }} />
+            onChange={handleCoverChange} />
 
           <div className="px-5 pb-5 flex items-end gap-4 -mt-10">
             <div className="relative shrink-0 group cursor-pointer" onClick={() => avatarRef.current?.click()}>
@@ -881,7 +953,7 @@ export default function ProfileEditPage() {
               )}
             </div>
             <input ref={avatarRef} type="file" accept="image/*" className="hidden"
-              onChange={e => { if (e.target.files[0]) uploadAvatar.mutate(e.target.files[0]); e.target.value = '' }} />
+              onChange={handleAvatarChange} />
 
             <div className="flex-1 pb-1 min-w-0">
               <p className="text-[14px] font-bold text-ink truncate">{profile.display_name}</p>

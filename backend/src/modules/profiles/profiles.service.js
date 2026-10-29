@@ -227,7 +227,7 @@ export async function uploadAvatar(userId, file) {
   }
 
   await repo.updateProfile(userId, { avatar_url: publicUrl, avatar_storage_key: storagePath })
-  await _refreshCompletionScore(userId, profile.id)
+  _refreshCompletionScore(userId, profile.id).catch(() => {})
 
   logger.info({ userId, profileId: profile.id }, 'Avatar uploaded')
   return { avatar_url: publicUrl }
@@ -242,7 +242,7 @@ export async function deleteAvatar(userId) {
   }
 
   await repo.updateProfile(userId, { avatar_url: null, avatar_storage_key: null })
-  await _refreshCompletionScore(userId, profile.id)
+  _refreshCompletionScore(userId, profile.id).catch(() => {})
 }
 
 export async function uploadCover(userId, file) {
@@ -257,7 +257,7 @@ export async function uploadCover(userId, file) {
   }
 
   await repo.updateProfile(userId, { cover_url: publicUrl, cover_storage_key: storagePath })
-  await _refreshCompletionScore(userId, profile.id)
+  _refreshCompletionScore(userId, profile.id).catch(() => {})
 
   logger.info({ userId, profileId: profile.id }, 'Cover uploaded')
   return { cover_url: publicUrl }
@@ -272,7 +272,7 @@ export async function deleteCover(userId) {
   }
 
   await repo.updateProfile(userId, { cover_url: null, cover_storage_key: null })
-  await _refreshCompletionScore(userId, profile.id)
+  _refreshCompletionScore(userId, profile.id).catch(() => {})
 }
 
 // ── Profile completion ─────────────────────────────────────────────────────────
