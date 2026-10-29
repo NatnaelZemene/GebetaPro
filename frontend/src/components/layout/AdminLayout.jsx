@@ -1,7 +1,7 @@
 /**
  * AdminLayout.jsx — Premium SaaS admin shell.
  *
- * Desktop: collapsible sidebar (expanded 220px / collapsed 56px).
+ * Desktop: collapsible sidebar (expanded 248px / collapsed 68px).
  *          Collapsed state shows icons only with tooltip labels.
  * Mobile:  top bar + slide-out drawer from left.
  *
@@ -28,16 +28,17 @@ import { LogoutConfirmation } from '../ui/LogoutConfirmation.jsx'
 
 /* ── Nav definition ──────────────────────────────────────────────────────── */
 const NAV = [
-  { to: '/admin',               label: 'Overview',           icon: LayoutDashboard, end: true },
-  { to: '/admin/users',         label: 'Users',              icon: Users },
-  { to: '/admin/verifications', label: 'Verifications',      icon: ShieldCheck },
-  { to: '/admin/ads',           label: 'Advertisements',     icon: Megaphone },
-  { to: '/admin/categories',    label: 'Categories',         icon: Tag },
-  { to: '/admin/subscriptions', label: 'Subscriptions',      icon: CreditCard },
-  { to: '/admin/plans',         label: 'Plans',              icon: Layers },
-  { to: '/admin/revenue',       label: 'Revenue',            icon: TrendingUp },
-  { to: '/admin/analytics',     label: 'Analytics',          icon: BarChart2 },
+  { group: 'Workspace', to: '/admin',               label: 'Overview',           icon: LayoutDashboard, end: true },
+  { group: 'Directory', to: '/admin/users',         label: 'Users',              icon: Users },
+  { group: 'Directory', to: '/admin/verifications', label: 'Verifications',      icon: ShieldCheck },
+  { group: 'Directory', to: '/admin/ads',           label: 'Advertisements',     icon: Megaphone },
+  { group: 'Directory', to: '/admin/categories',    label: 'Categories',         icon: Tag },
+  { group: 'Billing',   to: '/admin/subscriptions', label: 'Subscriptions',      icon: CreditCard },
+  { group: 'Billing',   to: '/admin/plans',         label: 'Plans',              icon: Layers },
+  { group: 'Billing',   to: '/admin/revenue',       label: 'Revenue',            icon: TrendingUp },
+  { group: 'Insights',  to: '/admin/analytics',     label: 'Analytics',          icon: BarChart2 },
 ]
+const NAV_GROUPS = ['Workspace', 'Directory', 'Billing', 'Insights']
 
 /* ── Breadcrumb helper ───────────────────────────────────────────────────── */
 function useBreadcrumbs() {
@@ -84,85 +85,54 @@ function SidebarContent({ collapsed, onClose, onRequestLogout }) {
       {/* Brand */}
       <div
         className={`
-          flex items-center h-[60px] shrink-0
+          flex items-center h-[72px] shrink-0
           border-b border-border
           ${collapsed ? 'justify-center px-0' : 'px-5'}
           transition-all duration-200
         `}
       >
         {collapsed ? (
-          <div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center shrink-0" aria-hidden="true">
-            <span className="text-white text-[14px] font-black leading-none">G</span>
+          <div className="w-9 h-9 rounded-xl bg-brand flex items-center justify-center shrink-0 shadow-sm" aria-hidden="true">
+            <span className="text-white text-[15px] font-black leading-none">G</span>
           </div>
         ) : (
           <div>
             <Link
               to="/"
-              className="text-[16px] font-bold text-ink tracking-tight hover:no-underline block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:rounded"
+              className="text-[17px] font-bold text-ink tracking-[-0.035em] hover:no-underline block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:rounded"
               aria-label="GebetaPro — back to site"
             >
               Gebeta<span className="text-brand">Pro</span>
             </Link>
-            <p className="text-[9.5px] font-bold text-ink-3 uppercase tracking-[0.15em] mt-px">
-              Admin Console
+            <p className="text-[10px] font-medium text-ink-3 mt-0.5">
+              Administration
             </p>
           </div>
         )}
       </div>
 
       {/* Nav links */}
-      <nav
-        className={`flex-1 overflow-y-auto py-3 ${collapsed ? 'px-1.5' : 'px-2.5'}`}
-        aria-label="Admin navigation"
-      >
-        {!collapsed && (
-          <p className="text-[10px] font-semibold text-ink-4 uppercase tracking-[0.12em] px-3 mb-2 mt-1" aria-hidden="true">
-            Management
-          </p>
-        )}
-
-        <div className="flex flex-col gap-0.5">
-          {NAV.map(({ to, label, icon: Icon, end }) => (
-            <Tip key={to} label={label} collapsed={collapsed}>
-              <NavLink
-                to={to}
-                end={end}
-                onClick={onClose}
-                className={({ isActive }) => `
-                  relative flex items-center gap-3
-                  ${collapsed ? 'h-9 w-9 justify-center mx-auto rounded-lg' : 'h-9 px-3 rounded-lg'}
-                  text-[13px] font-medium
-                  transition-all duration-150
-                  hover:no-underline group
-                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset
-                  ${isActive
-                    ? 'bg-brand-light text-brand'
-                    : 'text-ink-2 hover:bg-surface-2 hover:text-ink'
-                  }
-                `}
-                /* When collapsed, aria-label provides the accessible name since text is hidden */
-                aria-label={collapsed ? label : undefined}
-              >
-                {({ isActive }) => (
-                  <>
-                    {isActive && !collapsed && (
-                      <span
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-brand rounded-full"
-                        aria-hidden="true"
-                      />
-                    )}
-                    <Icon
-                      size={15}
-                      aria-hidden="true"
-                      className={`shrink-0 transition-colors ${isActive ? 'text-brand' : 'text-ink-3 group-hover:text-ink'}`}
-                    />
-                    {!collapsed && <span className="truncate">{label}</span>}
-                  </>
-                )}
-              </NavLink>
-            </Tip>
-          ))}
-        </div>
+      <nav className={`flex-1 overflow-y-auto py-4 ${collapsed ? 'px-1.5' : 'px-3'}`} aria-label="Admin navigation">
+        {NAV_GROUPS.map((group) => (
+          <div key={group} className="mb-5 last:mb-0">
+            {!collapsed && <p className="px-3 mb-1.5 text-[9.5px] font-bold uppercase tracking-[0.15em] text-ink-4">{group}</p>}
+            <div className="flex flex-col gap-1">
+              {NAV.filter((item) => item.group === group).map(({ to, label, icon: Icon, end }) => (
+                <Tip key={to} label={label} collapsed={collapsed}>
+                  <NavLink
+                    to={to}
+                    end={end}
+                    onClick={onClose}
+                    className={({ isActive }) => `relative flex items-center gap-3 ${collapsed ? 'h-10 w-10 justify-center mx-auto rounded-xl' : 'h-10 px-3 rounded-xl'} text-[12.5px] font-medium transition-all duration-150 hover:no-underline group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset ${isActive ? 'bg-brand-light text-brand shadow-sm' : 'text-ink-2 hover:bg-surface-2 hover:text-ink'}`}
+                    aria-label={collapsed ? label : undefined}
+                  >
+                    {({ isActive }) => <><Icon size={16} aria-hidden="true" className={`shrink-0 ${isActive ? 'text-brand' : 'text-ink-3 group-hover:text-ink'}`} />{!collapsed && <span className="truncate">{label}</span>}</>}
+                  </NavLink>
+                </Tip>
+              ))}
+            </div>
+          </div>
+        ))}
       </nav>
 
       {/* Footer */}
@@ -234,7 +204,7 @@ export function AdminLayout({ children, title }) {
   }
 
   return (
-    <div className="min-h-screen bg-canvas flex">
+    <div className="admin-console min-h-screen bg-canvas flex">
 
       {/* ── Desktop sidebar ──────────────────────────────────────────── */}
       <aside
@@ -243,7 +213,7 @@ export function AdminLayout({ children, title }) {
           bg-surface border-r border-border
           sticky top-0 h-screen
           transition-[width] duration-200 ease-out
-          ${collapsed ? 'w-[56px]' : 'w-[220px]'}
+          ${collapsed ? 'w-[68px]' : 'w-[248px]'}
           overflow-hidden
         `}
         aria-label="Admin sidebar"
@@ -286,7 +256,7 @@ export function AdminLayout({ children, title }) {
         id="admin-mobile-drawer"
         ref={drawerRef}
         className={`
-          fixed inset-y-0 left-0 z-50 w-[220px]
+          fixed inset-y-0 left-0 z-50 w-[260px]
           bg-surface border-r border-border
           flex flex-col lg:hidden
           transition-transform duration-200 ease-out
@@ -328,7 +298,7 @@ export function AdminLayout({ children, title }) {
           <button
             ref={hamburgerRef}
             onClick={() => setDrawerOpen(true)}
-            className="lg:hidden text-ink-2 hover:text-ink transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:rounded"
+            className="lg:hidden h-9 w-9 rounded-lg flex items-center justify-center text-ink-2 hover:text-ink hover:bg-surface-2 transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:rounded"
             aria-label="Open navigation"
             aria-expanded={drawerOpen}
             aria-controls="admin-mobile-drawer"
@@ -340,34 +310,35 @@ export function AdminLayout({ children, title }) {
           <nav aria-label="Breadcrumb" className="flex items-center gap-2 flex-1 min-w-0">
             <Link
               to="/admin"
-              className="text-[12.5px] text-ink-3 hover:text-ink hover:no-underline transition-colors hidden sm:block shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:rounded"
+              className="text-[12px] text-ink-3 hover:text-ink hover:no-underline transition-colors hidden sm:block shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:rounded"
             >
               Administration
             </Link>
             <span className="text-[12.5px] text-ink-4 hidden sm:block" aria-hidden="true">/</span>
-            <h1 className="text-[14px] font-semibold text-ink truncate" aria-current="page">
+            <h1 className="text-[13px] font-semibold text-ink truncate" aria-current="page">
               {title || currentPage}
             </h1>
           </nav>
 
           {/* Right side — Theme toggle & Admin badge */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2.5 shrink-0">
             <ThemeToggle />
             <span
               className="
-                text-[10px] font-bold uppercase tracking-[0.1em]
-                bg-brand text-white
-                px-2 py-1 rounded-md
+                hidden sm:inline-flex items-center gap-2
+                text-[11px] font-semibold text-ink-2
+                bg-canvas border border-border
+                px-3 py-1.5 rounded-full
               "
               aria-label="Admin role"
             >
-              Admin
+              <span className="w-1.5 h-1.5 rounded-full bg-brand" aria-hidden="true" />Admin workspace
             </span>
           </div>
         </header>
 
         {/* Page content */}
-        <main id="main-content" className="flex-1 p-5 sm:p-7 max-w-[1400px] mx-auto w-full">
+        <main id="main-content" className="flex-1 px-4 py-6 sm:px-7 sm:py-8 xl:px-10 max-w-[1600px] mx-auto w-full">
           {children}
         </main>
       </div>

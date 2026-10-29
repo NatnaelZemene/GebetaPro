@@ -429,7 +429,7 @@ export default function AdminUsersPage() {
           ))
         ) : (
           <>
-            <StatCard label="Total users"   value={(data?.pagination?.total ?? users.length).toLocaleString()} iconBg="bg-blue-50"      iconColor="text-blue-600" />
+            <StatCard label="Total users"   value={(data?.pagination?.total ?? users.length).toLocaleString()} iconBg="bg-brand-light" iconColor="text-brand" />
             <StatCard label="Showing"       value={users.length.toLocaleString()} sub="on this page"          iconBg="bg-surface-2"     iconColor="text-ink-3" />
             <StatCard label="Status filter" value={status || 'All'}               iconBg="bg-brand-light"    iconColor="text-brand" />
             <StatCard label="Role filter"   value={role   || 'All'}               iconBg="bg-surface-2"     iconColor="text-ink-3" />

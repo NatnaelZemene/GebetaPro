@@ -160,7 +160,7 @@ export default function AdminSubscriptionsPage() {
 
       {/* Stats strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-7">
-        <StatCard label="Total"        value={(data?.pagination?.total ?? subs.length).toLocaleString()} icon={<CreditCard size={15} />} iconBg="bg-indigo-50" iconColor="text-indigo-600" loading={isLoading} />
+        <StatCard label="Total"        value={(data?.pagination?.total ?? subs.length).toLocaleString()} icon={<CreditCard size={15} />} iconBg="bg-brand-light" iconColor="text-brand" loading={isLoading} />
         <StatCard label="Active"       value={status === 'ACTIVE'  ? subs.length.toLocaleString() : '—'} iconBg="bg-success-bg" iconColor="text-success" />
         <StatCard label="Status filter" value={status || 'All'}                                           iconBg="bg-brand-light" iconColor="text-brand" />
         <StatCard label="Page size"    value="20 / page"                                                  iconBg="bg-surface-2" iconColor="text-ink-3" />

@@ -138,15 +138,15 @@ function VerificationDetailDrawer({ profileId, onClose }) {
           <div className="flex-1 p-6 space-y-6">
 
             {actionMsg && (
-              <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
-                <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
-                <p className="text-[13px] text-emerald-700">{actionMsg}</p>
+              <div className="flex items-center gap-2 p-3 bg-success-bg border border-success/25 rounded-xl">
+                <CheckCircle2 size={14} className="text-success shrink-0" />
+                <p className="text-[13px] text-success">{actionMsg}</p>
               </div>
             )}
             {actionErr && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl">
-                <AlertTriangle size={14} className="text-red-500 shrink-0" />
-                <p className="text-[13px] text-red-700">{actionErr}</p>
+              <div className="flex items-center gap-2 p-3 bg-danger-bg border border-danger/25 rounded-xl">
+                <AlertTriangle size={14} className="text-danger shrink-0" />
+                <p className="text-[13px] text-danger">{actionErr}</p>
               </div>
             )}
 
@@ -163,9 +163,9 @@ function VerificationDetailDrawer({ profileId, onClose }) {
 
             {/* Rejection reason (if applicable) */}
             {d.rejection_reason && (
-              <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl">
-                <p className="text-[12px] font-semibold text-red-700 mb-1">Previous Rejection Reason</p>
-                <p className="text-[12.5px] text-red-600">{d.rejection_reason}</p>
+              <div className="p-3.5 bg-danger-bg border border-danger/25 rounded-xl">
+                <p className="text-[12px] font-semibold text-danger mb-1">Previous Rejection Reason</p>
+                <p className="text-[12.5px] text-danger">{d.rejection_reason}</p>
               </div>
             )}
 
@@ -244,8 +244,8 @@ function VerificationDetailDrawer({ profileId, onClose }) {
                   )}
                 </div>
               ) : (
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
-                  <p className="text-[12.5px] text-amber-700 flex items-center gap-1.5">
+                <div className="p-3 bg-warning-bg border border-warning/25 rounded-xl">
+                  <p className="text-[12.5px] text-warning flex items-center gap-1.5">
                     <AlertTriangle size={13} /> No document uploaded yet.
                   </p>
                 </div>
@@ -460,7 +460,7 @@ export default function AdminVerificationsPage() {
       {/* Stats bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
-          { label: 'Under Review', value: underReview,          color: 'text-blue-600',  bg: 'bg-blue-50' },
+          { label: 'Under Review', value: underReview,          color: 'text-brand',     bg: 'bg-brand-light' },
           { label: 'Total Listed', value: pagination.total ?? 0, color: 'text-ink',       bg: 'bg-surface-2' },
         ].map(s => (
           <div key={s.label} className={`${s.bg} border border-border rounded-xl px-4 py-3`}>
@@ -526,7 +526,7 @@ export default function AdminVerificationsPage() {
                   {p.doc_id ? (
                     <span className="text-success flex items-center gap-1"><FileText size={11} /> Doc uploaded</span>
                   ) : (
-                    <span className="text-amber-500 flex items-center gap-1"><AlertTriangle size={11} /> No document</span>
+                    <span className="text-warning flex items-center gap-1"><AlertTriangle size={11} /> No document</span>
                   )}
                 </p>
                 <p className="text-[11px] text-ink-4 mt-0.5">

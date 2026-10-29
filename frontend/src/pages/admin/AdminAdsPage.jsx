@@ -228,7 +228,7 @@ export default function AdminAdsPage() {
         <StatCard label="Total" value={(data?.pagination?.total ?? ads.length).toLocaleString()} iconBg="bg-surface-2" iconColor="text-ink-3" />
         <StatCard label="Published" value={status === 'PUBLISHED' ? ads.length.toLocaleString() : '—'} iconBg="bg-success-bg" iconColor="text-success" />
         <StatCard label="Status filter" value={status || 'All'} iconBg="bg-brand-light" iconColor="text-brand" />
-        <StatCard label="Category" value={catId ? categories.find(c => c.id === catId)?.name || '—' : 'All'} iconBg="bg-amber-50" iconColor="text-amber-600" />
+        <StatCard label="Category" value={catId ? categories.find(c => c.id === catId)?.name || '—' : 'All'} iconBg="bg-warning-bg" iconColor="text-warning" />
       </div>
 
       <div className="flex flex-col gap-5">

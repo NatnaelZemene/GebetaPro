@@ -1,82 +1,88 @@
 /**
- * AdminOverviewPage.jsx — Admin command centre.
- * All data from /api/admin/stats and /api/admin/revenue.
+ * AdminOverviewPage.jsx — concise, data-backed admin command centre.
+ * Uses the existing stats, analytics, revenue, and verification endpoints.
  */
 import { Link } from 'react-router-dom'
 import {
-  Users, Megaphone, CreditCard, TrendingUp,
-  AlertCircle, CheckCircle2, Clock, PauseCircle,
-  Archive, FileText, Tag, ArrowUpRight, ShieldCheck,
+  Users, Megaphone, CreditCard, TrendingUp, AlertCircle,
+  CheckCircle2, Clock, ArrowUpRight, ShieldCheck,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { AdminLayout }  from '../../components/layout/AdminLayout.jsx'
-import { Skeleton }     from '../../components/ui/Skeleton.jsx'
-import { StatCard, PageHeader } from '../../features/admin/components/AdminTable.jsx'
-import { useAdminStats, useAdminRevenue } from '../../features/admin/hooks/useAdmin.js'
+import { AdminLayout } from '../../components/layout/AdminLayout.jsx'
+import { Skeleton } from '../../components/ui/Skeleton.jsx'
+import { BarChart, LineChart, PageHeader, StatCard } from '../../features/admin/components/AdminTable.jsx'
+import {
+  useAdminStats, useAdminRevenue, useAdminAnalytics,
+  useAdminVerificationStats,
+} from '../../features/admin/hooks/useAdmin.js'
 
-/* ── Quick-nav card ────────────────────────────────────────────────────── */
-function NavCard({ to, label, desc, icon: Icon, count, countLabel }) {
+function Panel({ title, subtitle, action, children, className = '' }) {
   return (
-    <Link
-      to={to}
-      className="
-        group flex flex-col gap-3 p-5
-        bg-surface border border-border rounded-xl
-        hover:border-brand-border hover:shadow-[0_2px_16px_rgba(0,0,0,0.06)]
-        hover:-translate-y-0.5
-        transition-all duration-200 hover:no-underline
-        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2
-      "
-    >
-      <div className="flex items-start justify-between">
-        <div className="w-9 h-9 rounded-lg bg-canvas border border-border flex items-center justify-center shrink-0">
-          <Icon size={16} className="text-ink-2" />
+    <section className={`min-w-0 rounded-2xl border border-border bg-surface p-4 sm:p-5 ${className}`}>
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-[14px] font-semibold text-ink">{title}</h2>
+          {subtitle && <p className="mt-1 text-[12px] text-ink-3">{subtitle}</p>}
         </div>
-        <ArrowUpRight
-          size={14}
-          className="text-ink-4 group-hover:text-brand group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-150 shrink-0"
-        />
+        {action}
       </div>
-      <div>
-        <p className="text-[13.5px] font-semibold text-ink">{label}</p>
-        <p className="text-[12px] text-ink-3 mt-0.5">{desc}</p>
-      </div>
-      {count != null && (
-        <p className="text-[11.5px] text-ink-3 font-medium">
-          <span className="text-ink font-bold text-[14px]">{Number(count).toLocaleString()}</span>
-          {countLabel && <span className="ml-1">{countLabel}</span>}
-        </p>
-      )}
+      {children}
+    </section>
+  )
+}
+
+function AttentionLink({ to, icon: Icon, title, detail, count, tone = 'brand', loading }) {
+  const tones = {
+    brand: 'bg-brand-light text-brand',
+    warning: 'bg-warning-bg text-warning',
+    danger: 'bg-danger-bg text-danger',
+  }
+  return (
+    <Link to={to} className="group flex min-w-0 items-center gap-3 rounded-xl border border-border p-3 transition-colors hover:border-brand-border hover:bg-surface-2/50 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${tones[tone]}`}><Icon size={17} aria-hidden="true" /></span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-[13px] font-semibold text-ink">{title}</span>
+        <span className="mt-0.5 block truncate text-[11.5px] text-ink-3">{detail}</span>
+      </span>
+      <span className="flex shrink-0 items-center gap-2">
+        {loading ? <Skeleton className="h-5 w-8 rounded" /> : <span className="text-[16px] font-bold tabular-nums text-ink">{count == null ? '—' : Number(count).toLocaleString()}</span>}
+        <ArrowUpRight size={14} className="text-ink-4 transition-colors group-hover:text-brand" aria-hidden="true" />
+      </span>
     </Link>
   )
 }
 
-/* ── Section label ─────────────────────────────────────────────────────── */
-function SectionLabel({ children }) {
+function ChartPanel({ title, subtitle, data, valueField, formatValue, loading, error }) {
   return (
-    <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-3 mb-4">
-      {children}
-    </p>
+    <Panel title={title} subtitle={subtitle}>
+      {loading ? <Skeleton className="h-[220px] w-full rounded-xl" /> : error ? (
+        <p className="flex min-h-[190px] items-center justify-center gap-2 text-[12.5px] text-danger"><AlertCircle size={15} /> Analytics data is temporarily unavailable.</p>
+      ) : <LineChart data={data} valueField={valueField} formatValue={formatValue} label={title} />}
+    </Panel>
   )
 }
 
 export default function AdminOverviewPage() {
   const { t } = useTranslation()
-  const { data: stats, isLoading, error } = useAdminStats()
-  const { data: revenue, isLoading: revLoading } = useAdminRevenue()
+  const statsQuery = useAdminStats()
+  const revenueQuery = useAdminRevenue()
+  const analyticsQuery = useAdminAnalytics()
+  const verificationQuery = useAdminVerificationStats()
+  const { data: stats, isLoading } = statsQuery
+  const { data: revenue, isLoading: revenueLoading } = revenueQuery
+  const { data: analytics, isLoading: analyticsLoading, error: analyticsError } = analyticsQuery
+  const { data: verification, isLoading: verificationLoading, error: verificationError } = verificationQuery
 
-  const fmt  = n => n != null ? Number(n).toLocaleString()          : '—'
-  const fmtC = n => n != null ? `ETB ${Number(n).toLocaleString()}` : '—'
-  const L    = isLoading
+  const fmt = value => value == null ? '—' : Number(value).toLocaleString()
+  const money = value => value == null ? '—' : `ETB ${Number(value).toLocaleString()}`
 
-  if (error) {
+  if (statsQuery.error) {
     return (
       <AdminLayout title={t('admin.overview')}>
-        <div className="flex flex-col items-center justify-center py-24 gap-3">
-          <AlertCircle size={28} className="text-danger" />
-          <p className="text-[14px] text-ink-2 font-medium">
-            {error?.response?.data?.message || t('admin.loadFailed')}
-          </p>
+        <PageHeader title={t('admin.overview')} subtitle={t('admin.platformHealth')} />
+        <div className="flex min-h-64 flex-col items-center justify-center gap-3 rounded-2xl border border-danger/20 bg-danger-bg p-6 text-center">
+          <AlertCircle size={26} className="text-danger" />
+          <p className="text-[13px] font-medium text-danger">{statsQuery.error?.response?.data?.message || t('admin.loadFailed')}</p>
         </div>
       </AdminLayout>
     )
@@ -84,95 +90,52 @@ export default function AdminOverviewPage() {
 
   return (
     <AdminLayout title={t('admin.overview')}>
-      <PageHeader
-        title={t('admin.overview')}
-        subtitle={t('admin.platformHealth')}
-      />
+      <PageHeader title={t('admin.overview')} subtitle={t('admin.platformHealth')} />
 
-      <div className="flex flex-col gap-10">
-
-        {/* Users */}
-        <section>
-          <SectionLabel>{t('admin.sections.users')}</SectionLabel>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link to="/admin/users" className="hover:no-underline">
-              <StatCard label={t('admin.stats.totalUsers')} value={fmt(stats?.total_users)} sub={t('admin.stats.thisWeek', { count: fmt(stats?.new_users_7d) })} icon={<Users size={15} />} iconBg="bg-blue-50" iconColor="text-blue-600" loading={L} />
-            </Link>
-            <Link to="/admin/users?status=ACTIVE" className="hover:no-underline">
-              <StatCard label={t('admin.stats.active')} value={fmt(stats?.active_users)} icon={<CheckCircle2 size={15} />} iconBg="bg-success-bg" iconColor="text-success" loading={L} />
-            </Link>
-            <Link to="/admin/users?status=SUSPENDED" className="hover:no-underline">
-              <StatCard label={t('admin.stats.suspended')} value={fmt(stats?.suspended_users)} icon={<AlertCircle size={15} />} iconBg="bg-danger-bg" iconColor="text-danger" loading={L} />
-            </Link>
-            <StatCard label={t('admin.stats.new30Days')} value={fmt(stats?.new_users_30d)} icon={<Users size={15} />} iconBg="bg-brand-light" iconColor="text-brand" loading={L} />
-          </div>
+      <div className="flex flex-col gap-6">
+        <section aria-label="Platform summary" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <Link to="/admin/users" className="rounded-2xl hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+            <StatCard label={t('admin.stats.totalUsers')} value={fmt(stats?.total_users)} sub={t('admin.stats.thisWeek', { count: fmt(stats?.new_users_7d) })} icon={<Users size={16} />} iconBg="bg-brand-light" iconColor="text-brand" loading={isLoading} />
+          </Link>
+          <Link to="/admin/ads" className="rounded-2xl hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+            <StatCard label={t('admin.stats.publishedAds')} value={fmt(stats?.published_ads)} sub={`${fmt(stats?.new_ads_7d)} ${t('admin.stats.newAds7d')}`} icon={<Megaphone size={16} />} iconBg="bg-success-bg" iconColor="text-success" loading={isLoading} />
+          </Link>
+          <Link to="/admin/revenue" className="rounded-2xl hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+            <StatCard label={t('admin.stats.totalRevenue')} value={money(stats?.total_revenue_etb)} sub={t('admin.stats.payments', { count: fmt(stats?.total_payments) })} icon={<TrendingUp size={16} />} iconBg="bg-success-bg" iconColor="text-success" loading={isLoading} />
+          </Link>
+          <Link to="/admin/subscriptions" className="rounded-2xl hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+            <StatCard label={t('admin.stats.activeSubs')} value={fmt(stats?.active_subscriptions)} sub={t('admin.stats.paidPlans')} icon={<CreditCard size={16} />} iconBg="bg-brand-light" iconColor="text-brand" loading={isLoading} />
+          </Link>
         </section>
 
-        {/* Revenue & Subscriptions */}
-        <section>
-          <SectionLabel>{t('admin.sections.revenueAndSubs')}</SectionLabel>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link to="/admin/revenue" className="hover:no-underline">
-              <StatCard label={t('admin.stats.totalRevenue')} value={fmtC(stats?.total_revenue_etb)} sub={t('admin.stats.payments', { count: fmt(stats?.total_payments) })} icon={<TrendingUp size={15} />} iconBg="bg-success-bg" iconColor="text-success" loading={L} />
-            </Link>
-            <Link to="/admin/revenue" className="hover:no-underline">
-              <StatCard label={t('admin.stats.thisMonth')} value={fmtC(revenue?.current_month_etb)} sub={t('admin.stats.currentMonth')} icon={<TrendingUp size={15} />} iconBg="bg-brand-light" iconColor="text-brand" loading={L || revLoading} />
-            </Link>
-            <Link to="/admin/subscriptions?status=ACTIVE" className="hover:no-underline">
-              <StatCard label={t('admin.stats.activeSubs')} value={fmt(stats?.active_subscriptions)} sub={t('admin.stats.paidPlans')} icon={<CreditCard size={15} />} iconBg="bg-indigo-50" iconColor="text-indigo-600" loading={L} />
-            </Link>
-            <StatCard label={t('admin.stats.pendingPayments')} value={fmt(stats?.pending_payments)} icon={<Clock size={15} />} iconBg="bg-warning-bg" iconColor="text-warning" loading={L} />
-          </div>
+        <section className="grid grid-cols-1 gap-4 xl:grid-cols-2" aria-label="Platform trends">
+          <ChartPanel title="User growth" subtitle="New registrations · last 30 days" data={analytics?.users_daily} valueField="count" loading={analyticsLoading} error={analyticsError} />
+          <ChartPanel title="Revenue trend" subtitle="Daily payments · last 30 days" data={analytics?.revenue_daily} valueField="revenue" formatValue={n => `ETB ${Number(n).toLocaleString()}`} loading={analyticsLoading} error={analyticsError} />
         </section>
 
-        {/* Advertisements */}
-        <section>
-          <SectionLabel>{t('admin.sections.advertisements')}</SectionLabel>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {[
-              { labelKey: 'admin.stats.totalAds',    val: stats?.total_ads,     icon: Megaphone,    to: '/admin/ads',                    ib: 'bg-surface-2', ic: 'text-ink-2'  },
-              { labelKey: 'admin.stats.publishedAds',val: stats?.published_ads, icon: CheckCircle2, to: '/admin/ads?status=PUBLISHED',    ib: 'bg-success-bg',ic: 'text-success'},
-              { labelKey: 'admin.stats.draftAds',    val: stats?.draft_ads,     icon: FileText,     to: '/admin/ads?status=DRAFT',        ib: 'bg-surface-2', ic: 'text-ink-3'  },
-              { labelKey: 'admin.stats.pausedAds',   val: stats?.paused_ads,    icon: PauseCircle,  to: '/admin/ads?status=PAUSED',       ib: 'bg-warning-bg',ic: 'text-warning'},
-              { labelKey: 'admin.stats.expiredAds',  val: stats?.expired_ads,   icon: Clock,        to: '/admin/ads?status=EXPIRED',      ib: 'bg-surface-2', ic: 'text-ink-3'  },
-              { labelKey: 'admin.stats.archivedAds', val: stats?.archived_ads,  icon: Archive,      to: '/admin/ads?status=ARCHIVED',     ib: 'bg-surface-2', ic: 'text-ink-3'  },
-            ].map(({ labelKey, val, icon: Icon, to, ib, ic }) => (
-              <Link key={labelKey} to={to} className="hover:no-underline">
-                <StatCard label={t(labelKey)} value={fmt(val)} icon={<Icon size={14} />} iconBg={ib} iconColor={ic} loading={L} />
-              </Link>
-            ))}
-          </div>
+        <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+          <Panel title="Needs attention" subtitle="Items that may need an administrator’s review">
+            <div className="flex flex-col gap-2.5">
+              <AttentionLink to="/admin/verifications" icon={ShieldCheck} title="Profile verifications" detail={verificationError ? 'Could not load verification count' : 'Profiles awaiting review'} count={verificationError ? null : verification?.under_review} loading={verificationLoading} tone="brand" />
+              <AttentionLink to="/admin/revenue" icon={Clock} title="Pending payments" detail="Payments awaiting confirmation" count={stats?.pending_payments} loading={isLoading} tone="warning" />
+              <AttentionLink to="/admin/revenue" icon={AlertCircle} title="Failed payments" detail="Payments that need follow-up" count={stats?.failed_payments} loading={isLoading} tone="danger" />
+            </div>
+          </Panel>
+
+          <Panel title="Advertisements by status" subtitle="Current listing distribution" action={<Link to="/admin/analytics" className="text-[12px] font-medium text-brand hover:underline">Analytics</Link>}>
+            {analyticsLoading ? <div className="flex flex-col gap-3 py-2">{[0, 1, 2, 3].map(i => <Skeleton key={i} className="h-4 w-full rounded" />)}</div> : analyticsError ? (
+              <p className="flex min-h-36 items-center justify-center gap-2 text-[12.5px] text-danger"><AlertCircle size={15} /> Analytics data is temporarily unavailable.</p>
+            ) : <BarChart data={analytics?.ads_by_status || []} keyField="status" valueField="count" label="Advertisements by status" />}
+          </Panel>
         </section>
 
-        {/* Catalogue & Alerts */}
-        <section>
-          <SectionLabel>{t('admin.sections.catalogueAlerts')}</SectionLabel>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link to="/admin/categories" className="hover:no-underline">
-              <StatCard label={t('admin.stats.categories')} value={fmt(stats?.active_categories)} sub={t('admin.stats.totalCategories', { count: fmt(stats?.total_categories) })} icon={<Tag size={15} />} iconBg="bg-amber-50" iconColor="text-amber-600" loading={L} />
-            </Link>
-            <StatCard label={t('admin.stats.newAds7d')} value={fmt(stats?.new_ads_7d)} icon={<Megaphone size={15} />} iconBg="bg-brand-light" iconColor="text-brand" loading={L} />
-            <Link to="/admin/subscriptions?status=EXPIRED" className="hover:no-underline">
-              <StatCard label={t('admin.stats.expiredSubs')} value={fmt(stats?.expired_subscriptions)} icon={<Clock size={15} />} iconBg="bg-surface-2" iconColor="text-ink-3" loading={L} />
-            </Link>
-            <StatCard label={t('admin.stats.failedPayments')} value={fmt(stats?.failed_payments)} icon={<AlertCircle size={15} />} iconBg="bg-danger-bg" iconColor="text-danger" loading={L} />
-          </div>
-        </section>
-
-        {/* Quick navigation */}
-        <section>
-          <SectionLabel>{t('admin.sections.manage')}</SectionLabel>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <NavCard to="/admin/users"        icon={Users}      label={t('admin.manage.userManagement')}  desc={t('admin.manage.userManagementDesc')}  count={stats?.total_users}          countLabel={t('admin.totalUsers')} />
-            <NavCard to="/admin/verifications" icon={ShieldCheck} label="Profile Verifications" desc="Review submitted business and organization profiles" count={stats?.pending_verifications ?? undefined} countLabel="under review" />
-            <NavCard to="/admin/ads"           icon={Megaphone}  label={t('admin.manage.adModeration')}    desc={t('admin.manage.adModerationDesc')}    count={stats?.published_ads}        countLabel={t('admin.published')} />
-            <NavCard to="/admin/categories"    icon={Tag}        label={t('admin.categories')}             desc={t('admin.manage.categoriesDesc')}      count={stats?.active_categories}    countLabel={t('admin.activeLabel')} />
-            <NavCard to="/admin/subscriptions" icon={CreditCard} label={t('admin.subscriptions')}          desc={t('admin.manage.subscriptionsDesc')}   count={stats?.active_subscriptions} countLabel={t('admin.activeLabel')} />
-            <NavCard to="/admin/revenue"       icon={TrendingUp} label={t('admin.revenue')}                desc={t('admin.manage.revenueDesc')}         count={stats?.total_revenue_etb != null ? `ETB ${Number(stats.total_revenue_etb).toLocaleString()}` : null} />
-            <NavCard to="/admin/analytics"     icon={TrendingUp} label={t('admin.analytics')}              desc={t('admin.manage.analyticsDesc')} />
-          </div>
-        </section>
-
+        <Link to="/admin/revenue" className="group flex flex-col gap-2 rounded-2xl border border-border bg-surface p-4 transition-colors hover:border-brand-border hover:no-underline sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <span>
+            <span className="block text-[13px] font-semibold text-ink">{t('admin.stats.thisMonth')}</span>
+            <span className="mt-1 block text-[11.5px] text-ink-3">{t('admin.stats.currentMonth')}</span>
+          </span>
+          <span className="flex items-center gap-2 text-[20px] font-bold tracking-tight text-ink">{revenueLoading ? <Skeleton className="h-6 w-28 rounded" /> : money(revenue?.current_month_etb)}<CheckCircle2 size={16} className="text-brand" aria-hidden="true" /></span>
+        </Link>
       </div>
     </AdminLayout>
   )

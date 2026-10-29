@@ -5,7 +5,7 @@
 import { AdminLayout } from '../../components/layout/AdminLayout.jsx'
 import { Skeleton }    from '../../components/ui/Skeleton.jsx'
 import {
-  BarChart, Sparkline, PageHeader, StatCard,
+  BarChart, LineChart, PageHeader, StatCard,
 } from '../../features/admin/components/AdminTable.jsx'
 import { useAdminAnalytics } from '../../features/admin/hooks/useAdmin.js'
 import { Users, Megaphone, TrendingUp, AlertCircle } from 'lucide-react'
@@ -13,53 +13,38 @@ import { Users, Megaphone, TrendingUp, AlertCircle } from 'lucide-react'
 /* ── Chart card wrapper ────────────────────────────────────────────────── */
 function ChartCard({ title, subtitle, children, loading, className = '' }) {
   return (
-    <div className={`bg-surface border border-border rounded-xl p-5 ${className}`}>
+    <div className={`bg-surface border border-border rounded-2xl p-4 sm:p-5 ${className}`}>
       <div className="mb-4">
         <p className="text-[13.5px] font-semibold text-ink">{title}</p>
         {subtitle && <p className="text-[12px] text-ink-3 mt-0.5">{subtitle}</p>}
       </div>
       {loading ? (
-        <div className="flex flex-col gap-2.5">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-3 rounded" style={{ width: `${55 + i * 12}%` }} />
-          ))}
-        </div>
+        <Skeleton className="h-[210px] w-full rounded-xl" />
       ) : children}
     </div>
   )
 }
 
-/* ── Timeline with sparkline ───────────────────────────────────────────── */
-function Timeline({ data, dateField = 'date', valueField = 'count', formatTotal }) {
+/* ── Timeline with accessible trend chart ───────────────────────────────── */
+function Timeline({ data, dateField = 'date', valueField = 'count', formatTotal, formatValue }) {
   if (!data || data.length === 0) return (
     <p className="text-[12.5px] text-ink-3 text-center py-6">No data for this period.</p>
   )
 
   const total  = data.reduce((s, d) => s + Number(d[valueField] || 0), 0)
-  const first  = data[0]?.[dateField]
-  const last   = data[data.length - 1]?.[dateField]
-  const fmtDate = d => d ? new Date(d).toLocaleDateString('en', { month: 'short', day: 'numeric' }) : ''
-
   return (
     <div>
       {/* Total + period */}
       <div className="flex items-end justify-between mb-3">
         <div>
-          <span className="text-[28px] font-bold text-ink leading-none tracking-tight">
+          <span className="text-[27px] font-bold text-ink leading-none tracking-tight tabular-nums">
             {formatTotal ? formatTotal(total) : total.toLocaleString()}
           </span>
         </div>
         <span className="text-[11.5px] text-ink-3 mb-1">last 30 days</span>
       </div>
 
-      {/* Sparkline */}
-      <Sparkline data={data} valueField={valueField} />
-
-      {/* Date range */}
-      <div className="flex items-center justify-between mt-1">
-        <span className="text-[11px] text-ink-4">{fmtDate(first)}</span>
-        <span className="text-[11px] text-ink-4">{fmtDate(last)}</span>
-      </div>
+      <LineChart data={data} dateField={dateField} valueField={valueField} formatValue={formatValue} label="Platform activity over the last 30 days" />
     </div>
   )
 }
@@ -94,13 +79,13 @@ export default function AdminAnalyticsPage() {
       <div className="flex flex-col gap-6">
 
         {/* ── Summary KPIs ──────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <StatCard
             label="New users (30d)"
             value={isLoading ? undefined : totalNewUsers.toLocaleString()}
             icon={<Users size={15} />}
-            iconBg="bg-blue-50"
-            iconColor="text-blue-600"
+            iconBg="bg-brand-light"
+            iconColor="text-brand"
             loading={isLoading}
           />
           <StatCard
@@ -118,7 +103,7 @@ export default function AdminAnalyticsPage() {
             iconBg="bg-success-bg"
             iconColor="text-success"
             loading={isLoading}
-            className="col-span-2 sm:col-span-1"
+            className=""
           />
         </div>
 
@@ -146,10 +131,11 @@ export default function AdminAnalyticsPage() {
           subtitle="Daily revenue over 30 days"
           loading={isLoading}
         >
-          <Timeline
+            <Timeline
             data={data?.revenue_daily}
             valueField="revenue"
             formatTotal={n => `ETB ${n.toLocaleString()}`}
+              formatValue={n => `ETB ${Number(n).toLocaleString()}`}
           />
         </ChartCard>
 

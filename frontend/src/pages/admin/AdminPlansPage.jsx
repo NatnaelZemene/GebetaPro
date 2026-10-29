@@ -22,16 +22,16 @@ import apiClient from '../../services/apiClient.js'
 const PLAN_CONFIG = {
   FREE: {
     icon: Shield,
-    iconClass:  'text-gray-500',
-    iconBg:     'bg-gray-50',
+    iconClass:  'text-ink-3',
+    iconBg:     'bg-surface-2',
     accentBg:   'bg-canvas',
     borderClass: 'border-border',
     badge: null,
   },
   BASIC: {
     icon: Zap,
-    iconClass:  'text-blue-600',
-    iconBg:     'bg-blue-50',
+    iconClass:  'text-brand',
+    iconBg:     'bg-brand-light',
     accentBg:   'bg-canvas',
     borderClass: 'border-border',
     badge: null,
@@ -46,10 +46,10 @@ const PLAN_CONFIG = {
   },
   BUSINESS: {
     icon: Crown,
-    iconClass:  'text-amber-600',
-    iconBg:     'bg-amber-50',
+    iconClass:  'text-warning',
+    iconBg:     'bg-warning-bg',
     accentBg:   'bg-canvas',
-    borderClass: 'border-amber-200',
+    borderClass: 'border-warning/30',
     badge: <Badge variant="dark" size="xs">Premium</Badge>,
   },
 }

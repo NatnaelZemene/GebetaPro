@@ -24,7 +24,7 @@
  * - StatCard: trend indicator uses aria-label so screen readers announce
  *   the full meaning (not just the icon).
  */
-import { useEffect, useRef } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { Skeleton } from '../../../components/ui/Skeleton.jsx'
 import { Button }   from '../../../components/ui/Button.jsx'
 import { useFocusTrap } from '../../../hooks/useFocusTrap.js'
@@ -53,7 +53,7 @@ export function StatCard({
   const trendFlat = trend === 0 || trend == null
 
   return (
-    <div className={`bg-surface border border-border rounded-xl p-5 flex flex-col gap-3 ${className}`}>
+    <div className={`bg-surface border border-border rounded-2xl p-4 sm:p-5 flex flex-col gap-3 transition-colors ${className}`}>
       {/* Header row: label + icon */}
       <div className="flex items-start justify-between gap-2">
         <span className="text-[11.5px] font-medium text-ink-3 leading-tight">
@@ -62,7 +62,7 @@ export function StatCard({
         {icon && (
           <div
             className={`
-              w-8 h-8 rounded-lg flex items-center justify-center shrink-0
+              w-9 h-9 rounded-xl flex items-center justify-center shrink-0
               ${iconBg || 'bg-surface-2'}
             `}
           >
@@ -75,7 +75,7 @@ export function StatCard({
       {loading ? (
         <Skeleton className="h-7 w-24 rounded" />
       ) : (
-        <div className="text-[26px] font-bold text-ink tracking-tight leading-none">
+        <div className="text-[25px] sm:text-[27px] font-bold text-ink tracking-[-0.04em] leading-none tabular-nums">
           {value ?? '—'}
         </div>
       )}
@@ -283,7 +283,7 @@ export function AdminTable({
 }) {
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 gap-3 bg-danger-bg border border-red-200 rounded-xl">
+      <div className="flex flex-col items-center justify-center py-12 gap-3 bg-danger-bg border border-danger/30 rounded-2xl">
         <AlertCircle size={22} className="text-danger" />
         <p className="text-[13px] text-danger font-medium">
           {error?.response?.data?.message || error?.message || 'Failed to load data.'}
@@ -304,7 +304,7 @@ export function AdminTable({
                   className={`
                     text-left text-[11px] font-semibold text-ink-3
                     uppercase tracking-[0.08em]
-                    px-5 py-3 whitespace-nowrap bg-canvas
+                    px-4 sm:px-5 py-3 whitespace-nowrap bg-canvas
                     ${col.className ?? ''}
                   `}
                 >
@@ -318,7 +318,7 @@ export function AdminTable({
               Array.from({ length: 6 }).map((_, i) => (
                 <tr key={i}>
                   {columns.map(col => (
-                    <td key={col.key} className={`px-5 py-3.5 ${col.cellClass ?? ''}`}>
+                    <td key={col.key} className={`px-4 sm:px-5 py-3 ${col.cellClass ?? ''}`}>
                       <Skeleton className="h-4 rounded" style={{ width: col.skeletonWidth ?? '70%' }} />
                     </td>
                   ))}
@@ -342,7 +342,7 @@ export function AdminTable({
                   {columns.map(col => (
                     <td
                       key={col.key}
-                      className={`px-5 py-3.5 text-[13px] text-ink ${col.cellClass ?? ''}`}
+                      className={`px-4 sm:px-5 py-3 text-[13px] text-ink ${col.cellClass ?? ''}`}
                     >
                       {col.render ? col.render(row) : (row[col.key] ?? '—')}
                     </td>
@@ -374,13 +374,13 @@ export function SectionHeader({ title, action, className = '' }) {
 ════════════════════════════════════════════════════════════════════════════ */
 export function PageHeader({ title, subtitle, action }) {
   return (
-    <div className="flex items-start justify-between gap-4 mb-7">
+    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-7">
       <div>
-        <h1 className="text-[20px] font-bold text-ink tracking-tight leading-snug">
+        <h1 className="text-[24px] sm:text-[28px] font-bold text-ink tracking-[-0.045em] leading-tight">
           {title}
         </h1>
         {subtitle && (
-          <p className="text-[13.5px] text-ink-2 mt-1 leading-relaxed">{subtitle}</p>
+          <p className="text-[13px] sm:text-[13.5px] text-ink-2 mt-1.5 leading-relaxed">{subtitle}</p>
         )}
       </div>
       {action && <div className="shrink-0">{action}</div>}
@@ -607,5 +607,79 @@ export function Sparkline({ data, valueField, className = '', color = 'var(--col
         fill={color}
       />
     </svg>
+  )
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   LineChart — responsive, data-backed trend chart for admin dashboards.
+   The hidden table keeps every plotted date/value available to assistive tech.
+════════════════════════════════════════════════════════════════════════════ */
+export function LineChart({
+  data,
+  dateField = 'date',
+  valueField = 'count',
+  formatValue = n => Number(n).toLocaleString(),
+  label = 'Trend over time',
+  color = 'var(--color-brand)',
+}) {
+  const reactId = useId()
+  const gradientId = `admin-chart-${reactId.replace(/:/g, '')}`
+  if (!data?.length) return <p className="text-[12.5px] text-ink-3 text-center py-8">No data for this period.</p>
+
+  const values = data.map(row => Number(row[valueField]) || 0)
+  const max = Math.max(...values, 1)
+  const min = Math.min(...values, 0)
+  const range = max - min || 1
+  const width = 720
+  const height = 220
+  const left = 48
+  const right = 12
+  const top = 14
+  const bottom = 28
+  const plotWidth = width - left - right
+  const plotHeight = height - top - bottom
+  const points = values.map((value, index) => ({
+    x: left + (values.length === 1 ? plotWidth / 2 : index / (values.length - 1) * plotWidth),
+    y: top + (max - value) / range * plotHeight,
+    value,
+  }))
+  const linePath = points.map((point, index) => `${index ? 'L' : 'M'} ${point.x} ${point.y}`).join(' ')
+  const areaPath = `${linePath} L ${points.at(-1).x} ${top + plotHeight} L ${points[0].x} ${top + plotHeight} Z`
+  const dateLabel = value => value ? new Date(value).toLocaleDateString('en', { month: 'short', day: 'numeric' }) : '—'
+  const labelIndexes = [...new Set([0, Math.floor((data.length - 1) / 2), data.length - 1])]
+
+  return (
+    <div>
+      <div className="w-full overflow-hidden" role="img" aria-label={label}>
+        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto min-h-[150px]" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity="0.18" />
+              <stop offset="100%" stopColor={color} stopOpacity="0.01" />
+            </linearGradient>
+          </defs>
+          {[0, 1, 2, 3].map(index => {
+            const y = top + index * plotHeight / 3
+            const value = max - index * range / 3
+            return <g key={index}>
+              <line x1={left} y1={y} x2={width - right} y2={y} stroke="var(--color-border)" strokeDasharray="3 5" />
+              <text x={left - 8} y={y + 4} textAnchor="end" fill="var(--color-ink-3)" fontSize="10">{formatValue(value)}</text>
+            </g>
+          })}
+          <path d={areaPath} fill={`url(#${gradientId})`} />
+          <path d={linePath} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+          {points.length > 1 && <circle cx={points.at(-1).x} cy={points.at(-1).y} r="5" fill={color} stroke="var(--color-surface)" strokeWidth="3" vectorEffect="non-scaling-stroke" />}
+          {labelIndexes.map(index => {
+            const point = points[index]
+            return <text key={index} x={point.x} y={height - 5} textAnchor={index === 0 ? 'start' : index === points.length - 1 ? 'end' : 'middle'} fill="var(--color-ink-3)" fontSize="10">{dateLabel(data[index][dateField])}</text>
+          })}
+        </svg>
+      </div>
+      <table className="sr-only">
+        <caption>{label}</caption>
+        <thead><tr><th scope="col">Date</th><th scope="col">Value</th></tr></thead>
+        <tbody>{data.map((row, index) => <tr key={`${row[dateField] || index}`}><td>{dateLabel(row[dateField])}</td><td>{formatValue(values[index])}</td></tr>)}</tbody>
+      </table>
+    </div>
   )
 }
