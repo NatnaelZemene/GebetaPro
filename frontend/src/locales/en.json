@@ -25,7 +25,12 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "search": "Search…",
-    "logoLabel": "GebetaPro — go to homepage"
+    "logoLabel": "GebetaPro — go to homepage",
+    "profile": "Profile",
+    "settings": "Settings",
+    "viewPublicProfile": "Public Profile",
+    "adminPanel": "Admin Panel",
+    "signedInAs": "Signed in as"
   },
 
   "footer": {

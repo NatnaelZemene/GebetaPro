@@ -25,7 +25,12 @@
     "openMenu": "ምናሌ ክፈት",
     "closeMenu": "ምናሌ ዝጋ",
     "search": "ፈልግ…",
-    "logoLabel": "GebetaPro — ወደ መነሻ ሂድ"
+    "logoLabel": "GebetaPro — ወደ መነሻ ሂድ",
+    "profile": "መገለጫ",
+    "settings": "ቅንብሮች",
+    "viewPublicProfile": "የህዝብ መገለጫ",
+    "adminPanel": "የአስተዳዳሪ ፓነል",
+    "signedInAs": "የገቡበት መለያ"
   },
 
   "footer": {

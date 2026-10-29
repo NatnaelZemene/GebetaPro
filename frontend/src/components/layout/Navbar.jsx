@@ -13,16 +13,19 @@
  */
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { Search, Menu, X, LayoutDashboard, LogOut } from 'lucide-react'
+import { Search, Menu, X, LayoutDashboard, LogOut, Settings, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '../ui/Button.jsx'
 import { LanguageSelector } from '../ui/LanguageSelector.jsx'
 import { ThemeToggle } from '../ui/ThemeToggle.jsx'
 import { LogoutConfirmation } from '../ui/LogoutConfirmation.jsx'
+import { UserProfileMenu } from './UserProfileMenu.jsx'
 import { useFocusTrap } from '../../hooks/useFocusTrap.js'
+import { useMyProfile } from '../../features/profiles/hooks/useProfile.js'
 
 export function Navbar() {
   const { t }        = useTranslation()
+  const { data: profile } = useMyProfile()
   const navigate     = useNavigate()
   const { pathname } = useLocation()
   const [open, setOpen]       = useState(false)
@@ -189,32 +192,7 @@ export function Navbar() {
 
               {/* Auth controls for desktop */}
               {isLoggedIn ? (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    icon={<LayoutDashboard size={13} aria-hidden="true" />}
-                    onClick={() => navigate('/dashboard')}
-                    className="text-ink-2"
-                  >
-                    {t('nav.dashboard')}
-                  </Button>
-                  <button
-                    type="button"
-                    onClick={() => setLogoutConfirmOpen(true)}
-                    aria-label={t('nav.logout')}
-                    title={t('nav.logout')}
-                    className="
-                      h-8 w-8 flex items-center justify-center
-                      border border-border rounded-lg text-ink-3
-                      hover:text-danger hover:border-red-200 hover:bg-red-50 dark:hover:bg-red-500/10
-                      transition-all duration-150
-                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1
-                    "
-                  >
-                    <LogOut size={13} aria-hidden="true" />
-                  </button>
-                </>
+                <UserProfileMenu onLogout={() => setLogoutConfirmOpen(true)} />
               ) : (
                 <>
                   <Link
@@ -342,28 +320,78 @@ export function Navbar() {
           {/* Auth CTAs — pinned to bottom */}
           <div className="mt-auto px-5 py-5 border-t border-border flex flex-col gap-2.5 bg-surface/50">
             {isLoggedIn ? (
-              <>
+              <div className="space-y-3">
+                {/* User card in mobile drawer */}
+                <div className="flex items-center gap-3 p-3 rounded-2xl bg-surface-2/70 border border-border">
+                  <div className="relative shrink-0">
+                    {profile?.avatar_url ? (
+                      <img
+                        src={profile.avatar_url}
+                        alt={profile.full_name || 'User'}
+                        className="w-11 h-11 rounded-full object-cover ring-2 ring-border"
+                      />
+                    ) : (
+                      <div className="w-11 h-11 rounded-full bg-brand-light text-brand font-bold text-sm flex items-center justify-center ring-2 ring-border">
+                        {(profile?.full_name?.charAt(0) || 'U').toUpperCase()}
+                      </div>
+                    )}
+                    <span
+                      className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-surface"
+                      aria-hidden="true"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[13.5px] font-bold text-ink truncate leading-tight">
+                      {profile?.full_name || t('nav.profile', 'Profile')}
+                    </p>
+                    <p className="text-[11.5px] text-ink-3 truncate mt-0.5">
+                      {profile?.professional_title || profile?.title || ''}
+                    </p>
+                  </div>
+                  {profile?.slug && (
+                    <Link
+                      to={`/@${profile.slug}`}
+                      onClick={() => setOpen(false)}
+                      className="p-2 rounded-xl text-brand hover:bg-brand-light/30 transition-colors shrink-0"
+                      title={t('nav.viewPublicProfile', 'Public Profile')}
+                    >
+                      <User size={16} />
+                    </Link>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant="primary"
+                    size="md"
+                    icon={<LayoutDashboard size={14} aria-hidden="true" />}
+                    onClick={() => { setOpen(false); navigate('/dashboard') }}
+                    className="rounded-xl font-medium justify-center text-[13px]"
+                  >
+                    {t('nav.dashboard')}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    icon={<Settings size={14} aria-hidden="true" />}
+                    onClick={() => { setOpen(false); navigate('/dashboard/profile') }}
+                    className="rounded-xl font-medium justify-center text-[13px]"
+                  >
+                    {t('nav.settings', 'Settings')}
+                  </Button>
+                </div>
+
                 <Button
-                  variant="primary"
-                  size="lg"
+                  variant="ghost"
+                  size="sm"
                   fullWidth
-                  icon={<LayoutDashboard size={16} aria-hidden="true" />}
-                  onClick={() => { setOpen(false); navigate('/dashboard') }}
-                  className="rounded-xl font-semibold"
-                >
-                  {t('nav.dashboard')}
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="md"
-                  fullWidth
-                  icon={<LogOut size={15} aria-hidden="true" />}
+                  icon={<LogOut size={14} aria-hidden="true" />}
                   onClick={() => { setOpen(false); setLogoutConfirmOpen(true) }}
-                  className="rounded-xl text-danger border-border hover:bg-red-500/10"
+                  className="rounded-xl text-danger hover:bg-red-500/10 justify-center text-[12.5px]"
                 >
                   {t('nav.logout')}
                 </Button>
-              </>
+              </div>
             ) : (
               <>
                 <Button
