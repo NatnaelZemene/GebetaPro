@@ -66,6 +66,12 @@ const CATEGORIES = [
   { slug: 'creative',             name: 'Creative & Media',    description: 'Photography, design, video, and content creation', icon: '🎨' },
   { slug: 'construction',         name: 'Construction & Trades', description: 'Builders, contractors, and skilled tradespeople', icon: '🔨' },
   { slug: 'retail',               name: 'Retail & Shops',      description: 'Local shops, boutiques, and physical stores', icon: '🛍️' },
+  { slug: 'hospitality',          name: 'Hospitality',          description: 'Hotels, guesthouses, and visitor accommodation', icon: '🏨' },
+  { slug: 'travel-tourism',       name: 'Travel & Tourism',     description: 'Tour operators, travel agencies, and local guides', icon: '🧭' },
+
+  // ── Hospitality & tourism sub-categories ─────────────────────────────────
+  { slug: 'hotels',               name: 'Hotels & Guesthouses', parentSlug: 'hospitality' },
+  { slug: 'tour-operators',       name: 'Tour Operators & Guides', parentSlug: 'travel-tourism' },
 
   // ── Home Services sub-categories ─────────────────────────────────────────
   { slug: 'plumbing',             name: 'Plumbing',            parentSlug: 'home-services' },

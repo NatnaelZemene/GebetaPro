@@ -13,6 +13,7 @@ import {
   Home, Zap, Droplets, Leaf, KeyRound,
   Car, Truck, Package,
   ShoppingCart,
+  Hotel, Compass,
   LayoutGrid
 } from 'lucide-react'
 
@@ -69,6 +70,12 @@ const ICON_MAP = {
   // ── Retail & Shops ────────────────────────────────────────────
   'retail':           { icon: ShoppingBag, bg: 'bg-pink-50',    text: 'text-pink-500' },
   'shop':             { icon: ShoppingCart, bg: 'bg-pink-50',   text: 'text-pink-500' },
+
+  // ── Hospitality & Tourism ─────────────────────────────────────
+  'hospitality':      { icon: Hotel,       bg: 'bg-indigo-50',  text: 'text-indigo-600' },
+  'hotels':           { icon: Hotel,       bg: 'bg-indigo-50',  text: 'text-indigo-600' },
+  'travel-tourism':   { icon: Compass,     bg: 'bg-teal-50',    text: 'text-teal-600' },
+  'tour-operators':   { icon: Compass,     bg: 'bg-teal-50',    text: 'text-teal-600' },
 
   // ── Technology & Repair ───────────────────────────────────────
   'tech':             { icon: Laptop,      bg: 'bg-slate-50',   text: 'text-slate-600' },
