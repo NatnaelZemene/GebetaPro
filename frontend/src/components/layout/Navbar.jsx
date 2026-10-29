@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '../ui/Button.jsx'
 import { LanguageSelector } from '../ui/LanguageSelector.jsx'
 import { ThemeToggle } from '../ui/ThemeToggle.jsx'
+import { LogoutConfirmation } from '../ui/LogoutConfirmation.jsx'
 import { useFocusTrap } from '../../hooks/useFocusTrap.js'
 
 export function Navbar() {
@@ -25,6 +26,7 @@ export function Navbar() {
   const navigate     = useNavigate()
   const { pathname } = useLocation()
   const [open, setOpen]       = useState(false)
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const isLoggedIn = !!localStorage.getItem('accessToken')
 
@@ -200,7 +202,7 @@ export function Navbar() {
                 </Button>
                 <button
                   type="button"
-                  onClick={handleLogout}
+                  onClick={() => setLogoutConfirmOpen(true)}
                   aria-label={t('nav.logout')}
                   title={t('nav.logout')}
                   className="
@@ -333,7 +335,7 @@ export function Navbar() {
                   size="md"
                   fullWidth
                   icon={<LogOut size={14} aria-hidden="true" />}
-                  onClick={handleLogout}
+                  onClick={() => setLogoutConfirmOpen(true)}
                 >
                   {t('nav.logout')}
                 </Button>
@@ -361,6 +363,11 @@ export function Navbar() {
           </div>
         </div>
       )}
+      <LogoutConfirmation
+        isOpen={logoutConfirmOpen}
+        onCancel={() => setLogoutConfirmOpen(false)}
+        onConfirm={handleLogout}
+      />
     </>
   )
 }

@@ -24,6 +24,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { LanguageSelector } from '../ui/LanguageSelector.jsx'
 import { ThemeToggle } from '../ui/ThemeToggle.jsx'
+import { LogoutConfirmation } from '../ui/LogoutConfirmation.jsx'
 import { useFocusTrap } from '../../hooks/useFocusTrap.js'
 import * as api from '../../services/profiles.service.js'
 
@@ -224,6 +225,7 @@ export function DashboardLayout({ children, title }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
 
   // Ref to hamburger so focus returns to it when drawer closes
   const hamburgerRef = useRef(null)
@@ -314,7 +316,7 @@ export function DashboardLayout({ children, title }) {
       {/* Bottom */}
       <div className="px-3 py-4 border-t border-border flex flex-col gap-0.5">
         <button
-          onClick={handleLogout}
+          onClick={() => setLogoutConfirmOpen(true)}
           className="flex items-center gap-2.5 px-3 py-2 rounded text-[13.5px] font-medium text-ink-2 hover:bg-red-50 hover:text-danger transition-colors duration-150 w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-inset"
           aria-label={t('dashboard.sidebar.logout')}
         >
@@ -398,6 +400,11 @@ export function DashboardLayout({ children, title }) {
           {children}
         </main>
       </div>
+      <LogoutConfirmation
+        isOpen={logoutConfirmOpen}
+        onCancel={() => setLogoutConfirmOpen(false)}
+        onConfirm={handleLogout}
+      />
     </div>
   )
 }

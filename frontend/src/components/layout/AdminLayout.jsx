@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import { useFocusTrap } from '../../hooks/useFocusTrap.js'
 import { ThemeToggle } from '../ui/ThemeToggle.jsx'
+import { LogoutConfirmation } from '../ui/LogoutConfirmation.jsx'
 
 /* ── Nav definition ──────────────────────────────────────────────────────── */
 const NAV = [
@@ -76,16 +77,7 @@ function Tip({ label, children, collapsed }) {
 }
 
 /* ── Sidebar content (shared desktop + mobile) ───────────────────────────── */
-function SidebarContent({ collapsed, onClose }) {
-  const navigate = useNavigate()
-
-  function handleLogout() {
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
-    navigate('/')
-    window.location.reload()
-  }
-
+function SidebarContent({ collapsed, onClose, onRequestLogout }) {
   return (
     <div className="flex flex-col h-full overflow-hidden">
 
@@ -198,7 +190,7 @@ function SidebarContent({ collapsed, onClose }) {
 
         <Tip label="Log out" collapsed={collapsed}>
           <button
-            onClick={handleLogout}
+            onClick={onRequestLogout}
             className={`
               flex items-center gap-3 w-full text-left
               ${collapsed ? 'h-9 w-9 justify-center mx-auto' : 'h-9 px-3'}
@@ -221,6 +213,8 @@ function SidebarContent({ collapsed, onClose }) {
 export function AdminLayout({ children, title }) {
   const [collapsed,   setCollapsed]   = useState(false)
   const [drawerOpen,  setDrawerOpen]  = useState(false)
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
+  const navigate = useNavigate()
   const currentPage = useBreadcrumbs()
 
   // Ref to hamburger so focus returns when drawer closes
@@ -231,6 +225,13 @@ export function AdminLayout({ children, title }) {
     setDrawerOpen(false)
     setTimeout(() => hamburgerRef.current?.focus(), 50)
   })
+
+  function handleLogout() {
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('refreshToken')
+    navigate('/')
+    window.location.reload()
+  }
 
   return (
     <div className="min-h-screen bg-canvas flex">
@@ -247,7 +248,7 @@ export function AdminLayout({ children, title }) {
         `}
         aria-label="Admin sidebar"
       >
-        <SidebarContent collapsed={collapsed} onClose={() => {}} />
+        <SidebarContent collapsed={collapsed} onClose={() => {}} onRequestLogout={() => setLogoutConfirmOpen(true)} />
 
         {/* Collapse toggle */}
         <button
@@ -307,7 +308,7 @@ export function AdminLayout({ children, title }) {
         >
           <X size={16} aria-hidden="true" />
         </button>
-        <SidebarContent collapsed={false} onClose={() => { setDrawerOpen(false); setTimeout(() => hamburgerRef.current?.focus(), 50) }} />
+        <SidebarContent collapsed={false} onClose={() => { setDrawerOpen(false); setTimeout(() => hamburgerRef.current?.focus(), 50) }} onRequestLogout={() => setLogoutConfirmOpen(true)} />
       </div>
 
       {/* ── Main content ─────────────────────────────────────────────── */}
@@ -370,6 +371,11 @@ export function AdminLayout({ children, title }) {
           {children}
         </main>
       </div>
+      <LogoutConfirmation
+        isOpen={logoutConfirmOpen}
+        onCancel={() => setLogoutConfirmOpen(false)}
+        onConfirm={handleLogout}
+      />
     </div>
   )
 }
