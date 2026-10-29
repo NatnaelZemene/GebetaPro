@@ -684,31 +684,31 @@ export default function HomePage() {
               className="
                 relative overflow-hidden rounded-3xl
                 grid grid-cols-1 lg:grid-cols-2 gap-0
+                bg-surface border border-border shadow-sm
               "
-              style={{ background: '#1a1917' }}
             >
               {/* Dot grid */}
               <div
-                className="absolute inset-0 pointer-events-none"
+                className="absolute inset-0 pointer-events-none opacity-40 dark:opacity-20"
                 aria-hidden="true"
                 style={{
                   backgroundImage:
-                    'radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)',
+                    'radial-gradient(circle, var(--color-border-2) 1px, transparent 1px)',
                   backgroundSize: '24px 24px',
                 }}
               />
 
               {/* Left: copy */}
               <div className="relative z-10 p-8 sm:p-12 flex flex-col justify-center">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/35 mb-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand mb-4">
                   {t('home.mapDiscovery')}
                 </p>
-                <h2 className="text-[28px] sm:text-[36px] font-bold text-white tracking-tight leading-tight mb-4">
+                <h2 className="text-[28px] sm:text-[36px] font-bold text-ink tracking-tight leading-tight mb-4">
                   {t('home.seeWhoAround')}
                   <br />
-                  <span className="text-white/40">{t('home.onTheMap')}</span>
+                  <span className="text-ink-3">{t('home.onTheMap')}</span>
                 </h2>
-                <p className="text-[14px] text-white/50 leading-relaxed mb-8 max-w-sm">
+                <p className="text-[14px] text-ink-2 leading-relaxed mb-8 max-w-sm">
                   {t('home.mapDesc')}
                 </p>
                 <div>
@@ -717,7 +717,7 @@ export default function HomePage() {
                     size="lg"
                     icon={<Map size={16} />}
                     onClick={() => navigate('/directory/map')}
-                    className="rounded-xl"
+                    className="rounded-xl font-semibold"
                   >
                     {t('home.openMapView')}
                   </Button>
@@ -726,17 +726,17 @@ export default function HomePage() {
 
               {/* Right: stylised map preview surface */}
               <div
-                className="relative h-56 lg:h-auto overflow-hidden"
+                className="relative h-56 lg:h-auto overflow-hidden bg-surface-2/50"
                 aria-hidden="true"
               >
                 {/* Abstract map surface */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   {/* Grid lines suggesting a map */}
                   <div
-                    className="absolute inset-0 opacity-10"
+                    className="absolute inset-0 opacity-15"
                     style={{
                       backgroundImage:
-                        'linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)',
+                        'linear-gradient(var(--color-ink) 1px, transparent 1px), linear-gradient(90deg, var(--color-ink) 1px, transparent 1px)',
                       backgroundSize: '32px 32px',
                     }}
                   />
@@ -765,7 +765,7 @@ export default function HomePage() {
                           `}
                         />
                         {pin.label && (
-                          <span className="absolute top-5 left-1/2 -translate-x-1/2 text-[10px] text-white/50 whitespace-nowrap font-medium">
+                          <span className="absolute top-5 left-1/2 -translate-x-1/2 text-[10px] text-ink-2 whitespace-nowrap font-medium">
                             {pin.label}
                           </span>
                         )}
@@ -785,11 +785,11 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* Bottom fade to blend with dark surface */}
+                {/* Bottom fade to blend with surface */}
                 <div
                   className="absolute bottom-0 left-0 right-0 h-16 pointer-events-none"
                   style={{
-                    background: 'linear-gradient(to bottom, transparent, #1a1917)',
+                    background: 'linear-gradient(to bottom, transparent, var(--color-surface))',
                   }}
                 />
               </div>
@@ -875,17 +875,16 @@ export default function HomePage() {
             Bold promise. Clear single CTA. Confident typographic statement.
         ════════════════════════════════════════════════════════════════════ */}
         <section
-          className="relative overflow-hidden"
-          style={{ background: '#1a1917' }}
+          className="relative overflow-hidden bg-surface border-t border-border"
           aria-label="Create your profile"
         >
           {/* Dot grid */}
           <div
-            className="absolute inset-0 pointer-events-none"
+            className="absolute inset-0 pointer-events-none opacity-40 dark:opacity-20"
             aria-hidden="true"
             style={{
               backgroundImage:
-                'radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)',
+                'radial-gradient(circle, var(--color-border-2) 1px, transparent 1px)',
               backgroundSize: '28px 28px',
             }}
           />
@@ -898,7 +897,7 @@ export default function HomePage() {
               width: '480px',
               height: '480px',
               background:
-                'radial-gradient(circle at top right, rgba(26,107,94,0.15) 0%, transparent 65%)',
+                'radial-gradient(circle at top right, var(--color-brand-light) 0%, transparent 65%)',
             }}
           />
 
@@ -907,13 +906,13 @@ export default function HomePage() {
 
               {/* Left: statement */}
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/30 mb-6">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand mb-6">
                   {t('home.getDiscoveredTitle')}
                 </p>
                 <h2
                   className="
                     text-[34px] sm:text-[48px] lg:text-[56px]
-                    font-extrabold text-white
+                    font-extrabold text-ink
                     tracking-[-0.03em] leading-[1.07]
                     mb-6
                   "
@@ -921,13 +920,13 @@ export default function HomePage() {
                   {t('home.getDiscoveredTitle')}
                   <br />
                   <span
-                    className="relative text-transparent"
-                    style={{ WebkitTextStroke: '1.5px rgba(255,255,255,0.25)' }}
+                    className="relative text-transparent block select-none"
+                    style={{ WebkitTextStroke: '1.5px var(--color-ink-4)' }}
                   >
                     {t('home.getDiscoveredSub')}
                   </span>
                 </h2>
-                <p className="text-[15px] text-white/45 leading-relaxed max-w-md mb-10">
+                <p className="text-[15px] text-ink-2 leading-relaxed max-w-md mb-10">
                   {t('home.getDiscoveredSub')}
                 </p>
                 <div className="flex flex-wrap gap-3">
@@ -940,10 +939,10 @@ export default function HomePage() {
                     {t('home.startFreeProfile')}
                   </Button>
                   <Button
-                    variant="ghost"
+                    variant="secondary"
                     size="lg"
                     onClick={() => navigate('/pricing')}
-                    className="text-white/60 hover:text-white border-white/10 hover:border-white/25 hover:bg-white/5 rounded-xl"
+                    className="rounded-xl font-semibold"
                   >
                     {t('nav.pricing')}
                   </Button>
@@ -956,24 +955,24 @@ export default function HomePage() {
                   className="
                     relative w-[280px]
                     rounded-2xl overflow-hidden
-                    border border-white/8
-                    bg-white/4
+                    border border-border
+                    bg-surface-2 shadow-xl shadow-black/5 dark:shadow-black/30
                   "
                   aria-hidden="true"
                 >
                   {/* Fake cover */}
                   <div
-                    className="h-28 w-full"
+                    className="h-28 w-full relative"
                     style={{
                       background:
-                        'linear-gradient(135deg, rgba(26,107,94,0.35) 0%, rgba(255,255,255,0.04) 100%)',
+                        'linear-gradient(135deg, rgba(26,107,94,0.25) 0%, var(--color-surface-2) 100%)',
                     }}
                   >
                     <div
-                      className="absolute inset-0 opacity-20"
+                      className="absolute inset-0 opacity-15"
                       style={{
                         backgroundImage:
-                          'linear-gradient(rgba(255,255,255,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.2) 1px, transparent 1px)',
+                          'linear-gradient(var(--color-ink) 1px, transparent 1px), linear-gradient(90deg, var(--color-ink) 1px, transparent 1px)',
                         backgroundSize: '16px 16px',
                       }}
                     />
@@ -981,18 +980,18 @@ export default function HomePage() {
 
                   <div className="px-5 pt-3 pb-5">
                     {/* Avatar placeholder */}
-                    <div className="-mt-8 mb-3 w-12 h-12 rounded-xl bg-brand/30 border-2 border-[#1a1917] flex items-center justify-center">
-                      <span className="text-[18px] font-bold text-brand/80">Y</span>
+                    <div className="-mt-8 mb-3 w-12 h-12 rounded-xl bg-brand/20 border-2 border-surface flex items-center justify-center shadow-sm">
+                      <span className="text-[18px] font-bold text-brand">Y</span>
                     </div>
                     {/* Name placeholder */}
-                    <div className="h-4 w-32 rounded bg-white/10 mb-2" />
+                    <div className="h-4 w-32 rounded bg-ink/15 mb-2" />
                     {/* Headline placeholder */}
-                    <div className="h-3 w-44 rounded bg-white/6 mb-1" />
-                    <div className="h-3 w-36 rounded bg-white/6 mb-4" />
+                    <div className="h-3 w-44 rounded bg-ink/10 mb-1" />
+                    <div className="h-3 w-36 rounded bg-ink/10 mb-4" />
                     {/* Meta row */}
-                    <div className="flex gap-2 pt-3 border-t border-white/8">
-                      <div className="h-3 w-20 rounded bg-white/6" />
-                      <div className="h-3 w-16 rounded bg-white/6" />
+                    <div className="flex gap-2 pt-3 border-t border-border">
+                      <div className="h-3 w-20 rounded bg-ink/10" />
+                      <div className="h-3 w-16 rounded bg-ink/10" />
                     </div>
                   </div>
 
@@ -1001,8 +1000,8 @@ export default function HomePage() {
                     className="
                       absolute top-3 right-3
                       text-[10px] font-semibold uppercase tracking-[0.1em]
-                      text-white/30 bg-white/6
-                      px-2 py-1 rounded-full
+                      text-ink-2 bg-surface/80 backdrop-blur-sm border border-border
+                      px-2.5 py-1 rounded-full
                     "
                   >
                     {t('home.yourProfile')}

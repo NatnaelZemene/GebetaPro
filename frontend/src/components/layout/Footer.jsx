@@ -18,8 +18,8 @@ import { LanguageSelectorDark } from '../ui/LanguageSelector.jsx'
 import { ThemeToggle } from '../ui/ThemeToggle.jsx'
 
 /* Design constants */
-const BG         = '#1a1917'
-const RULE_COLOR = 'rgba(255,255,255,0.07)'
+const BG         = '#090d12'
+const RULE_COLOR = 'rgba(255,255,255,0.08)'
 
 export function Footer() {
   const { t } = useTranslation()
