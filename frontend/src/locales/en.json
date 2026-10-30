@@ -161,6 +161,15 @@
     "recommended": "Recommended",
     "highestRated": "Highest rated",
     "newest": "Newest",
+    "alphabetical": "Name (A to Z)",
+    "sortBy": "Sort Results",
+    "options": "options",
+    "sortDesc": {
+      "recommended": "Best match & featured providers",
+      "rating": "Top customer reviews and star ratings",
+      "newest": "Recently registered and updated",
+      "name": "Alphabetical order by provider name"
+    },
     "gridView": "Grid view",
     "listView": "List view",
     "openMap": "Open map",

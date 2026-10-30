@@ -161,6 +161,15 @@
     "recommended": "የሚመከር",
     "highestRated": "ከፍተኛ ደረጃ",
     "newest": "አዲስ",
+    "alphabetical": "ስም (ከሀ - ፐ)",
+    "sortBy": "ውጤቶችን ደርድር",
+    "options": "አማራጮች",
+    "sortDesc": {
+      "recommended": "ምርጥ ተዛማጅ እና ተለይተው የቀረቡ",
+      "rating": "ከፍተኛ የተጠቃሚ ደረጃ የተሰጣቸው",
+      "newest": "በቅርቡ የተመዘገቡ",
+      "name": "በስም ቅደም ተከተል"
+    },
     "gridView": "ግሪድ እይታ",
     "listView": "ዝርዝር እይታ",
     "openMap": "ካርታ ክፈት",

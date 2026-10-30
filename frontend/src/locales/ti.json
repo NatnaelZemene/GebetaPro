@@ -150,6 +150,15 @@
     "recommended": "ዝምከር",
     "highestRated": "ዝለዓለ ደረጃ",
     "newest": "ሓዲሽ",
+    "alphabetical": "ስም (ካብ ሀ ክሳብ ፐ)",
+    "sortBy": "ውጽኢታት ሰርዕ",
+    "options": "ኣማራጺታት",
+    "sortDesc": {
+      "recommended": "ዝበለጸ ተዛማዲን ፍሉያትን",
+      "rating": "ዝለዓለ ደረጃ ተጠቃሚ ዘለዎም",
+      "newest": "ብቕረባ ዝተመዝገቡ",
+      "name": "ብቕደም ተኸተል ፊደላት"
+    },
     "gridView": "ናይ ነጥቢ ርኣዪ",
     "listView": "ናይ ዝርዝር ርኣዪ",
     "openMap": "ካርታ ኽፈቱ",

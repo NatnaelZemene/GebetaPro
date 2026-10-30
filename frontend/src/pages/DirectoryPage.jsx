@@ -39,6 +39,7 @@ import { CategoryIconInline } from '../features/profiles/components/CategoryIcon
 import { RadiusSelector }    from '../features/locations/components/RadiusSelector.jsx'
 import { UserLocationButtonControlled } from '../features/locations/components/UserLocationButton.jsx'
 import { useGeolocation }    from '../features/locations/hooks/useGeolocation.js'
+import { SortDropdown, SORT_OPTIONS_CONFIG } from '../features/profiles/components/SortDropdown.jsx'
 
 /* ── Constants ───────────────────────────────────────────────────────────────── */
 
@@ -606,7 +607,7 @@ export default function DirectoryPage() {
     profile_type:  searchParams.get('profile_type')  || '',
     verified_only: searchParams.get('verified_only') === 'true',
     sort:          searchParams.get('sort')           || 'featured',
-    page:          1,
+    page:          parseInt(searchParams.get('page')  || '1', 10) || 1,
   })
 
   /* ── Local search input (tracks typed value before submit) ─────────────── */
@@ -615,6 +616,68 @@ export default function DirectoryPage() {
   const [searchInput, setSearchInput] = useState(filters.search)
   // Same pattern for the inline city field in the top bar
   const [cityInput, setCityInput] = useState(filters.city)
+
+  // Sync filters to URL searchParams
+  useEffect(() => {
+    const next = new URLSearchParams()
+    if (filters.search)        next.set('search', filters.search)
+    if (filters.category_id)   next.set('category_id', filters.category_id)
+    if (filters.city)          next.set('city', filters.city)
+    if (filters.country)       next.set('country', filters.country)
+    if (filters.profile_type)  next.set('profile_type', filters.profile_type)
+    if (filters.verified_only) next.set('verified_only', 'true')
+    if (filters.sort && filters.sort !== 'featured') next.set('sort', filters.sort)
+    if (filters.page > 1)      next.set('page', String(filters.page))
+
+    if (next.toString() !== searchParams.toString()) {
+      setSearchParams(next, { replace: true })
+    }
+  }, [filters, searchParams, setSearchParams])
+
+  // Sync external URL changes back to filter state
+  useEffect(() => {
+    const nextSearch = toEnglishSearchTerm(searchParams.get('search') || '')
+    const nextCat    = searchParams.get('category_id') || ''
+    const nextCity   = toEnglishCity(searchParams.get('city') || '')
+    const nextCountry = searchParams.get('country') || ''
+    const nextType   = searchParams.get('profile_type') || ''
+    const nextVer    = searchParams.get('verified_only') === 'true'
+    const nextSort   = searchParams.get('sort') || 'featured'
+    const nextPage   = parseInt(searchParams.get('page') || '1', 10) || 1
+
+    setFilters(prev => {
+      if (
+        prev.search === nextSearch &&
+        prev.category_id === nextCat &&
+        prev.city === nextCity &&
+        prev.country === nextCountry &&
+        prev.profile_type === nextType &&
+        prev.verified_only === nextVer &&
+        prev.sort === nextSort &&
+        prev.page === nextPage
+      ) {
+        return prev
+      }
+      return {
+        search: nextSearch,
+        category_id: nextCat,
+        city: nextCity,
+        country: nextCountry,
+        profile_type: nextType,
+        verified_only: nextVer,
+        sort: nextSort,
+        page: nextPage,
+      }
+    })
+  }, [searchParams])
+
+  useEffect(() => {
+    setSearchInput(filters.search)
+  }, [filters.search])
+
+  useEffect(() => {
+    setCityInput(filters.city)
+  }, [filters.city])
 
   /* ── Device History (Persistent across sessions if logged in / on device) ── */
   const [recentSearches, setRecentSearches] = useState(() => getSearchHistory())
@@ -677,6 +740,7 @@ export default function DirectoryPage() {
     if (filters.country)       p.country       = filters.country
     if (filters.profile_type)  p.profile_type  = filters.profile_type
     if (filters.verified_only) p.verified_only = true
+    if (filters.sort)          p.sort          = filters.sort
     if (useNearMe && geo.lat != null) {
       p.latitude  = geo.lat
       p.longitude = geo.lng
@@ -839,7 +903,7 @@ export default function DirectoryPage() {
                 <div className="hidden sm:block w-px bg-border self-stretch my-2.5" aria-hidden="true" />
 
                 {/* Location */}
-                <div className="flex items-center gap-2.5 px-3 sm:px-4 h-10 sm:h-12 sm:w-44">
+                <div className="flex items-center gap-2 px-3 sm:px-4 h-10 sm:h-12 sm:w-48">
                   <MapPin size={14} className="text-ink-3 shrink-0" aria-hidden="true" />
                   <input
                     type="text"
@@ -852,6 +916,16 @@ export default function DirectoryPage() {
                     "
                     aria-label={t('directory.locationPlaceholder')}
                   />
+                  {cityInput && (
+                    <button
+                      type="button"
+                      onClick={() => { setCityInput(''); updateFilter('city', '') }}
+                      className="text-ink-3 hover:text-ink transition-colors shrink-0 focus-visible:outline-none cursor-pointer"
+                      aria-label="Clear location"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -1168,30 +1242,12 @@ export default function DirectoryPage() {
 
                 {/* Right: controls */}
                 <div className="flex items-center gap-2 shrink-0">
-                  {/* Sort — desktop */}
-                  <div className="relative hidden sm:block">
-                    <select
-                      value={filters.sort}
-                      onChange={e => updateFilter('sort', e.target.value)}
-                      className="
-                        h-8 pl-3 pr-7 bg-surface border border-border rounded-lg
-                        text-[12.5px] text-ink-2 outline-none
-                        focus:border-brand
-                        appearance-none cursor-pointer
-                        transition-colors duration-150
-                      "
-                      aria-label="Sort results"
-                    >
-                      {SORT_OPTIONS.map(o => (
-                        <option key={o.value} value={o.value}>{o.label}</option>
-                      ))}
-                    </select>
-                    <ChevronDown
-                      size={11}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none"
-                      aria-hidden="true"
-                    />
-                  </div>
+                  {/* Sort — desktop (custom advanced dropdown) */}
+                  <SortDropdown
+                    value={filters.sort}
+                    onChange={v => updateFilter('sort', v)}
+                    className="hidden sm:inline-block"
+                  />
 
                   {/* View toggle — desktop */}
                   <div
@@ -1437,25 +1493,32 @@ export default function DirectoryPage() {
               <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-3 mb-2">
                 {t('directory.sort')}
               </p>
-              <div className="flex gap-1.5 flex-wrap">
-                {SORT_OPTIONS.map(o => (
-                  <button
-                    key={o.value}
-                    type="button"
-                    onClick={() => updateFilter('sort', o.value)}
-                    className={`
-                      px-3 py-1.5 rounded-full text-[12.5px] font-medium border
-                      transition-all duration-150
-                      ${filters.sort === o.value
-                        ? 'bg-brand text-white border-brand'
-                        : 'bg-canvas text-ink-2 border-border hover:border-brand-border'
-                      }
-                    `}
-                    aria-pressed={filters.sort === o.value}
-                  >
-                    {o.label}
-                  </button>
-                ))}
+              <div className="grid grid-cols-2 gap-2">
+                {SORT_OPTIONS_CONFIG.map(o => {
+                  const isSelected = filters.sort === o.value
+                  const Icon = o.icon
+                  return (
+                    <button
+                      key={o.value}
+                      type="button"
+                      onClick={() => updateFilter('sort', o.value)}
+                      className={`
+                        flex items-center gap-2 px-3 py-2 rounded-xl text-left border
+                        transition-all duration-150 cursor-pointer
+                        ${isSelected
+                          ? 'bg-brand text-white border-brand font-semibold shadow-xs'
+                          : 'bg-canvas text-ink-2 border-border hover:border-brand-border'
+                        }
+                      `}
+                      aria-pressed={isSelected}
+                    >
+                      <Icon size={14} className={isSelected ? 'text-white' : 'text-ink-3'} />
+                      <span className="text-[12px] truncate">
+                        {t(o.labelKey, o.defaultLabel)}
+                      </span>
+                    </button>
+                  )
+                })}
               </div>
             </div>
 

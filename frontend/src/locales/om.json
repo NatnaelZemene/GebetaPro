@@ -150,6 +150,15 @@
     "recommended": "Kan gorsamee",
     "highestRated": "Sadarkaa ol-aanaa",
     "newest": "Haaraa",
+    "alphabetical": "Maqaa (A hanga Z)",
+    "sortBy": "Bu'aawwan tarreessi",
+    "options": "filannoowwan",
+    "sortDesc": {
+      "recommended": "Walsimsiisa gaarii fi kanneen beeksifaman",
+      "rating": "Sadarkaa maamiltootaa ol-aanaa",
+      "newest": "Dhiyoo kan dabalame",
+      "name": "Akkaataa qubee maqaa"
+    },
     "gridView": "Mul'ata miiltoo",
     "listView": "Mul'ata tarree",
     "openMap": "Kaartaa bari",
