@@ -11,6 +11,18 @@ import { Button } from '../components/ui/Button.jsx'
 import { FormField, Input } from '../components/ui/FormField.jsx'
 import { resetPassword } from '../features/auth/services/authService.js'
 
+// ── Shared Page Shell (declared outside to maintain stable React tree) ───────
+function PageShell({ children }) {
+  return (
+    <div className="min-h-screen bg-canvas flex flex-col">
+      <Navbar />
+      <div className="flex-1 flex items-center justify-center px-4 py-16">
+        <div className="w-full max-w-[400px]">{children}</div>
+      </div>
+    </div>
+  )
+}
+
 export default function ResetPasswordPage() {
   const { t } = useTranslation()
   const [searchParams] = useSearchParams()
@@ -24,12 +36,13 @@ export default function ResetPasswordPage() {
     { key: 'special',  test: v => /[^a-zA-Z0-9]/.test(v) },
   ]
 
-  const [form,      setForm]      = useState({ password: '', confirm: '' })
-  const [errors,    setErrors]    = useState({})
-  const [showPass,  setShowPass]  = useState(false)
-  const [status,    setStatus]    = useState(token ? 'form' : 'no-token')
-  const [serverErr, setServerErr] = useState('')
-  const [countdown, setCountdown] = useState(5)
+  const [form,            setForm]            = useState({ password: '', confirm: '' })
+  const [errors,          setErrors]          = useState({})
+  const [showPass,        setShowPass]        = useState(false)
+  const [showConfirmPass, setShowConfirmPass] = useState(false)
+  const [status,          setStatus]          = useState(token ? 'form' : 'no-token')
+  const [serverErr,       setServerErr]       = useState('')
+  const [countdown,       setCountdown]       = useState(5)
 
   useEffect(() => {
     if (status !== 'success') return
@@ -78,19 +91,11 @@ export default function ResetPasswordPage() {
   }
 
   const pwStrength = PASSWORD_RULES.filter(r => r.test(form.password)).length
-
-  const Shell = ({ children }) => (
-    <div className="min-h-screen bg-canvas flex flex-col">
-      <Navbar />
-      <div className="flex-1 flex items-center justify-center px-4 py-16">
-        <div className="w-full max-w-[400px]">{children}</div>
-      </div>
-    </div>
-  )
+  const passwordsMatch = form.confirm.length > 0 && form.password === form.confirm
 
   if (status === 'no-token') {
     return (
-      <Shell>
+      <PageShell>
         <div className="text-center">
           <div className="w-16 h-16 rounded-2xl bg-surface-2 border border-border flex items-center justify-center mx-auto mb-5">
             <XCircle size={28} className="text-ink-3" />
@@ -103,13 +108,13 @@ export default function ResetPasswordPage() {
             <Button variant="primary" size="md" className="rounded-xl">{t('auth.reset.requestNew')}</Button>
           </Link>
         </div>
-      </Shell>
+      </PageShell>
     )
   }
 
   if (status === 'error') {
     return (
-      <Shell>
+      <PageShell>
         <div className="text-center">
           <div className="w-16 h-16 rounded-2xl bg-danger-bg border border-red-200 flex items-center justify-center mx-auto mb-5">
             <XCircle size={28} className="text-danger" />
@@ -123,13 +128,13 @@ export default function ResetPasswordPage() {
             <Link to="/login" className="text-brand hover:underline">{t('auth.forgot.backToLogin')}</Link>
           </p>
         </div>
-      </Shell>
+      </PageShell>
     )
   }
 
   if (status === 'success') {
     return (
-      <Shell>
+      <PageShell>
         <div className="text-center">
           <div className="w-16 h-16 rounded-2xl bg-success-bg border border-green-200 flex items-center justify-center mx-auto mb-5">
             <CheckCircle2 size={30} className="text-success" />
@@ -147,14 +152,14 @@ export default function ResetPasswordPage() {
             Redirecting in {countdown}s…
           </p>
         </div>
-      </Shell>
+      </PageShell>
     )
   }
 
   const isSubmitting = status === 'loading'
 
   return (
-    <Shell>
+    <PageShell>
       <div className="mb-8">
         <Link
           to="/login"
@@ -171,10 +176,12 @@ export default function ResetPasswordPage() {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
 
-        <FormField label={t('auth.reset.newPasswordLabel')} required error={errors.password}>
+        <FormField id="new-password" label={t('auth.reset.newPasswordLabel')} required error={errors.password}>
           <div className="relative">
             <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none" />
             <Input
+              id="new-password"
+              name="newPassword"
               type={showPass ? 'text' : 'password'}
               placeholder={t('auth.reset.newPasswordPlaceholder')}
               value={form.password}
@@ -187,7 +194,7 @@ export default function ResetPasswordPage() {
             <button
               type="button"
               onClick={() => setShowPass(s => !s)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-3 hover:text-ink transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-3 hover:text-ink transition-colors p-1"
               aria-label={showPass ? t('auth.register.hidePass') : t('auth.register.showPass')}
             >
               {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -195,8 +202,8 @@ export default function ResetPasswordPage() {
           </div>
 
           {form.password.length > 0 && (
-            <div className="mt-2">
-              <div className="flex gap-1 mb-2">
+            <div className="mt-2.5">
+              <div className="flex gap-1.5 mb-2">
                 {[0, 1, 2, 3].map(i => (
                   <div
                     key={i}
@@ -208,15 +215,15 @@ export default function ResetPasswordPage() {
                   />
                 ))}
               </div>
-              <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                 {PASSWORD_RULES.map(r => (
                   <span
                     key={r.key}
                     className={`flex items-center gap-1.5 text-[11px] transition-colors ${
-                      r.test(form.password) ? 'text-success' : 'text-ink-3'
+                      r.test(form.password) ? 'text-success font-medium' : 'text-ink-3'
                     }`}
                   >
-                    <CheckCircle2 size={10} />
+                    <CheckCircle2 size={11} className={r.test(form.password) ? 'text-success' : 'text-border-2'} />
                     {t(`auth.register.rules.${r.key}`)}
                   </span>
                 ))}
@@ -225,19 +232,43 @@ export default function ResetPasswordPage() {
           )}
         </FormField>
 
-        <FormField label={t('auth.reset.confirmLabel')} required error={errors.confirm}>
+        <FormField id="confirm-password" label={t('auth.reset.confirmLabel')} required error={errors.confirm}>
           <div className="relative">
             <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none" />
             <Input
-              type={showPass ? 'text' : 'password'}
+              id="confirm-password"
+              name="confirmPassword"
+              type={showConfirmPass ? 'text' : 'password'}
               placeholder={t('auth.reset.confirmPlaceholder')}
               value={form.confirm}
               onChange={e => set('confirm', e.target.value)}
               error={errors.confirm}
-              className="pl-9"
+              className="pl-9 pr-10"
               autoComplete="new-password"
             />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPass(s => !s)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-3 hover:text-ink transition-colors p-1"
+              aria-label={showConfirmPass ? t('auth.register.hidePass') : t('auth.register.showPass')}
+            >
+              {showConfirmPass ? <EyeOff size={14} /> : <Eye size={14} />}
+            </button>
           </div>
+
+          {form.confirm.length > 0 && !errors.confirm && (
+            <div className="mt-1.5 flex items-center gap-1.5 text-[11.5px]">
+              {passwordsMatch ? (
+                <span className="text-success flex items-center gap-1 font-medium">
+                  <CheckCircle2 size={12} /> Passwords match
+                </span>
+              ) : (
+                <span className="text-ink-3">
+                  Passwords do not match yet
+                </span>
+              )}
+            </div>
+          )}
         </FormField>
 
         {serverErr && status === 'form' && (
@@ -257,6 +288,6 @@ export default function ResetPasswordPage() {
           {t('auth.reset.resetBtn')}
         </Button>
       </form>
-    </Shell>
+    </PageShell>
   )
 }

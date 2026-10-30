@@ -16,8 +16,20 @@ import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import { CheckCircle2, XCircle, Mail, Loader2, ArrowRight, RefreshCw } from 'lucide-react'
 import { Navbar } from '../components/layout/Navbar.jsx'
 import { Button } from '../components/ui/Button.jsx'
-import { FormField, Input } from '../components/ui/FormField.jsx'
 import { verifyEmail, resendVerification } from '../features/auth/services/authService.js'
+
+function PageShell({ children }) {
+  return (
+    <div className="min-h-screen bg-canvas flex flex-col">
+      <Navbar />
+      <div className="flex-1 flex items-center justify-center px-4 py-16">
+        <div className="w-full max-w-[440px]">
+          {children}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function VerifyEmailPage() {
   const [searchParams]  = useSearchParams()
@@ -68,22 +80,10 @@ export default function VerifyEmailPage() {
     }
   }
 
-  /* ── Shared page shell ────────────────────────────────────────────── */
-  const Shell = ({ children }) => (
-    <div className="min-h-screen bg-canvas flex flex-col">
-      <Navbar />
-      <div className="flex-1 flex items-center justify-center px-4 py-16">
-        <div className="w-full max-w-[440px]">
-          {children}
-        </div>
-      </div>
-    </div>
-  )
-
   /* ── Loading ──────────────────────────────────────────────────────── */
   if (status === 'verifying') {
     return (
-      <Shell>
+      <PageShell>
         <div className="text-center">
           <div className="w-16 h-16 rounded-2xl bg-brand-light flex items-center justify-center mx-auto mb-5">
             <Loader2 size={28} className="text-brand animate-spin-slow" />
@@ -91,14 +91,14 @@ export default function VerifyEmailPage() {
           <h1 className="text-[20px] font-bold text-ink mb-2">Verifying your email…</h1>
           <p className="text-[14px] text-ink-2">This will only take a moment.</p>
         </div>
-      </Shell>
+      </PageShell>
     )
   }
 
   /* ── Success ──────────────────────────────────────────────────────── */
   if (status === 'success') {
     return (
-      <Shell>
+      <PageShell>
         <div className="text-center">
           <div className="w-16 h-16 rounded-2xl bg-success-bg border border-green-200 flex items-center justify-center mx-auto mb-5">
             <CheckCircle2 size={30} className="text-success" />
@@ -129,14 +129,14 @@ export default function VerifyEmailPage() {
             </Button>
           </div>
         </div>
-      </Shell>
+      </PageShell>
     )
   }
 
   /* ── No token in URL ──────────────────────────────────────────────── */
   if (status === 'no-token') {
     return (
-      <Shell>
+      <PageShell>
         <div className="text-center">
           <div className="w-16 h-16 rounded-2xl bg-surface-2 border border-border flex items-center justify-center mx-auto mb-5">
             <Mail size={28} className="text-ink-3" />
@@ -154,7 +154,7 @@ export default function VerifyEmailPage() {
             error={resendErr}
           />
         </div>
-      </Shell>
+      </PageShell>
     )
   }
 
@@ -163,7 +163,7 @@ export default function VerifyEmailPage() {
   const isAlreadyUsed = errCode === 'TOKEN_ALREADY_USED'
 
   return (
-    <Shell>
+    <PageShell>
       <div className="text-center">
         <div className="w-16 h-16 rounded-2xl bg-danger-bg border border-red-200 flex items-center justify-center mx-auto mb-5">
           <XCircle size={28} className="text-danger" />
@@ -210,7 +210,7 @@ export default function VerifyEmailPage() {
           <Link to="/login" className="text-brand font-medium hover:underline">Log in</Link>
         </p>
       </div>
-    </Shell>
+    </PageShell>
   )
 }
 
