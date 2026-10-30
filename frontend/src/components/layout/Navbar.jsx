@@ -18,6 +18,7 @@ import {
   Compass, MapPin, CreditCard, ChevronRight, ArrowRight,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { Button } from '../ui/Button.jsx'
 import { LanguageSelector } from '../ui/LanguageSelector.jsx'
 import { ThemeToggle } from '../ui/ThemeToggle.jsx'
 import { LogoutConfirmation } from '../ui/LogoutConfirmation.jsx'
