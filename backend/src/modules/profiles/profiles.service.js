@@ -990,7 +990,13 @@ export async function deleteGalleryImage(userId, imageId) {
   if (!profile) throw createError('Profile not found', 404, 'PROFILE_NOT_FOUND')
 
   const existing = await repo.findProfileImageById(imageId)
-  if (!existing || existing.profile_id !== profile.id) {
+  if (!existing) {
+    // Idempotent: image is already deleted from database
+    logger.info({ userId, imageId }, 'Gallery image already deleted from database')
+    return { deleted: true, alreadyDeleted: true }
+  }
+
+  if (existing.profile_id !== profile.id) {
     throw createError('Gallery image not found', 404, 'IMAGE_NOT_FOUND')
   }
 
@@ -999,6 +1005,16 @@ export async function deleteGalleryImage(userId, imageId) {
   }
 
   await repo.deleteProfileImage(imageId, profile.id)
+
+  if (existing.is_primary) {
+    // If the deleted image was primary, promote the next available image if one exists
+    const remaining = await repo.getProfileImages(profile.id)
+    if (remaining && remaining.length > 0) {
+      await repo.updateProfileImage(remaining[0].id, profile.id, { isPrimary: true })
+    }
+  }
+
   logger.info({ userId, imageId }, 'Gallery image deleted')
+  return { deleted: true }
 }
 

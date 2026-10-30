@@ -125,10 +125,13 @@ export default function GalleryPage() {
   }
 
   const handleDelete = async (id) => {
+    if (!id) return
+    const targetId = id
+    setDeleteConfirmId(null)
+    if (lightboxIndex !== null) setLightboxIndex(null)
+
     try {
-      await deleteMutation.mutateAsync(id)
-      setDeleteConfirmId(null)
-      if (lightboxIndex !== null) setLightboxIndex(null)
+      await deleteMutation.mutateAsync(targetId)
     } catch (err) {
       alert(err?.response?.data?.message || 'Failed to delete photo')
     }
@@ -356,11 +359,17 @@ export default function GalleryPage() {
                       )}
 
                       {/* Hover action overlay */}
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2 pointer-events-none group-hover:pointer-events-auto">
+                      <div
+                        className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2 pointer-events-none group-hover:pointer-events-auto"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <button
                           type="button"
-                          onClick={() => setLightboxIndex(idx)}
-                          className="w-8 h-8 rounded-full bg-white/90 text-black flex items-center justify-center hover:scale-110 transition-transform shadow"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setLightboxIndex(idx)
+                          }}
+                          className="w-8 h-8 rounded-full bg-white/90 text-black flex items-center justify-center hover:scale-110 transition-transform shadow cursor-pointer"
                           title="Preview full size"
                         >
                           <Eye size={14} />
@@ -368,8 +377,11 @@ export default function GalleryPage() {
                         {!img.is_primary && (
                           <button
                             type="button"
-                            onClick={() => handleSetPrimary(img)}
-                            className="w-8 h-8 rounded-full bg-white/90 text-black flex items-center justify-center hover:scale-110 transition-transform shadow"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleSetPrimary(img)
+                            }}
+                            className="w-8 h-8 rounded-full bg-white/90 text-black flex items-center justify-center hover:scale-110 transition-transform shadow cursor-pointer"
                             title="Set as Cover Photo"
                           >
                             <Star size={14} />
@@ -377,8 +389,11 @@ export default function GalleryPage() {
                         )}
                         <button
                           type="button"
-                          onClick={() => setDeleteConfirmId(img.id)}
-                          className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center hover:scale-110 transition-transform shadow"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setDeleteConfirmId(img.id)
+                          }}
+                          className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center hover:scale-110 transition-transform shadow cursor-pointer"
                           title="Delete photo"
                         >
                           <Trash2 size={14} />
@@ -483,13 +498,24 @@ export default function GalleryPage() {
               <span className="text-[13px] text-white/70 font-medium">
                 {lightboxIndex + 1} of {images.length}
               </span>
-              <button
-                type="button"
-                onClick={() => setLightboxIndex(null)}
-                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
-              >
-                <X size={18} />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDeleteConfirmId(images[lightboxIndex]?.id)}
+                  className="px-3 py-1.5 rounded-full bg-red-600/85 hover:bg-red-600 text-white text-[12px] font-medium flex items-center gap-1.5 backdrop-blur-sm transition-colors cursor-pointer"
+                  title="Delete this photo"
+                >
+                  <Trash2 size={13} />
+                  <span>Delete</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLightboxIndex(null)}
+                  className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
             {/* Main Image with Arrows */}

@@ -588,9 +588,46 @@ export function useUpdateGalleryImage() {
 export function useDeleteGalleryImage() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (id) => api.deleteGalleryImage(id),
-    onSuccess: () => {
+    mutationFn: async (id) => {
+      try {
+        return await api.deleteGalleryImage(id)
+      } catch (err) {
+        // If image was already deleted on server (404), treat as successful purge
+        if (err?.response?.status === 404) {
+          return { deleted: true, id }
+        }
+        throw err
+      }
+    },
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: KEYS.myGallery })
+      const prev = qc.getQueryData(KEYS.myGallery)
+
+      if (prev && Array.isArray(prev.images)) {
+        const nextImages = prev.images.filter((img) => img.id !== id)
+        qc.setQueryData(KEYS.myGallery, {
+          ...prev,
+          images: nextImages,
+          usage: prev.usage
+            ? {
+                ...prev.usage,
+                count: nextImages.length,
+                is_limit_reached: false,
+              }
+            : undefined,
+        })
+      }
+
+      return { prev }
+    },
+    onError: (_err, _id, context) => {
+      if (context?.prev) {
+        qc.setQueryData(KEYS.myGallery, context.prev)
+      }
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: KEYS.myGallery })
+      qc.invalidateQueries({ queryKey: KEYS.myProfile })
       qc.invalidateQueries({ queryKey: ['profiles'] })
     },
   })
