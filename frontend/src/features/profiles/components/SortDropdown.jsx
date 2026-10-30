@@ -112,7 +112,7 @@ export function SortDropdown({ value = 'featured', onChange, className = '' }) {
           tabIndex={-1}
           aria-label="Sort options"
           className="
-            absolute right-0 mt-1.5 w-64 sm:w-72
+            absolute left-0 sm:left-auto sm:right-0 mt-1.5 w-52 sm:w-56 max-w-[calc(100vw-24px)]
             bg-surface border border-border rounded-xl
             shadow-xl shadow-black/15 dark:shadow-black/60
             z-50 py-1 overflow-hidden
@@ -129,7 +129,7 @@ export function SortDropdown({ value = 'featured', onChange, className = '' }) {
             </span>
           </div>
 
-          {/* Options List */}
+          {/* Options List — title-only with icon and checkmark */}
           <div className="px-1 space-y-0.5">
             {SORT_OPTIONS_CONFIG.map((option) => {
               const isSelected = option.value === value
@@ -142,38 +142,29 @@ export function SortDropdown({ value = 'featured', onChange, className = '' }) {
                   aria-selected={isSelected}
                   onClick={() => handleSelect(option.value)}
                   className={`
-                    w-full flex items-start gap-2.5 px-2.5 py-2 rounded-lg text-left
+                    w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left
                     transition-colors duration-100 cursor-pointer select-none group
                     focus-visible:outline-none focus-visible:bg-surface-2
                     ${isSelected
-                      ? 'bg-brand-light/40 text-brand font-medium'
-                      : 'text-ink-2 hover:bg-surface-2 hover:text-ink'
+                      ? 'bg-brand-light/50 text-brand font-semibold'
+                      : 'text-ink-2 hover:bg-surface-2 hover:text-ink font-medium'
                     }
                   `}
                 >
                   <Icon
-                    size={15}
-                    className={`mt-0.5 shrink-0 transition-colors ${
+                    size={14}
+                    className={`shrink-0 transition-colors ${
                       isSelected ? 'text-brand' : 'text-ink-3 group-hover:text-ink'
                     }`}
                     aria-hidden="true"
                   />
 
-                  <div className="flex-1 min-w-0">
-                    <span className={`block text-[12.5px] leading-tight truncate ${
-                      isSelected ? 'font-semibold text-brand' : 'font-medium text-ink'
-                    }`}>
-                      {t(option.labelKey, option.defaultLabel)}
-                    </span>
-                    <span className={`block text-[11px] leading-tight mt-0.5 truncate ${
-                      isSelected ? 'text-brand/80' : 'text-ink-3'
-                    }`}>
-                      {t(option.descKey, option.defaultDesc)}
-                    </span>
-                  </div>
+                  <span className="flex-1 min-w-0 text-[12.5px] leading-tight truncate">
+                    {t(option.labelKey, option.defaultLabel)}
+                  </span>
 
                   {isSelected && (
-                    <Check size={13} className="mt-0.5 text-brand shrink-0 ml-1" aria-hidden="true" />
+                    <Check size={13} className="text-brand shrink-0 ml-1.5" aria-hidden="true" />
                   )}
                 </button>
               )

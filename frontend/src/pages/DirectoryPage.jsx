@@ -1298,11 +1298,11 @@ export default function DirectoryPage() {
                     <span>{t('directory.openNowOnly', 'Open now')}</span>
                   </button>
 
-                  {/* Sort — desktop (custom advanced dropdown) */}
+                  {/* Sort (custom advanced dropdown) */}
                   <SortDropdown
                     value={filters.sort}
                     onChange={v => updateFilter('sort', v)}
-                    className="hidden sm:inline-block"
+                    className="inline-block"
                   />
 
                   {/* View toggle — desktop */}
