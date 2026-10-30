@@ -126,7 +126,7 @@ export async function getProfileImages(profileId) {
  */
 export async function searchProfiles({
   search, profile_type, category_id, city, country,
-  latitude, longitude, radius_km, verified_only, page, page_size,
+  latitude, longitude, radius_km, verified_only, sort, page, page_size,
 }) {
   const params = []
   const conditions = [
@@ -207,9 +207,19 @@ export async function searchProfiles({
   const total = parseInt(countResult.rows[0].total, 10)
 
   params.push(page_size, offset)
-  const orderBy = useNearby
-    ? 'distance_km ASC NULLS LAST, COALESCE(sp.is_featured, FALSE) DESC, COALESCE(rs.avg_rating, 0) DESC, p.completion_score DESC'
-    : 'COALESCE(sp.is_featured, FALSE) DESC, COALESCE(rs.avg_rating, 0) DESC, p.completion_score DESC, p.updated_at DESC'
+  let orderBy
+  if (useNearby) {
+    orderBy = 'distance_km ASC NULLS LAST, COALESCE(sp.is_featured, FALSE) DESC, COALESCE(rs.avg_rating, 0) DESC, p.completion_score DESC'
+  } else if (sort === 'rating') {
+    orderBy = 'COALESCE(rs.avg_rating, 0) DESC, COALESCE(rs.review_count, 0) DESC, COALESCE(sp.is_featured, FALSE) DESC, p.updated_at DESC'
+  } else if (sort === 'newest') {
+    orderBy = 'p.created_at DESC, p.updated_at DESC'
+  } else if (sort === 'name') {
+    orderBy = 'p.display_name ASC, p.created_at DESC'
+  } else {
+    // 'featured' / recommended
+    orderBy = 'COALESCE(sp.is_featured, FALSE) DESC, COALESCE(rs.avg_rating, 0) DESC, p.completion_score DESC, p.updated_at DESC'
+  }
 
   const dataResult = await pool.query(
     `SELECT

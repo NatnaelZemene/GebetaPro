@@ -195,6 +195,7 @@ export async function searchProfiles(query) {
     latitude: query.latitude ? parseFloat(query.latitude) : undefined,
     longitude: query.longitude ? parseFloat(query.longitude) : undefined,
     radius_km: query.radius_km ? parseFloat(query.radius_km) : undefined,
+    sort: query.sort || 'featured',
     page,
     page_size: pageSize,
   })

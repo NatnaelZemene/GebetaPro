@@ -64,6 +64,7 @@ export const searchProfilesSchema = z.object({
     city:           z.string().max(100).optional(),
     country:        z.string().max(100).optional(),
     verified_only:  z.string().optional(),
+    sort:           z.enum(['featured','rating','newest','name']).optional(),
     latitude:       z.coerce.number().optional(),
     longitude:      z.coerce.number().optional(),
     radius_km:      z.coerce.number().optional(),
