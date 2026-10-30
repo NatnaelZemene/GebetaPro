@@ -25,6 +25,7 @@ import { LogoutConfirmation } from '../ui/LogoutConfirmation.jsx'
 import { UserProfileMenu } from './UserProfileMenu.jsx'
 import { useFocusTrap } from '../../hooks/useFocusTrap.js'
 import { useMyProfile } from '../../features/profiles/hooks/useProfile.js'
+import { OfflineBanner } from '../ui/OfflineBanner.jsx'
 
 export function Navbar() {
   const { t }        = useTranslation()
@@ -264,6 +265,7 @@ export function Navbar() {
 
           </div>
         </div>
+        <OfflineBanner />
       </header>
 
       {/* ── Mobile drawer ─────────────────────────────────────────────────── */}

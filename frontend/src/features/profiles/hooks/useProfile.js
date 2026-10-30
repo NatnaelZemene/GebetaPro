@@ -1,7 +1,7 @@
 /**
  * useProfile.js — React Query hooks for the profiles module.
  */
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import * as api from '../../../services/profiles.service.js'
 
 const KEYS = {
@@ -175,7 +175,9 @@ export function usePublicProfile(slug) {
     queryKey: KEYS.publicProfile(slug),
     queryFn:  () => api.getPublicProfile(slug),
     enabled:  !!slug,
-    staleTime: 2 * 60 * 1000,
+    placeholderData: keepPreviousData,
+    staleTime: 10 * 60 * 1000,
+    networkMode: 'offlineFirst',
   })
 }
 
@@ -184,6 +186,9 @@ export function usePublicServices(slug, page = 1) {
     queryKey: KEYS.publicServices(slug, page),
     queryFn:  () => api.getPublicServices(slug, { page }),
     enabled:  !!slug,
+    placeholderData: keepPreviousData,
+    staleTime: 10 * 60 * 1000,
+    networkMode: 'offlineFirst',
   })
 }
 
@@ -192,6 +197,9 @@ export function usePublicPortfolio(slug, page = 1) {
     queryKey: KEYS.publicPortfolio(slug, page),
     queryFn:  () => api.getPublicPortfolio(slug, { page }),
     enabled:  !!slug,
+    placeholderData: keepPreviousData,
+    staleTime: 10 * 60 * 1000,
+    networkMode: 'offlineFirst',
   })
 }
 
@@ -200,6 +208,9 @@ export function usePublicPosts(slug, page = 1) {
     queryKey: KEYS.publicPosts(slug, page),
     queryFn:  () => api.getPublicPosts(slug, { page }),
     enabled:  !!slug,
+    placeholderData: keepPreviousData,
+    staleTime: 10 * 60 * 1000,
+    networkMode: 'offlineFirst',
   })
 }
 
@@ -208,6 +219,9 @@ export function usePublicAchievements(slug) {
     queryKey: KEYS.publicAchievements(slug),
     queryFn:  () => api.getPublicAchievements(slug),
     enabled:  !!slug,
+    placeholderData: keepPreviousData,
+    staleTime: 10 * 60 * 1000,
+    networkMode: 'offlineFirst',
   })
 }
 
@@ -216,6 +230,9 @@ export function useProfileSearch(params) {
     queryKey: KEYS.search(params),
     queryFn:  () => api.searchProfiles(params),
     enabled:  true,
+    placeholderData: keepPreviousData,
+    staleTime: 5 * 60 * 1000,
+    networkMode: 'offlineFirst',
   })
 }
 
@@ -385,7 +402,9 @@ export function usePublicReviews(slug, page = 1) {
     queryKey: KEYS.publicReviews(slug, page),
     queryFn: () => api.getPublicReviews(slug, { page }),
     enabled: !!slug,
-    staleTime: 30 * 1000,
+    placeholderData: keepPreviousData,
+    staleTime: 2 * 60 * 1000,
+    networkMode: 'offlineFirst',
   })
 }
 
@@ -582,6 +601,9 @@ export function usePublicGallery(slug) {
     queryKey: KEYS.publicGallery(slug),
     queryFn:  () => api.getPublicGallery(slug),
     enabled:  !!slug,
+    placeholderData: keepPreviousData,
+    staleTime: 10 * 60 * 1000,
+    networkMode: 'offlineFirst',
   })
 }
 

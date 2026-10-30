@@ -783,7 +783,7 @@ export default function DirectoryPage() {
   }, [filters, useNearMe, geo.lat, geo.lng, radiusKm])
 
   /* ── Data ───────────────────────────────────────────────────────────────── */
-  const { data, isLoading } = useProfileSearch(apiParams)
+  const { data, isLoading, isFetching } = useProfileSearch(apiParams)
   const profiles    = data?.profiles    || []
   const pagination  = data?.pagination  || {}
   const total       = pagination.total  ?? profiles.length
@@ -1292,7 +1292,12 @@ export default function DirectoryPage() {
               </div>
 
               {/* ── Results ──────────────────────────────────────────── */}
-              {isLoading ? (
+              {isFetching && profiles.length > 0 && (
+                <div className="w-full h-0.5 bg-border/40 overflow-hidden mb-3 rounded-full" aria-hidden="true">
+                  <div className="h-full bg-ink/50 dark:bg-white/50 animate-pulse w-1/3 rounded-full mx-auto" />
+                </div>
+              )}
+              {isLoading && profiles.length === 0 ? (
                 /* Skeleton grid — mirrors real layout */
                 viewMode === 'list' ? (
                   <div className="flex flex-col gap-2.5">

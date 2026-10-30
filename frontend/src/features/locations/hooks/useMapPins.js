@@ -1,7 +1,7 @@
 /**
  * useMapPins.js — React Query hook for fetching profile map pins.
  */
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { getProfileMapPins } from '../services/locationsService.js'
 
 export const mapPinsKeys = {
@@ -11,12 +11,14 @@ export const mapPinsKeys = {
 
 /**
  * Fetch all published profiles with coordinates for the map view.
- * Stale time is 5 minutes.
+ * Stale time is 10 minutes, with offline-first persistence.
  */
 export function useMapPins(params = {}) {
   return useQuery({
     queryKey: mapPinsKeys.filtered(params),
     queryFn: () => getProfileMapPins(params),
-    staleTime: 1000 * 60 * 5,
+    placeholderData: keepPreviousData,
+    staleTime: 1000 * 60 * 10,
+    networkMode: 'offlineFirst',
   })
 }

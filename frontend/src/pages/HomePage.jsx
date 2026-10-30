@@ -578,7 +578,7 @@ export default function HomePage() {
             </div>
 
             {/* Content */}
-            {isLoading ? (
+            {isLoading && featured.length === 0 ? (
               /* Skeleton — preserves layout shape during load */
               <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 <div className="sm:col-span-2 sm:row-span-2 bg-surface border border-border rounded-2xl h-96 sm:h-full animate-pulse" />

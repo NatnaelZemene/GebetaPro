@@ -26,6 +26,8 @@ export function useCategories() {
   return useQuery({
     queryKey: ['categories'],
     queryFn: fetchCategories,
-    staleTime: 1000 * 60 * 30, // 30 minutes
+    staleTime: 1000 * 60 * 60, // 1 hour
+    gcTime: 1000 * 60 * 60 * 24, // 24 hours
+    networkMode: 'offlineFirst',
   })
 }

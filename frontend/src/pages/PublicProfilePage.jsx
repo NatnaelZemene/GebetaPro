@@ -344,7 +344,7 @@ export default function PublicProfilePage() {
   }
 
   /* ── Loading ───────────────────────────────────────────────────────────── */
-  if (isLoading) return (
+  if (isLoading && !profile) return (
     <div className="flex flex-col min-h-screen bg-canvas">
       <Navbar />
       <main className="flex-1"><ProfileSkeleton /></main>
@@ -353,7 +353,7 @@ export default function PublicProfilePage() {
   )
 
   /* ── Not found ─────────────────────────────────────────────────────────── */
-  if (error || !profile) return (
+  if (!isLoading && !profile) return (
     <div className="flex flex-col min-h-screen bg-canvas">
       <Navbar />
       <main className="flex-1 flex items-center justify-center px-5 py-20">
