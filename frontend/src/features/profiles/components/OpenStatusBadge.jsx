@@ -1,93 +1,123 @@
 /**
- * OpenStatusBadge — real-time open/closed status based on business hours.
- * i18n: English / አማርኛ via react-i18next
- *
- * Accessibility improvements:
- * - Decorative colored dot is aria-hidden="true" — status is not conveyed
- *   by color alone. Each state now also includes a text prefix symbol:
- *     Open  → "● Open now"  (with aria-label conveying the meaning)
- *     Closed → "○ Closed"
- * - The outer <span> has an appropriate aria-label that summarises the full
- *   status (open/closed + time) so screen readers announce it in one phrase.
+ * OpenStatusBadge.jsx — Real-time open/closed status badge based on business hours.
+ * Supports timezone awareness (EAT/Addis Ababa), overnight shifts, and 24h operations.
  */
 import { useTranslation } from 'react-i18next'
+import { evaluateBusinessStatus } from '../../../utils/businessHours.js'
 
-export function OpenStatusBadge({ businessHours, className = '' }) {
+export function OpenStatusBadge({
+  businessHours,
+  variant = 'text', // 'text' | 'badge' | 'dot'
+  className = '',
+}) {
   const { t } = useTranslation()
 
-  if (!businessHours || businessHours.length === 0) return null
+  if (!businessHours || !Array.isArray(businessHours) || businessHours.length === 0) {
+    return null
+  }
 
-  const now        = new Date()
-  const day        = now.getDay()
-  const todayHours = businessHours.find(h => h.day_of_week === day)
+  const status = evaluateBusinessStatus(businessHours, t)
+  if (!status) return null
 
-  if (!todayHours) return null
+  // 1. Pill Badge Variant (used on Profile Cards & Directory)
+  if (variant === 'badge') {
+    if (status.open) {
+      return (
+        <span
+          className={`
+            inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full
+            bg-emerald-500/10 dark:bg-emerald-500/15
+            border border-emerald-500/25
+            text-emerald-700 dark:text-emerald-400
+            text-[11px] font-semibold leading-tight shrink-0 select-none
+            ${className}
+          `}
+          aria-label={`${status.label}${status.detail ? ` (${status.detail})` : ''}`}
+        >
+          <span className="relative flex h-2 w-2 shrink-0" aria-hidden="true">
+            <span
+              className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60"
+              style={{ animationDuration: '2s' }}
+            />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+          </span>
+          <span>{status.is24h ? t('profile.hours.open24h', '24h Open') : t('profile.hours.openNow', 'Open')}</span>
+        </span>
+      )
+    }
 
-  if (todayHours.is_closed) {
     return (
       <span
-        className={`inline-flex items-center gap-1.5 text-[12px] font-medium text-red-600 ${className}`}
-        aria-label={t('profile.hours.closedToday')}
+        className={`
+          inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full
+          bg-surface-2 border border-border text-ink-3
+          text-[11px] font-medium leading-tight shrink-0 select-none
+          ${className}
+        `}
+        aria-label={status.label}
       >
-        {/* Decorative dot — aria-hidden, status conveyed by text below */}
-        <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" aria-hidden="true" />
-        {/* "✕" symbol ensures closed state is not communicated only by color */}
-        <span aria-hidden="true">✕</span>
-        {t('profile.hours.closedToday')}
+        <span className="h-1.5 w-1.5 rounded-full bg-ink-4 shrink-0" aria-hidden="true" />
+        <span>{t('profile.hours.closed', 'Closed')}</span>
       </span>
     )
   }
 
-  if (!todayHours.opens_at || !todayHours.closes_at) return null
-
-  const [openH,  openM]  = todayHours.opens_at.split(':').map(Number)
-  const [closeH, closeM] = todayHours.closes_at.split(':').map(Number)
-  const currentMins      = now.getHours() * 60 + now.getMinutes()
-  const openMins         = openH  * 60 + openM
-  const closeMins        = closeH * 60 + closeM
-  const isOpen           = currentMins >= openMins && currentMins < closeMins
-
-  function fmt(h, m) {
-    const period = h >= 12 ? 'PM' : 'AM'
-    const h12    = h % 12 || 12
-    return `${h12}:${String(m).padStart(2, '0')} ${period}`
-  }
-
-  if (isOpen) {
-    const closesAt = fmt(closeH, closeM)
-    const fullLabel = `${t('profile.hours.openNow')} — ${t('profile.hours.closesAt', { time: closesAt })}`
+  // 2. Simple Indicator Dot Variant
+  if (variant === 'dot') {
     return (
       <span
-        className={`inline-flex items-center gap-1.5 text-[12px] font-medium text-emerald-600 ${className}`}
-        aria-label={fullLabel}
+        className="relative flex h-2.5 w-2.5 shrink-0"
+        title={status.open ? `${status.label} • ${status.detail}` : status.label}
+        aria-label={status.open ? 'Open now' : 'Closed'}
       >
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" aria-hidden="true" />
-        {/* "✓" so open state is not communicated only by green color */}
-        <span aria-hidden="true">✓</span>
-        {t('profile.hours.openNow')}
-        <span aria-hidden="true"> · </span>
-        {t('profile.hours.closesAt', { time: closesAt })}
+        {status.open && (
+          <span
+            className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60"
+            style={{ animationDuration: '2s' }}
+          />
+        )}
+        <span
+          className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+            status.open ? 'bg-emerald-500' : 'bg-ink-4'
+          }`}
+        />
       </span>
     )
   }
 
-  // Closed now — find next opening time
-  const tomorrowDay = (day + 1) % 7
-  const tomorrow    = businessHours.find(h => h.day_of_week === tomorrowDay)
-  const nextMsg     = tomorrow && !tomorrow.is_closed && tomorrow.opens_at
-    ? ` · ${t('profile.hours.opensTomorrow', { time: fmt(...tomorrow.opens_at.split(':').map(Number)) })}`
-    : ''
-
-  const fullLabel = `${t('profile.hours.closedNow')}${nextMsg}`
+  // 3. Detailed Text Variant (used in ProfileHeader)
+  const fullLabel = status.open
+    ? `${status.label}${status.detail ? ` — ${status.detail}` : ''}`
+    : `${status.label}${status.nextMsg ? ` · ${status.nextMsg}` : ''}`
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 text-[12px] font-medium text-ink-3 ${className}`}
+      className={`
+        inline-flex items-center gap-1.5 text-[12px] font-medium
+        ${status.open ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-ink-3'}
+        ${className}
+      `}
       aria-label={fullLabel}
     >
-      <span className="w-1.5 h-1.5 rounded-full bg-ink-4 shrink-0" aria-hidden="true" />
-      <span aria-hidden="true">✕</span>
-      {t('profile.hours.closedNow')}{nextMsg}
+      <span
+        className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+          status.open ? 'bg-emerald-500' : 'bg-ink-4'
+        }`}
+        aria-hidden="true"
+      />
+      <span>{status.label}</span>
+      {status.open && status.detail && (
+        <>
+          <span aria-hidden="true" className="text-ink-4"> · </span>
+          <span className="text-ink-2 font-normal">{status.detail}</span>
+        </>
+      )}
+      {!status.open && status.nextMsg && (
+        <>
+          <span aria-hidden="true" className="text-ink-4"> · </span>
+          <span className="text-ink-3 font-normal">{status.nextMsg}</span>
+        </>
+      )}
     </span>
   )
 }

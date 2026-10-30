@@ -17,6 +17,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MapPin, BadgeCheck, Star } from 'lucide-react'
 import { CategoryIconInline } from './CategoryIcon.jsx'
+import { OpenStatusBadge } from './OpenStatusBadge.jsx'
 
 const TYPE_LABELS = {
   PERSONAL:      'Personal',
@@ -133,12 +134,15 @@ export function ProfileCard({ profile }) {
               )}
             </div>
 
-            {/* Type badge next to avatar */}
-            {profile.profile_type && (
-              <span className={`text-[11px] font-medium px-2 py-0.5 rounded-md bg-surface-2 border border-border/80 shrink-0 ${TYPE_STYLES[profile.profile_type] || 'text-ink-2'}`}>
-                {TYPE_LABELS[profile.profile_type] || profile.profile_type}
-              </span>
-            )}
+            {/* Badges next to avatar: Open status + User Type */}
+            <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+              <OpenStatusBadge businessHours={profile.business_hours} variant="badge" />
+              {profile.profile_type && (
+                <span className={`text-[11px] font-medium px-2 py-0.5 rounded-md bg-surface-2 border border-border/80 shrink-0 ${TYPE_STYLES[profile.profile_type] || 'text-ink-2'}`}>
+                  {TYPE_LABELS[profile.profile_type] || profile.profile_type}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Name + verified */}
@@ -279,11 +283,15 @@ export function ProfileCardLarge({ profile }) {
               )}
             </div>
 
-            {profile.profile_type && (
-              <span className={`text-[11.5px] font-medium px-2.5 py-0.5 rounded-md bg-surface-2 border border-border/80 shrink-0 ${TYPE_STYLES[profile.profile_type] || 'text-ink-2'}`}>
-                {TYPE_LABELS[profile.profile_type] || profile.profile_type}
-              </span>
-            )}
+            {/* Badges: Open status + User Type */}
+            <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+              <OpenStatusBadge businessHours={profile.business_hours} variant="badge" />
+              {profile.profile_type && (
+                <span className={`text-[11.5px] font-medium px-2.5 py-0.5 rounded-md bg-surface-2 border border-border/80 shrink-0 ${TYPE_STYLES[profile.profile_type] || 'text-ink-2'}`}>
+                  {TYPE_LABELS[profile.profile_type] || profile.profile_type}
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-1.5 mb-1">
@@ -426,6 +434,7 @@ export function ProfileListCard({ profile }) {
                 {TYPE_LABELS[profile.profile_type] || profile.profile_type}
               </span>
             )}
+            <OpenStatusBadge businessHours={profile.business_hours} variant="badge" />
           </div>
         </div>
 
