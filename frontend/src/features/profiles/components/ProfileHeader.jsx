@@ -10,6 +10,7 @@
  *   - Social links are subtle — supporting credibility, not competing.
  *   - Mobile: compact, all critical info above the fold.
  */
+import { useState } from 'react'
 import { MapPin, BadgeCheck, Star, Share2, Phone, Mail, Globe, MessageCircle, Send, Navigation } from 'lucide-react'
 import { OpenStatusBadge } from './OpenStatusBadge.jsx'
 import { SocialLinks } from './SocialLinks.jsx'
@@ -71,6 +72,8 @@ function getPrimaryContact(contact, profile_type) {
 }
 
 export function ProfileHeader({ profile }) {
+  const [coverError, setCoverError] = useState(false)
+  const [avatarError, setAvatarError] = useState(false)
   const locationStr = buildLocationString(profile.location)
   const rating      = Number(profile.avg_rating)  || 0
   const reviews     = profile.review_count || 0
@@ -83,12 +86,13 @@ export function ProfileHeader({ profile }) {
 
       {/* ── Cover ─────────────────────────────────────────────────────────── */}
       <div className="relative h-44 sm:h-56 lg:h-64 overflow-hidden bg-surface-2">
-        {profile.cover_url ? (
+        {profile.cover_url && !coverError ? (
           <img
             src={profile.cover_url}
             alt=""
             className="w-full h-full object-cover"
             loading="eager"
+            onError={() => setCoverError(true)}
           />
         ) : (
           /* Pattern placeholder — unique per profile via grid texture */
@@ -142,12 +146,13 @@ export function ProfileHeader({ profile }) {
               bg-surface-2
             "
           >
-            {profile.avatar_url ? (
+            {profile.avatar_url && !avatarError ? (
               <img
                 src={profile.avatar_url}
                 alt={profile.display_name}
                 className="w-full h-full object-cover"
                 loading="eager"
+                onError={() => setAvatarError(true)}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-brand-light">

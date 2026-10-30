@@ -13,6 +13,7 @@
  * - BadgeCheck "Verified" uses aria-label so screen readers announce it.
  * - Decorative separator "·" is aria-hidden.
  */
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MapPin, BadgeCheck, Star } from 'lucide-react'
 import { CategoryIconInline } from './CategoryIcon.jsx'
@@ -40,6 +41,8 @@ const TYPE_STYLES = {
 
 /* ── ProfileCard ──────────────────────────────────────────────────────────── */
 export function ProfileCard({ profile }) {
+  const [coverError, setCoverError] = useState(false)
+  const [avatarError, setAvatarError] = useState(false)
   const rating  = Number(profile.avg_rating) || 0
   const reviews = profile.review_count || 0
   const city    = profile.city || profile.country || null
@@ -60,12 +63,13 @@ export function ProfileCard({ profile }) {
       >
         {/* ── Cover image + Floating badges ─────────────────────────────────── */}
         <div className="relative h-28 sm:h-32 overflow-hidden bg-surface-2 shrink-0">
-          {profile.cover_url ? (
+          {profile.cover_url && !coverError ? (
             <img
               src={profile.cover_url}
               alt=""
               className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
               loading="lazy"
+              onError={() => setCoverError(true)}
             />
           ) : (
             <div
@@ -112,12 +116,13 @@ export function ProfileCard({ profile }) {
           {/* Avatar row + User Type badge */}
           <div className="flex items-end justify-between mb-2.5 -mt-8 sm:-mt-9">
             <div className="relative w-11 h-11 sm:w-[50px] sm:h-[50px] rounded-xl overflow-hidden border-2 border-surface shadow-sm bg-surface-2 shrink-0">
-              {profile.avatar_url ? (
+              {profile.avatar_url && !avatarError ? (
                 <img
                   src={profile.avatar_url}
                   alt={profile.display_name}
                   className="w-full h-full object-cover"
                   loading="lazy"
+                  onError={() => setAvatarError(true)}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-brand-light" aria-hidden="true">
@@ -185,6 +190,8 @@ export function ProfileCard({ profile }) {
 
 /* ── ProfileCardLarge ─────────────────────────────────────────────────────── */
 export function ProfileCardLarge({ profile }) {
+  const [coverError, setCoverError] = useState(false)
+  const [avatarError, setAvatarError] = useState(false)
   const rating  = Number(profile.avg_rating) || 0
   const reviews = profile.review_count || 0
   const city    = profile.city || profile.country || null
@@ -205,12 +212,13 @@ export function ProfileCardLarge({ profile }) {
       >
         {/* Cover */}
         <div className="relative h-48 sm:h-64 overflow-hidden bg-surface-2 shrink-0">
-          {profile.cover_url ? (
+          {profile.cover_url && !coverError ? (
             <img
               src={profile.cover_url}
               alt=""
               className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
               loading="lazy"
+              onError={() => setCoverError(true)}
             />
           ) : (
             <div
@@ -254,12 +262,13 @@ export function ProfileCardLarge({ profile }) {
         <div className="px-4 sm:px-5 pt-3 pb-4 sm:pb-5 flex flex-col flex-1">
           <div className="flex items-end justify-between mb-3 -mt-9 sm:-mt-10">
             <div className="relative w-12 h-12 sm:w-[60px] sm:h-[60px] rounded-xl overflow-hidden border-2 border-surface shadow-sm bg-surface-2 shrink-0">
-              {profile.avatar_url ? (
+              {profile.avatar_url && !avatarError ? (
                 <img
                   src={profile.avatar_url}
                   alt={profile.display_name}
                   className="w-full h-full object-cover"
                   loading="lazy"
+                  onError={() => setAvatarError(true)}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-brand-light" aria-hidden="true">
@@ -315,6 +324,8 @@ export function ProfileCardLarge({ profile }) {
 
 /* ── ProfileListCard ──────────────────────────────────────────────────────── */
 export function ProfileListCard({ profile }) {
+  const [coverError, setCoverError] = useState(false)
+  const [avatarError, setAvatarError] = useState(false)
   const rating  = Number(profile.avg_rating) || 0
   const reviews = profile.review_count || 0
   const city    = profile.city || profile.country || null
@@ -336,12 +347,13 @@ export function ProfileListCard({ profile }) {
       >
         {/* Left: avatar strip */}
         <div className="relative w-16 sm:w-20 shrink-0 bg-surface-2 overflow-hidden">
-          {profile.cover_url ? (
+          {profile.cover_url && !coverError ? (
             <img
               src={profile.cover_url}
               alt=""
               className="absolute inset-0 w-full h-full object-cover opacity-60 transition-opacity duration-200 group-hover:opacity-80"
               loading="lazy"
+              onError={() => setCoverError(true)}
             />
           ) : (
             <div
@@ -354,12 +366,13 @@ export function ProfileListCard({ profile }) {
           )}
           <div className="relative z-10 h-full flex items-center justify-center p-2">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden border border-surface/60 shadow-sm bg-surface-2 shrink-0">
-              {profile.avatar_url ? (
+              {profile.avatar_url && !avatarError ? (
                 <img
                   src={profile.avatar_url}
                   alt={profile.display_name}
                   className="w-full h-full object-cover"
                   loading="lazy"
+                  onError={() => setAvatarError(true)}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-brand-light" aria-hidden="true">
