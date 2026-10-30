@@ -3,6 +3,7 @@ import {
   Eye, TrendingUp, CreditCard, ArrowRight, Star,
   CheckCircle2, Circle, AlertCircle, Users, MessageSquare,
   Plus, BadgeCheck, Edit3, FileText, Clock, XCircle, Megaphone, EyeOff,
+  Image as ImageIcon,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { DashboardLayout } from '../components/layout/DashboardLayout.jsx'
@@ -87,6 +88,7 @@ export default function DashboardPage() {
     { label: t('dashboard.quickActions.editProfileInfo'), to: '/dashboard/profile',              icon: <Edit3 size={15} /> },
     { label: t('dashboard.quickActions.services'),        to: '/dashboard/profile/services',      icon: <Plus size={15} /> },
     { label: t('dashboard.quickActions.portfolio'),       to: '/dashboard/profile/portfolio',     icon: <Plus size={15} /> },
+    { label: t('dashboard.quickActions.gallery', 'Photo Gallery'), to: '/dashboard/profile/gallery', icon: <ImageIcon size={15} /> },
     { label: t('dashboard.quickActions.socialLinks'),     to: '/dashboard/profile/social-links',  icon: <Plus size={15} /> },
     { label: t('dashboard.quickActions.businessHours'),   to: '/dashboard/profile/hours',         icon: <Plus size={15} /> },
     { label: t('dashboard.quickActions.posts'),           to: '/dashboard/profile/posts',         icon: <Plus size={15} /> },

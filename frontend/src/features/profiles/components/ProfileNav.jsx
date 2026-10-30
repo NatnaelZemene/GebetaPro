@@ -36,8 +36,8 @@ export function ProfileNav({ tabs, activeTab, onTabChange }) {
               border-b-2 transition-colors duration-150
               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset
               ${activeTab === tab.key
-                ? 'border-brand text-brand'
-                : 'border-transparent text-ink-3 hover:text-ink hover:border-border-2'
+                ? 'border-ink text-ink font-semibold'
+                : 'border-transparent text-ink-3 hover:text-ink hover:border-border'
               }
             `}
           >
@@ -45,8 +45,8 @@ export function ProfileNav({ tabs, activeTab, onTabChange }) {
             {tab.count > 0 && (
               <span
                 className={`
-                  text-[11px] tabular-nums
-                  ${activeTab === tab.key ? 'text-brand/70' : 'text-ink-4'}
+                  text-[11px] tabular-nums px-1.5 py-0.5 rounded-full font-medium
+                  ${activeTab === tab.key ? 'bg-surface-2 text-ink' : 'text-ink-4'}
                 `}
               >
                 {tab.count}

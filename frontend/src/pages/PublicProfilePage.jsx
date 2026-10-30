@@ -18,6 +18,7 @@ import { ProfileNav }       from '../features/profiles/components/ProfileNav.jsx
 import { ProfileAbout }     from '../features/profiles/components/ProfileAbout.jsx'
 import { ServiceCard }      from '../features/profiles/components/ServiceCard.jsx'
 import { PortfolioCard }    from '../features/profiles/components/PortfolioCard.jsx'
+import { ProfileGallery }   from '../features/profiles/components/ProfileGallery.jsx'
 import { PostCard }         from '../features/profiles/components/PostCard.jsx'
 import { AchievementCard }  from '../features/profiles/components/AchievementCard.jsx'
 import { ReviewsList }      from '../features/profiles/components/ReviewsList.jsx'
@@ -382,10 +383,12 @@ export default function PublicProfilePage() {
   const reviewStats    = reviewsData?.stats         || {}
   const reviewPagination = reviewsData?.pagination  || {}
 
+  const gallery        = profile.gallery            || []
   const tabs = [
     { key: 'overview',      label: t('profile.public.overview'),      count: 0 },
     sections.services     > 0 && { key: 'services',     label: t('profile.public.services'),     count: sections.services },
     sections.portfolio    > 0 && { key: 'portfolio',    label: t('profile.public.portfolio'),    count: sections.portfolio },
+    gallery.length        > 0 && { key: 'gallery',      label: t('profile.public.gallery', 'Gallery'), count: gallery.length },
     sections.posts        > 0 && { key: 'posts',        label: t('profile.public.updates'),      count: sections.posts },
     sections.achievements > 0 && { key: 'achievements', label: t('profile.public.achievements'), count: sections.achievements },
     { key: 'reviews',  label: t('profile.public.reviews'), count: sections.reviews || 0 },
@@ -433,6 +436,23 @@ export default function PublicProfilePage() {
             {t('profile.public.portfolio')}
           </SectionTitle>
           <PortfolioGallery items={portfolioItems} maxItems={5} />
+        </Section>
+      )}
+
+      {gallery.length > 0 && (
+        <Section>
+          <SectionTitle
+            count={gallery.length}
+            action={gallery.length > 6 && (
+              <ViewAllLink
+                label={t('profile.public.seeAllPhotos', 'See all photos')}
+                onClick={() => setActiveTab('gallery')}
+              />
+            )}
+          >
+            {t('profile.public.photoGallery', 'Photo Gallery')}
+          </SectionTitle>
+          <ProfileGallery images={gallery.slice(0, 6)} />
         </Section>
       )}
 
@@ -524,6 +544,13 @@ export default function PublicProfilePage() {
     </Section>
   )
 
+  const GalleryContent = () => (
+    <Section>
+      <SectionTitle count={gallery.length}>{t('profile.public.photoGallery', 'Photo Gallery')}</SectionTitle>
+      <ProfileGallery images={gallery} />
+    </Section>
+  )
+
   const PostsContent = () => (
     <Section>
       <SectionTitle count={sections.posts}>{t('profile.public.updates')}</SectionTitle>
@@ -582,6 +609,7 @@ export default function PublicProfilePage() {
     switch (activeTab) {
       case 'services':     return <ServicesContent />
       case 'portfolio':    return <PortfolioContent />
+      case 'gallery':      return <GalleryContent />
       case 'posts':        return <PostsContent />
       case 'achievements': return <AchievementsContent />
       case 'reviews':      return <ReviewsContent />

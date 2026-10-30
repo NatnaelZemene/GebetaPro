@@ -19,6 +19,8 @@ const KEYS = {
   myPortfolio: (p) => ['profile', 'portfolio', p],
   myPosts:     (p) => ['profile', 'posts', p],
   myAchievements: ['profile', 'achievements'],
+  myGallery:   ['profile', 'gallery'],
+  publicGallery: (slug) => ['profiles', 'public', slug, 'gallery'],
   businessDetails: ['profile', 'business'],
   analytics:   ['profile', 'analytics'],
 }
@@ -331,6 +333,17 @@ export function useDeletePost() {
   })
 }
 
+export function useUploadPostImages() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, files }) => api.uploadPostImages(id, files),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['profile', 'posts'] })
+      qc.invalidateQueries({ queryKey: ['profiles'] })
+    },
+  })
+}
+
 // ── Achievements ───────────────────────────────────────────────────────────────
 
 export function useMyAchievements() {
@@ -519,3 +532,56 @@ export function useUnpublishProfile() {
     },
   })
 }
+
+// ── Gallery Hooks ─────────────────────────────────────────────────────────────
+
+export function useMyGallery() {
+  return useQuery({
+    queryKey: KEYS.myGallery,
+    queryFn:  api.getMyGallery,
+    enabled:  isAuthed(),
+  })
+}
+
+export function useUploadGalleryImages() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ files, captions }) => api.uploadGalleryImages(files, captions),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEYS.myGallery })
+      qc.invalidateQueries({ queryKey: KEYS.myProfile })
+      qc.invalidateQueries({ queryKey: ['profiles'] })
+    },
+  })
+}
+
+export function useUpdateGalleryImage() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }) => api.updateGalleryImage(id, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEYS.myGallery })
+      qc.invalidateQueries({ queryKey: ['profiles'] })
+    },
+  })
+}
+
+export function useDeleteGalleryImage() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id) => api.deleteGalleryImage(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEYS.myGallery })
+      qc.invalidateQueries({ queryKey: ['profiles'] })
+    },
+  })
+}
+
+export function usePublicGallery(slug) {
+  return useQuery({
+    queryKey: KEYS.publicGallery(slug),
+    queryFn:  () => api.getPublicGallery(slug),
+    enabled:  !!slug,
+  })
+}
+

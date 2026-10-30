@@ -86,6 +86,7 @@ publicProfilesRouter.get('/@:slug/services',      ctrl.getPublicServices)
 publicProfilesRouter.get('/@:slug/portfolio',     ctrl.getPublicPortfolio)
 publicProfilesRouter.get('/@:slug/posts',         ctrl.getPublicPosts)
 publicProfilesRouter.get('/@:slug/achievements',  ctrl.getPublicAchievements)
+publicProfilesRouter.get('/@:slug/gallery',       ctrl.getPublicGallery)
 
 // Reviews (public reads)
 publicProfilesRouter.get('/@:slug/reviews', validate(reviewSlugParamSchema), ctrl.listReviews)
@@ -105,11 +106,17 @@ dashboardProfileRouter.use(authenticate)
 // Profile analytics
 dashboardProfileRouter.get('/analytics', ctrl.getMyProfileAnalytics)
 
-// Profile images
+// Profile images (Avatar & Cover)
 dashboardProfileRouter.post('/avatar/upload',  singleUploadMiddleware, ctrl.uploadAvatar)
 dashboardProfileRouter.delete('/avatar',       ctrl.deleteAvatar)
 dashboardProfileRouter.post('/cover/upload',   singleUploadMiddleware, ctrl.uploadCover)
 dashboardProfileRouter.delete('/cover',        ctrl.deleteCover)
+
+// Profile Gallery
+dashboardProfileRouter.get('/gallery',         ctrl.listMyGallery)
+dashboardProfileRouter.post('/gallery/upload', uploadImagesMiddleware, ctrl.uploadGalleryImages)
+dashboardProfileRouter.patch('/gallery/:id',   ctrl.updateGalleryImage)
+dashboardProfileRouter.delete('/gallery/:id',  ctrl.deleteGalleryImage)
 
 // Profile completion
 dashboardProfileRouter.get('/completion', ctrl.getCompletion)

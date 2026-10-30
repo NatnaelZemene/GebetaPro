@@ -499,7 +499,17 @@ export async function listPosts(profileId, { publishedOnly = false, page = 1, pa
   const items = await Promise.all(rows.map(async (row) => {
     const images = await repo.findImages('post_images', 'post_id', row.id)
     const primary = images.find(i => i.is_primary) || images[0] || null
-    return { ...row, primary_image: primary ? { id: primary.id, image_url: primary.image_url } : null }
+    return {
+      ...row,
+      primary_image: primary ? { id: primary.id, image_url: primary.image_url } : null,
+      images: images.map(i => ({
+        id: i.id,
+        image_url: i.image_url,
+        alt_text: i.alt_text,
+        sort_order: i.sort_order,
+        is_primary: i.is_primary,
+      })),
+    }
   }))
 
   return { posts: items, pagination: buildPagination(total, page, ps) }
@@ -876,3 +886,115 @@ export async function markNotificationRead(notificationId, userId) {
 export async function markAllNotificationsRead(userId) {
   await repo.markAllNotificationsRead(userId)
 }
+
+// ── Profile Gallery ───────────────────────────────────────────────────────────
+
+export async function listMyGallery(userId) {
+  const profile = await repo.findProfileByUserId(userId)
+  if (!profile) throw createError('Profile not found', 404, 'PROFILE_NOT_FOUND')
+
+  const subscription = await subsRepo.findByUserId(userId)
+  const maxAllowed = subscription?.max_gallery_images ?? 3
+  const images = await repo.getProfileImages(profile.id)
+
+  return {
+    images,
+    usage: {
+      count: images.length,
+      max_allowed: maxAllowed,
+      is_limit_reached: images.length >= maxAllowed,
+      plan_name: subscription?.plan_display_name || 'Free',
+    },
+  }
+}
+
+export async function uploadGalleryImages(userId, files, captions = []) {
+  const profile = await repo.findProfileByUserId(userId)
+  if (!profile) throw createError('Profile not found', 404, 'PROFILE_NOT_FOUND')
+
+  if (!files || files.length === 0) {
+    throw createError('No files provided', 422, 'NO_FILES')
+  }
+
+  const currentCount = await repo.countProfileImages(profile.id)
+  await enforceContentLimit(userId, 'max_gallery_images', currentCount + files.length - 1)
+
+  const uploadResults = await storageUtils.uploadItemImages(
+    files.map((f) => ({ buffer: f.buffer, mimeType: f.mimetype })),
+    (mimeType) => storageUtils.buildGalleryPath(profile.id, mimeType),
+  )
+
+  const saved = []
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
+    for (let i = 0; i < uploadResults.length; i++) {
+      const { publicUrl, storagePath } = uploadResults[i]
+      const caption = captions[i] || null
+      const isPrimary = currentCount === 0 && i === 0
+      const img = await repo.addProfileImage(
+        profile.id,
+        {
+          imageUrl: publicUrl,
+          storageKey: storagePath,
+          altText: caption,
+          sortOrder: currentCount + i,
+          isPrimary,
+        },
+        client,
+      )
+      saved.push(img)
+    }
+    await client.query('COMMIT')
+  } catch (err) {
+    await client.query('ROLLBACK')
+    await storageUtils.deleteImages(uploadResults.map((r) => r.storagePath)).catch(() => {})
+    throw err
+  } finally {
+    client.release()
+  }
+
+  logger.info({ userId, profileId: profile.id, count: saved.length }, 'Gallery images uploaded')
+  return saved
+}
+
+export async function updateGalleryImage(userId, imageId, data) {
+  const profile = await repo.findProfileByUserId(userId)
+  if (!profile) throw createError('Profile not found', 404, 'PROFILE_NOT_FOUND')
+
+  const existing = await repo.findProfileImageById(imageId)
+  if (!existing || existing.profile_id !== profile.id) {
+    throw createError('Gallery image not found', 404, 'IMAGE_NOT_FOUND')
+  }
+
+  if (data.is_primary) {
+    await repo.clearPrimaryProfileImage(profile.id)
+  }
+
+  const updated = await repo.updateProfileImage(imageId, profile.id, {
+    altText: data.alt_text !== undefined ? data.alt_text : data.caption,
+    sortOrder: data.sort_order,
+    isPrimary: data.is_primary,
+  })
+
+  logger.info({ userId, imageId }, 'Gallery image updated')
+  return updated
+}
+
+export async function deleteGalleryImage(userId, imageId) {
+  const profile = await repo.findProfileByUserId(userId)
+  if (!profile) throw createError('Profile not found', 404, 'PROFILE_NOT_FOUND')
+
+  const existing = await repo.findProfileImageById(imageId)
+  if (!existing || existing.profile_id !== profile.id) {
+    throw createError('Gallery image not found', 404, 'IMAGE_NOT_FOUND')
+  }
+
+  if (existing.storage_key) {
+    await storageUtils.deleteImage(existing.storage_key).catch(() => {})
+  }
+
+  await repo.deleteProfileImage(imageId, profile.id)
+  logger.info({ userId, imageId }, 'Gallery image deleted')
+}
+

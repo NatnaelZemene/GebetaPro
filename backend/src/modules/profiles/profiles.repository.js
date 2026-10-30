@@ -121,6 +121,95 @@ export async function getProfileImages(profileId) {
 }
 
 /**
+ * Count total gallery images for a profile.
+ * @param {string} profileId
+ * @returns {Promise<number>}
+ */
+export async function countProfileImages(profileId) {
+  const result = await pool.query(
+    `SELECT COUNT(*)::int AS count FROM profile_images WHERE profile_id = $1`,
+    [profileId],
+  )
+  return result.rows[0]?.count ?? 0
+}
+
+/**
+ * Find single gallery image by id.
+ * @param {string} imageId
+ * @returns {Promise<object|null>}
+ */
+export async function findProfileImageById(imageId) {
+  const result = await pool.query(
+    `SELECT * FROM profile_images WHERE id = $1`,
+    [imageId],
+  )
+  return result.rows[0] || null
+}
+
+/**
+ * Add an image to profile_images gallery.
+ */
+export async function addProfileImage(profileId, { imageUrl, storageKey, altText, sortOrder = 0, isPrimary = false }, client = pool) {
+  const result = await client.query(
+    `INSERT INTO profile_images (profile_id, image_url, storage_key, alt_text, sort_order, is_primary)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING id, profile_id, image_url, storage_key, alt_text, sort_order, is_primary, created_at`,
+    [profileId, imageUrl, storageKey || null, altText || null, sortOrder, isPrimary],
+  )
+  return result.rows[0]
+}
+
+/**
+ * Update gallery image details (e.g. caption / alt_text, sort_order, is_primary).
+ */
+export async function updateProfileImage(imageId, profileId, { altText, sortOrder, isPrimary }) {
+  const sets = []
+  const vals = [imageId, profileId]
+  if (altText !== undefined) {
+    vals.push(altText)
+    sets.push(`alt_text = $${vals.length}`)
+  }
+  if (sortOrder !== undefined) {
+    vals.push(sortOrder)
+    sets.push(`sort_order = $${vals.length}`)
+  }
+  if (isPrimary !== undefined) {
+    vals.push(isPrimary)
+    sets.push(`is_primary = $${vals.length}`)
+  }
+  if (!sets.length) return findProfileImageById(imageId)
+  const result = await pool.query(
+    `UPDATE profile_images SET ${sets.join(', ')}
+     WHERE id = $1 AND profile_id = $2
+     RETURNING id, profile_id, image_url, storage_key, alt_text, sort_order, is_primary, created_at`,
+    vals,
+  )
+  return result.rows[0] || null
+}
+
+/**
+ * Delete a profile gallery image.
+ */
+export async function deleteProfileImage(imageId, profileId) {
+  const result = await pool.query(
+    `DELETE FROM profile_images WHERE id = $1 AND profile_id = $2 RETURNING id, storage_key`,
+    [imageId, profileId],
+  )
+  return result.rows[0] || null
+}
+
+/**
+ * Clear primary flag across profile images for a profile.
+ */
+export async function clearPrimaryProfileImage(profileId, client = pool) {
+  await client.query(
+    `UPDATE profile_images SET is_primary = FALSE WHERE profile_id = $1`,
+    [profileId],
+  )
+}
+
+
+/**
  * Search published profiles.
  * @param {object} opts
  */

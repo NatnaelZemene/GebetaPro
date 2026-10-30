@@ -39,6 +39,7 @@ const DashboardPage         = lazy(() => import('../pages/DashboardPage.jsx'))
 const ProfileEditPage       = lazy(() => import('../pages/dashboard/ProfileEditPage.jsx'))
 const ServicesPage          = lazy(() => import('../pages/dashboard/ServicesPage.jsx'))
 const PortfolioPage         = lazy(() => import('../pages/dashboard/PortfolioPage.jsx'))
+const GalleryPage           = lazy(() => import('../pages/dashboard/GalleryPage.jsx'))
 const PostsPage             = lazy(() => import('../pages/dashboard/PostsPage.jsx'))
 const AchievementsPage      = lazy(() => import('../pages/dashboard/AchievementsPage.jsx'))
 const SocialLinksPage       = lazy(() => import('../pages/dashboard/SocialLinksPage.jsx'))
@@ -126,6 +127,7 @@ export default function AppRoutes() {
         <Route path="/dashboard/profile"               element={<ProfileEditPage />} />
         <Route path="/dashboard/profile/services"      element={<ServicesPage />} />
         <Route path="/dashboard/profile/portfolio"     element={<PortfolioPage />} />
+        <Route path="/dashboard/profile/gallery"       element={<GalleryPage />} />
         <Route path="/dashboard/profile/posts"         element={<PostsPage />} />
         <Route path="/dashboard/profile/achievements"  element={<AchievementsPage />} />
         <Route path="/dashboard/profile/social-links"  element={<SocialLinksPage />} />

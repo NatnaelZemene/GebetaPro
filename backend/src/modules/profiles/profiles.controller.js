@@ -302,3 +302,45 @@ export const getMyProfileAnalytics = asyncHandler(async (req, res) => {
   sendSuccess(res, 'Analytics retrieved', stats)
 })
 
+// ── Gallery ───────────────────────────────────────────────────────────────────
+
+export const listMyGallery = asyncHandler(async (req, res) => {
+  const result = await svc.listMyGallery(req.user.id)
+  sendSuccess(res, 'Gallery retrieved', result)
+})
+
+export const uploadGalleryImages = asyncHandler(async (req, res) => {
+  if (!req.files || req.files.length === 0) {
+    return res.status(422).json({ success: false, message: 'No files provided', error: { code: 'NO_FILES' } })
+  }
+  let captions = []
+  if (req.body.captions) {
+    try {
+      captions = typeof req.body.captions === 'string' ? JSON.parse(req.body.captions) : req.body.captions
+    } catch {
+      captions = [req.body.captions]
+    }
+  } else if (req.body.alt_text || req.body.caption) {
+    captions = [req.body.alt_text || req.body.caption]
+  }
+
+  const images = await svc.uploadGalleryImages(req.user.id, req.files, captions)
+  sendSuccess(res, 'Gallery images uploaded', images, 201)
+})
+
+export const updateGalleryImage = asyncHandler(async (req, res) => {
+  const image = await svc.updateGalleryImage(req.user.id, req.params.id, req.body)
+  sendSuccess(res, 'Gallery image updated', image)
+})
+
+export const deleteGalleryImage = asyncHandler(async (req, res) => {
+  await svc.deleteGalleryImage(req.user.id, req.params.id)
+  sendSuccess(res, 'Gallery image deleted', null)
+})
+
+export const getPublicGallery = asyncHandler(async (req, res) => {
+  const profile = await svc.getPublicProfile(req.params.slug, null)
+  sendSuccess(res, 'Gallery retrieved', { gallery: profile.gallery || [] })
+})
+
+

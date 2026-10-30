@@ -38,6 +38,12 @@ export async function getPublicAchievements(slug) {
   return res.data.data
 }
 
+export async function getPublicGallery(slug) {
+  const s = sanitizeSlug(slug)
+  const res = await apiClient.get(`/profiles/@${s}/gallery`)
+  return res.data.data
+}
+
 // ── Discovery ─────────────────────────────────────────────────────────────────
 
 export async function searchProfiles(params = {}) {
@@ -95,6 +101,35 @@ export async function uploadCover(file) {
 
 export async function deleteCover() {
   const res = await apiClient.delete('/profile/cover')
+  return res.data.data
+}
+
+// ── Profile Gallery ───────────────────────────────────────────────────────────
+
+export async function getMyGallery() {
+  const res = await apiClient.get('/profile/gallery')
+  return res.data.data
+}
+
+export async function uploadGalleryImages(files, captions = []) {
+  const fd = new FormData()
+  files.forEach((f) => fd.append('images', f))
+  if (captions && captions.length > 0) {
+    fd.append('captions', JSON.stringify(captions))
+  }
+  const res = await apiClient.post('/profile/gallery/upload', fd, {
+    headers: { 'Content-Type': undefined },
+  })
+  return res.data.data
+}
+
+export async function updateGalleryImage(id, data) {
+  const res = await apiClient.patch(`/profile/gallery/${id}`, data)
+  return res.data.data
+}
+
+export async function deleteGalleryImage(id) {
+  const res = await apiClient.delete(`/profile/gallery/${id}`)
   return res.data.data
 }
 

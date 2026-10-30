@@ -18,6 +18,7 @@ import {
   LayoutDashboard, CreditCard,
   User, Wrench, FolderOpen, FileText, Award,
   LogOut, X, Menu, Bell, Link2, Clock, Star, MessageCircle, BadgeCheck,
+  Image as GalleryIcon,
 } from 'lucide-react'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -243,12 +244,13 @@ export function DashboardLayout({ children, title }) {
   ]
 
   const PROFILE_NAV = [
-    { to: '/dashboard/profile/services',     label: t('dashboard.sidebar.services'),      icon: <Wrench size={14} aria-hidden="true" /> },
-    { to: '/dashboard/profile/portfolio',    label: t('dashboard.sidebar.portfolio'),     icon: <FolderOpen size={14} aria-hidden="true" /> },
-    { to: '/dashboard/profile/social-links', label: t('dashboard.sidebar.socialLinks'),   icon: <Link2 size={14} aria-hidden="true" /> },
-    { to: '/dashboard/profile/hours',        label: t('dashboard.sidebar.businessHours'), icon: <Clock size={14} aria-hidden="true" /> },
-    { to: '/dashboard/profile/posts',        label: t('dashboard.sidebar.posts'),         icon: <FileText size={14} aria-hidden="true" /> },
-    { to: '/dashboard/profile/achievements', label: t('dashboard.sidebar.achievements'),  icon: <Award size={14} aria-hidden="true" /> },
+    { to: '/dashboard/profile/services',     label: t('dashboard.sidebar.services', 'Services'),          icon: <Wrench size={14} aria-hidden="true" /> },
+    { to: '/dashboard/profile/portfolio',    label: t('dashboard.sidebar.portfolio', 'Portfolio'),        icon: <FolderOpen size={14} aria-hidden="true" /> },
+    { to: '/dashboard/profile/gallery',      label: t('dashboard.sidebar.gallery', 'Photo Gallery'),     icon: <GalleryIcon size={14} aria-hidden="true" /> },
+    { to: '/dashboard/profile/social-links', label: t('dashboard.sidebar.socialLinks', 'Social Links'),   icon: <Link2 size={14} aria-hidden="true" /> },
+    { to: '/dashboard/profile/hours',        label: t('dashboard.sidebar.businessHours', 'Hours'),        icon: <Clock size={14} aria-hidden="true" /> },
+    { to: '/dashboard/profile/posts',        label: t('dashboard.sidebar.posts', 'Posts & Updates'),      icon: <FileText size={14} aria-hidden="true" /> },
+    { to: '/dashboard/profile/achievements', label: t('dashboard.sidebar.achievements', 'Achievements'),  icon: <Award size={14} aria-hidden="true" /> },
   ]
 
   function handleLogout() {

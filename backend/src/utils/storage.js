@@ -81,6 +81,16 @@ export function buildCoverPath(profileId, mimeType) {
 }
 
 /**
+ * Build storage path for a profile gallery image.
+ * @param {string} profileId
+ * @param {string} mimeType
+ * @returns {string}
+ */
+export function buildGalleryPath(profileId, mimeType) {
+  return `profiles/${profileId}/gallery/${randomUUID()}.${ext(mimeType)}`
+}
+
+/**
  * Build storage path for a profile content item image.
  * @param {'products'|'services'|'portfolio'|'posts'|'achievements'} folder
  * @param {string} itemId
