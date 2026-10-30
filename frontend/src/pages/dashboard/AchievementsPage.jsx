@@ -4,7 +4,7 @@ import { DashboardLayout } from '../../components/layout/DashboardLayout.jsx'
 import { Button } from '../../components/ui/Button.jsx'
 import { Badge } from '../../components/ui/Badge.jsx'
 import { Skeleton } from '../../components/ui/Skeleton.jsx'
-import { FormField, Input, Textarea } from '../../components/ui/FormField.jsx'
+import { FormField, Input, Textarea, DatePicker } from '../../components/ui/FormField.jsx'
 import { NoProfileGuard } from '../../features/profiles/components/NoProfileGuard.jsx'
 import {
   useMyAchievements, useCreateAchievement, useUpdateAchievement, useDeleteAchievement,
@@ -49,7 +49,7 @@ function AchievementForm({ initial = emptyForm, onSave, onCancel, loading }) {
 
       <div className="grid sm:grid-cols-2 gap-4">
         <FormField label="Date">
-          <Input value={form.date} onChange={set('date')} type="date" />
+          <DatePicker value={form.date} onChange={set('date')} placeholder="Select achievement date" />
         </FormField>
         <FormField label="Issuing Organization">
           <Input value={form.organization} onChange={set('organization')} placeholder="e.g. Amazon Web Services" />

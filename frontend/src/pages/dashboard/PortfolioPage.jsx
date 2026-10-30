@@ -4,7 +4,7 @@ import { DashboardLayout } from '../../components/layout/DashboardLayout.jsx'
 import { Button } from '../../components/ui/Button.jsx'
 import { Badge } from '../../components/ui/Badge.jsx'
 import { Skeleton } from '../../components/ui/Skeleton.jsx'
-import { FormField, Input, Textarea } from '../../components/ui/FormField.jsx'
+import { FormField, Input, Textarea, DatePicker } from '../../components/ui/FormField.jsx'
 import { NoProfileGuard } from '../../features/profiles/components/NoProfileGuard.jsx'
 import {
   useMyPortfolio, useCreatePortfolioItem, useUpdatePortfolioItem, useDeletePortfolioItem,
@@ -60,7 +60,7 @@ function PortfolioForm({ initial = emptyForm, onSave, onCancel, loading }) {
           <Input value={form.project_url} onChange={set('project_url')} placeholder="https://project.com" type="url" />
         </FormField>
         <FormField label="Completion Date">
-          <Input value={form.completion_date} onChange={set('completion_date')} type="date" />
+          <DatePicker value={form.completion_date} onChange={set('completion_date')} placeholder="Select completion date" />
         </FormField>
       </div>
 

@@ -7,7 +7,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { DashboardLayout } from '../../components/layout/DashboardLayout.jsx'
 import { Button } from '../../components/ui/Button.jsx'
-import { FormField, Input, Textarea, Select } from '../../components/ui/FormField.jsx'
+import { FormField, Input, Textarea, Select, DatePicker } from '../../components/ui/FormField.jsx'
 import { Skeleton } from '../../components/ui/Skeleton.jsx'
 import {
   useMyProfile, useUpdateProfile, useCreateProfile, useProfileCompletion,
@@ -373,21 +373,19 @@ function VerificationSection({ form, set, profile, verificationDoc, onSaveFirst 
             disabled={isUnderReview}
           />
         </FormField>
-        <FormField label="Issue Date" hint="YYYY-MM-DD format">
-          <Input
+        <FormField label="Issue Date" hint="License registration date">
+          <DatePicker
             value={form.license_issue_date}
             onChange={set('license_issue_date')}
-            placeholder="2020-01-15"
-            maxLength={10}
+            placeholder="Select issue date"
             disabled={isUnderReview}
           />
         </FormField>
-        <FormField label="Expiry Date" hint="YYYY-MM-DD, if applicable">
-          <Input
+        <FormField label="Expiry Date" hint="License renewal date, if applicable">
+          <DatePicker
             value={form.license_expiry_date}
             onChange={set('license_expiry_date')}
-            placeholder="2025-01-15"
-            maxLength={10}
+            placeholder="Select expiry date"
             disabled={isUnderReview}
           />
         </FormField>

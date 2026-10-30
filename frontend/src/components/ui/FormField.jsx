@@ -155,3 +155,6 @@ export function Select({ error, children, className = '', ...props }) {
     </select>
   )
 }
+
+export { DatePicker } from './DatePicker.jsx'
+
