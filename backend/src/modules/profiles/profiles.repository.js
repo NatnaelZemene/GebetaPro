@@ -126,7 +126,7 @@ export async function getProfileImages(profileId) {
  */
 export async function searchProfiles({
   search, profile_type, category_id, city, country,
-  latitude, longitude, radius_km, verified_only, sort, page, page_size,
+  latitude, longitude, radius_km, verified_only, open_now, sort, page, page_size,
 }) {
   const params = []
   const conditions = [
@@ -156,6 +156,29 @@ export async function searchProfiles({
   }
   if (verified_only) {
     conditions.push(`p.is_verified = TRUE`)
+  }
+  if (open_now) {
+    conditions.push(`EXISTS (
+      SELECT 1 FROM business_hours bh2
+      WHERE bh2.profile_id = p.id
+        AND bh2.is_closed = FALSE
+        AND (
+          (
+            bh2.day_of_week = EXTRACT(DOW FROM now() AT TIME ZONE 'Africa/Addis_Ababa')::int
+            AND (
+              (bh2.opens_at <= bh2.closes_at AND (now() AT TIME ZONE 'Africa/Addis_Ababa')::time >= bh2.opens_at AND (now() AT TIME ZONE 'Africa/Addis_Ababa')::time < bh2.closes_at)
+              OR
+              (bh2.opens_at > bh2.closes_at AND (now() AT TIME ZONE 'Africa/Addis_Ababa')::time >= bh2.opens_at)
+            )
+          )
+          OR
+          (
+            bh2.day_of_week = (EXTRACT(DOW FROM now() AT TIME ZONE 'Africa/Addis_Ababa')::int + 6) % 7
+            AND bh2.opens_at > bh2.closes_at
+            AND (now() AT TIME ZONE 'Africa/Addis_Ababa')::time < bh2.closes_at
+          )
+        )
+    )`)
   }
   if (search) {
     params.push(`%${search}%`)
@@ -231,6 +254,7 @@ export async function searchProfiles({
        COALESCE(sp.is_featured, FALSE) AS is_featured,
        COALESCE(rs.avg_rating, 0) AS avg_rating,
        COALESCE(rs.review_count, 0) AS review_count,
+       COALESCE(bh.business_hours, '[]'::json) AS business_hours,
        ${distanceSelect}
      FROM profiles p
      LEFT JOIN categories c ON p.category_id = c.id
@@ -243,6 +267,17 @@ export async function searchProfiles({
        FROM profile_reviews
        GROUP BY profile_id
      ) rs ON rs.profile_id = p.id
+     LEFT JOIN (
+       SELECT profile_id,
+              json_agg(json_build_object(
+                'day_of_week', day_of_week,
+                'opens_at', to_char(opens_at, 'HH24:MI'),
+                'closes_at', to_char(closes_at, 'HH24:MI'),
+                'is_closed', is_closed
+              )) AS business_hours
+       FROM business_hours
+       GROUP BY profile_id
+     ) bh ON bh.profile_id = p.id
      ${where}
      ORDER BY ${orderBy}
      LIMIT $${params.length - 1} OFFSET $${params.length}`,

@@ -321,6 +321,25 @@ function FilterPanel({
             onChange={v => updateFilter('verified_only', v)}
           />
         </label>
+
+        {/* Open now toggle */}
+        <label
+          htmlFor="open-now-toggle"
+          className="flex items-center justify-between cursor-pointer select-none group py-0.5 mt-2 pt-2 border-t border-border/60"
+        >
+          <span className="flex items-center gap-1.5 text-[13px] text-ink">
+            <span className="relative flex h-2 w-2 shrink-0" aria-hidden="true">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" style={{ animationDuration: '2s' }} />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            {t('directory.openNowOnly', 'Open now')}
+          </span>
+          <Toggle
+            id="open-now-toggle"
+            checked={filters.open_now}
+            onChange={v => updateFilter('open_now', v)}
+          />
+        </label>
       </CollapsibleGroup>
 
       {/* ── Clear all ────────────────────────────────────────────────── */}
@@ -390,6 +409,13 @@ function ActiveFilterChips({ filters, categories, useNearMe, updateFilter, setUs
       label: t('directory.verified'),
       icon: <BadgeCheck size={10} />,
       onRemove: () => updateFilter('verified_only', false),
+    })
+  }
+  if (filters.open_now) {
+    chips.push({
+      key: 'open_now',
+      label: t('profile.hours.openNow', 'Open now'),
+      onRemove: () => updateFilter('open_now', false),
     })
   }
   if (useNearMe && geo.lat != null) {
@@ -606,6 +632,7 @@ export default function DirectoryPage() {
     country:       searchParams.get('country')        || '',
     profile_type:  searchParams.get('profile_type')  || '',
     verified_only: searchParams.get('verified_only') === 'true',
+    open_now:      searchParams.get('open_now')      === 'true',
     sort:          searchParams.get('sort')           || 'featured',
     page:          parseInt(searchParams.get('page')  || '1', 10) || 1,
   })
@@ -626,6 +653,7 @@ export default function DirectoryPage() {
     if (filters.country)       next.set('country', filters.country)
     if (filters.profile_type)  next.set('profile_type', filters.profile_type)
     if (filters.verified_only) next.set('verified_only', 'true')
+    if (filters.open_now)      next.set('open_now', 'true')
     if (filters.sort && filters.sort !== 'featured') next.set('sort', filters.sort)
     if (filters.page > 1)      next.set('page', String(filters.page))
 
@@ -642,6 +670,7 @@ export default function DirectoryPage() {
     const nextCountry = searchParams.get('country') || ''
     const nextType   = searchParams.get('profile_type') || ''
     const nextVer    = searchParams.get('verified_only') === 'true'
+    const nextOpen   = searchParams.get('open_now') === 'true'
     const nextSort   = searchParams.get('sort') || 'featured'
     const nextPage   = parseInt(searchParams.get('page') || '1', 10) || 1
 
@@ -653,6 +682,7 @@ export default function DirectoryPage() {
         prev.country === nextCountry &&
         prev.profile_type === nextType &&
         prev.verified_only === nextVer &&
+        prev.open_now === nextOpen &&
         prev.sort === nextSort &&
         prev.page === nextPage
       ) {
@@ -665,6 +695,7 @@ export default function DirectoryPage() {
         country: nextCountry,
         profile_type: nextType,
         verified_only: nextVer,
+        open_now: nextOpen,
         sort: nextSort,
         page: nextPage,
       }
@@ -740,6 +771,7 @@ export default function DirectoryPage() {
     if (filters.country)       p.country       = filters.country
     if (filters.profile_type)  p.profile_type  = filters.profile_type
     if (filters.verified_only) p.verified_only = true
+    if (filters.open_now)      p.open_now      = true
     if (filters.sort)          p.sort          = filters.sort
     if (useNearMe && geo.lat != null) {
       p.latitude  = geo.lat
@@ -787,7 +819,7 @@ export default function DirectoryPage() {
   function clearFilters() {
     setFilters({
       search: '', category_id: '', city: '', country: '',
-      profile_type: '', verified_only: false, sort: 'featured', page: 1,
+      profile_type: '', verified_only: false, open_now: false, sort: 'featured', page: 1,
     })
     setSearchInput('')
     setCityInput('')
@@ -815,6 +847,7 @@ export default function DirectoryPage() {
   const activeFilterCount = [
     filters.category_id, filters.city, filters.country,
     filters.profile_type, filters.verified_only ? 'v' : '',
+    filters.open_now ? 'o' : '',
     useNearMe && geo.lat != null ? 'n' : '',
   ].filter(Boolean).length
 
@@ -1242,6 +1275,29 @@ export default function DirectoryPage() {
 
                 {/* Right: controls */}
                 <div className="flex items-center gap-2 shrink-0">
+                  {/* Quick Open Now chip — desktop */}
+                  <button
+                    type="button"
+                    onClick={() => updateFilter('open_now', !filters.open_now)}
+                    className={`
+                      hidden sm:inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border text-[12px] font-medium
+                      transition-all duration-150 cursor-pointer select-none
+                      ${filters.open_now
+                        ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-400 font-semibold shadow-xs'
+                        : 'bg-surface border-border text-ink-2 hover:border-brand-border hover:bg-surface-2'
+                      }
+                    `}
+                    aria-pressed={filters.open_now}
+                  >
+                    <span className="relative flex h-2 w-2 shrink-0" aria-hidden="true">
+                      {filters.open_now && (
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" style={{ animationDuration: '2s' }} />
+                      )}
+                      <span className={`relative inline-flex rounded-full h-2 w-2 ${filters.open_now ? 'bg-emerald-500' : 'bg-ink-4'}`} />
+                    </span>
+                    <span>{t('directory.openNowOnly', 'Open now')}</span>
+                  </button>
+
                   {/* Sort — desktop (custom advanced dropdown) */}
                   <SortDropdown
                     value={filters.sort}

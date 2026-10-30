@@ -177,6 +177,7 @@
     "result": "result",
     "verified": "Verified",
     "verifiedOnly": "Verified only",
+    "openNowOnly": "Open now",
     "useMyLocation": "Use my location",
     "locationSet": "Location set ✓",
     "clearLocation": "Clear location",
