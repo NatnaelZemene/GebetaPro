@@ -893,20 +893,24 @@ export default function DirectoryPage() {
             <form
               onSubmit={submitSearch}
               className="
-                flex items-stretch
-                bg-canvas border border-border rounded-xl overflow-hidden
+                bg-canvas border border-border rounded-2xl sm:rounded-xl
+                shadow-xs hover:border-brand-border/60
                 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/10
                 transition-all duration-150
-                mb-5
+                mb-5 overflow-hidden
               "
               role="search"
               aria-label="Search the directory"
             >
-              {/* Dual inputs container — compact vertical stack on mobile, horizontal on sm+ */}
-              <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center">
-                {/* Query */}
-                <div className="flex items-center flex-1 gap-2.5 px-3 sm:px-4 h-10 sm:h-12">
-                  <Search size={15} className="text-ink-3 shrink-0" aria-hidden="true" />
+              {/* Responsive Layout:
+                  - Mobile: 2 dedicated rows (Full-width query on top, compact location + search button on bottom).
+                  - Tablet/Desktop (sm+): 1 seamless horizontal bar with spacious query and compact location.
+              */}
+              <div className="flex flex-col sm:flex-row sm:items-center">
+
+                {/* Primary Query: Name, Profession, Service, Shop (spacious & prominent) */}
+                <div className="flex items-center flex-1 min-w-0 gap-2.5 px-3.5 sm:px-4 h-11 sm:h-12">
+                  <Search size={16} className="text-brand shrink-0" aria-hidden="true" />
                   <input
                     ref={searchInputRef}
                     type="text"
@@ -914,8 +918,8 @@ export default function DirectoryPage() {
                     value={searchInput}
                     onChange={e => setSearchInput(e.target.value)}
                     className="
-                      flex-1 bg-transparent text-[13px] sm:text-[14px] text-ink
-                      placeholder:text-ink-3 outline-none min-w-0
+                      flex-1 bg-transparent text-[13.5px] sm:text-[14px] text-ink
+                      placeholder:text-ink-3 outline-none min-w-0 font-normal
                     "
                     aria-label="Search query"
                   />
@@ -923,61 +927,65 @@ export default function DirectoryPage() {
                     <button
                       type="button"
                       onClick={() => { setSearchInput(''); updateFilter('search', '') }}
-                      className="text-ink-3 hover:text-ink transition-colors shrink-0 focus-visible:outline-none cursor-pointer"
+                      className="w-5 h-5 rounded-full flex items-center justify-center text-ink-3 hover:text-ink hover:bg-surface-2 transition-colors shrink-0 focus-visible:outline-none cursor-pointer"
                       aria-label="Clear search"
                     >
-                      <X size={14} />
+                      <X size={13} />
                     </button>
                   )}
                 </div>
 
-                {/* Divider */}
-                <div className="sm:hidden h-px bg-border/60 mx-3" aria-hidden="true" />
-                <div className="hidden sm:block w-px bg-border self-stretch my-2.5" aria-hidden="true" />
+                {/* Divider: horizontal on mobile, vertical on sm+ */}
+                <div className="h-px bg-border/60 mx-3 sm:hidden" aria-hidden="true" />
+                <div className="hidden sm:block w-px h-6 bg-border self-center" aria-hidden="true" />
 
-                {/* Location */}
-                <div className="flex items-center gap-2 px-3 sm:px-4 h-10 sm:h-12 sm:w-48">
-                  <MapPin size={14} className="text-ink-3 shrink-0" aria-hidden="true" />
-                  <input
-                    type="text"
-                    placeholder={t('directory.locationPlaceholder')}
-                    value={cityInput}
-                    onChange={e => setCityInput(e.target.value)}
+                {/* Secondary section: Location input + Submit button */}
+                <div className="flex items-center justify-between gap-2 px-2.5 sm:px-2 py-1.5 sm:py-0 sm:w-auto">
+
+                  {/* Location (compact) */}
+                  <div className="flex items-center flex-1 sm:w-44 lg:w-48 gap-2 px-2 sm:px-2.5 h-9 sm:h-12 min-w-0">
+                    <MapPin size={14} className="text-ink-3 shrink-0" aria-hidden="true" />
+                    <input
+                      type="text"
+                      placeholder={t('directory.locationPlaceholder')}
+                      value={cityInput}
+                      onChange={e => setCityInput(e.target.value)}
+                      className="
+                        flex-1 bg-transparent text-[12.5px] sm:text-[13.5px] text-ink
+                        placeholder:text-ink-3 outline-none min-w-0
+                      "
+                      aria-label={t('directory.locationPlaceholder')}
+                    />
+                    {cityInput && (
+                      <button
+                        type="button"
+                        onClick={() => { setCityInput(''); updateFilter('city', '') }}
+                        className="w-4 h-4 rounded-full flex items-center justify-center text-ink-3 hover:text-ink hover:bg-surface-2 transition-colors shrink-0 focus-visible:outline-none cursor-pointer"
+                        aria-label="Clear location"
+                      >
+                        <X size={12} />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Submit Button */}
+                  <button
+                    type="submit"
                     className="
-                      flex-1 bg-transparent text-[13px] sm:text-[14px] text-ink
-                      placeholder:text-ink-3 outline-none min-w-0
+                      h-9 sm:h-10 px-4 sm:px-5 rounded-xl sm:rounded-lg
+                      bg-brand text-white text-[12.5px] sm:text-[13.5px] font-semibold
+                      hover:bg-brand-hover active:scale-[0.98]
+                      transition-all duration-150 flex items-center justify-center gap-1.5
+                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1
+                      cursor-pointer select-none shrink-0 shadow-xs
                     "
-                    aria-label={t('directory.locationPlaceholder')}
-                  />
-                  {cityInput && (
-                    <button
-                      type="button"
-                      onClick={() => { setCityInput(''); updateFilter('city', '') }}
-                      className="text-ink-3 hover:text-ink transition-colors shrink-0 focus-visible:outline-none cursor-pointer"
-                      aria-label="Clear location"
-                    >
-                      <X size={14} />
-                    </button>
-                  )}
-                </div>
-              </div>
+                  >
+                    <Search size={14} className="shrink-0" />
+                    <span>{t('directory.searchBtn')}</span>
+                  </button>
 
-              {/* Submit docked on right side */}
-              <div className="p-1 sm:p-1.5 flex items-stretch shrink-0">
-                <button
-                  type="submit"
-                  className="
-                    h-auto sm:h-full px-3.5 sm:px-5 rounded-lg
-                    bg-brand text-white text-[12px] sm:text-[13.5px] font-semibold
-                    hover:bg-brand-hover active:scale-[0.98]
-                    transition-all duration-150 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5
-                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2
-                    cursor-pointer select-none
-                  "
-                >
-                  <Search size={14} className="shrink-0" />
-                  <span>{t('directory.searchBtn')}</span>
-                </button>
+                </div>
+
               </div>
             </form>
 
