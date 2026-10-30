@@ -79,24 +79,24 @@ export function Navbar() {
   /* ── Shared link style helper ────────────────────────────────────────── */
   function desktopNavClass(active) {
     return [
-      'relative text-[13.5px] font-medium px-3.5 py-2 rounded-md',
-      'transition-colors duration-150 hover:no-underline select-none',
-      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1',
+      'relative text-[13.5px] font-medium px-3.5 py-1.5 rounded-lg',
+      'transition-all duration-150 hover:no-underline select-none',
+      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 dark:focus-visible:ring-white focus-visible:ring-offset-1',
       active
-        ? 'text-brand'
-        : 'text-ink-2 hover:text-ink hover:bg-surface-2',
+        ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 font-semibold shadow-xs'
+        : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800/60',
     ].join(' ')
   }
 
   function mobileNavClass(active) {
     return [
-      'flex items-center gap-3 px-5 py-3.5',
-      'text-[15px] font-medium',
-      'border-l-[2.5px] transition-colors hover:no-underline',
-      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset',
+      'flex items-center gap-3 px-5 py-3',
+      'text-[14.5px] font-medium transition-all hover:no-underline',
+      'border-l-2',
+      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-inset',
       active
-        ? 'text-brand border-brand bg-brand-light/60'
-        : 'text-ink border-transparent hover:bg-surface-2',
+        ? 'text-neutral-950 dark:text-white border-neutral-950 dark:border-white bg-neutral-100 dark:bg-neutral-800/80 font-semibold'
+        : 'text-neutral-600 dark:text-neutral-400 border-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800/50 hover:text-neutral-950 dark:hover:text-white',
     ].join(' ')
   }
 
