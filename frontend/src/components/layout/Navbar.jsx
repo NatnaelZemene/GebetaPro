@@ -76,27 +76,38 @@ export function Navbar() {
     setTimeout(() => hamburgerRef.current?.focus(), 50)
   }
 
+  /* ── Route matching helper — prevents /directory from activating on /directory/map ── */
+  function isNavActive(to, path) {
+    if (path === to) return true
+    if (to === '/directory') {
+      return path === '/directory' || path.startsWith('/directory?')
+    }
+    if (to === '/') {
+      return path === '/'
+    }
+    return path.startsWith(to + '/') || path.startsWith(to + '?')
+  }
+
   /* ── Shared link style helper ────────────────────────────────────────── */
   function desktopNavClass(active) {
     return [
-      'relative text-[13.5px] font-medium px-3.5 py-1.5 rounded-lg',
-      'transition-all duration-150 hover:no-underline select-none',
-      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 dark:focus-visible:ring-white focus-visible:ring-offset-1',
+      'relative text-[13.5px] px-3.5 py-1.5 rounded-lg select-none',
+      'transition-all duration-150 hover:no-underline',
+      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-1',
       active
-        ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 font-semibold shadow-xs'
-        : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800/60',
+        ? '!text-ink dark:!text-white font-semibold bg-surface-2 dark:bg-surface-2 shadow-xs'
+        : '!text-ink-2 hover:!text-ink hover:bg-surface-2/60 font-medium',
     ].join(' ')
   }
 
   function mobileNavClass(active) {
     return [
-      'flex items-center gap-3 px-5 py-3',
-      'text-[14.5px] font-medium transition-all hover:no-underline',
-      'border-l-2',
-      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-inset',
+      'flex items-center gap-3 px-4 py-3 mx-3 my-0.5 rounded-xl',
+      'text-[14.5px] transition-all hover:no-underline',
+      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-inset',
       active
-        ? 'text-neutral-950 dark:text-white border-neutral-950 dark:border-white bg-neutral-100 dark:bg-neutral-800/80 font-semibold'
-        : 'text-neutral-600 dark:text-neutral-400 border-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800/50 hover:text-neutral-950 dark:hover:text-white',
+        ? 'bg-surface-2 !text-ink dark:!text-white font-semibold shadow-xs'
+        : '!text-ink-2 hover:!text-ink hover:bg-surface-2/60 font-medium',
     ].join(' ')
   }
 
@@ -133,11 +144,9 @@ export function Navbar() {
           </Link>
 
           {/* Desktop nav links */}
-          <nav className="hidden md:flex items-center gap-0.5 flex-1 ml-4" aria-label="Main navigation">
+          <nav className="hidden md:flex items-center gap-1 flex-1 ml-4" aria-label="Main navigation">
             {NAV_LINKS.map(({ to, label }) => {
-              const active =
-                pathname === to ||
-                (to !== '/' && pathname.startsWith(to.split('?')[0]))
+              const active = isNavActive(to, pathname)
               return (
                 <Link
                   key={to}
@@ -146,10 +155,10 @@ export function Navbar() {
                   className={desktopNavClass(active)}
                 >
                   {label}
-                  {/* Active underline — positioned at bottom of link */}
+                  {/* Active bottom indicator — monochrome black/white */}
                   {active && (
                     <span
-                      className="absolute bottom-[5px] left-3.5 right-3.5 h-[2px] rounded-full bg-brand"
+                      className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full bg-ink dark:bg-white"
                       aria-hidden="true"
                     />
                   )}
@@ -283,9 +292,7 @@ export function Navbar() {
           {/* Nav links */}
           <nav className="flex flex-col pt-1 pb-2" aria-label="Mobile navigation">
             {NAV_LINKS.map(({ to, label }) => {
-              const active =
-                pathname === to ||
-                (to !== '/' && pathname.startsWith(to.split('?')[0]))
+              const active = isNavActive(to, pathname)
               return (
                 <Link
                   key={to}
