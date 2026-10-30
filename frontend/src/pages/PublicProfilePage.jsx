@@ -29,6 +29,7 @@ import {
   useAddReviewReply, useDeleteReviewReply, useMyProfile,
 } from '../features/profiles/hooks/useProfile.js'
 import { saveViewedProfile } from '../utils/historyStorage.js'
+import { trackProfileEvent } from '../services/profiles.service.js'
 
 /* ── Shared primitives ───────────────────────────────────────────────────────── */
 
@@ -221,6 +222,7 @@ function MobileContactBar({ profile }) {
           href={`https://wa.me/${c.whatsapp.replace(/\D/g, '')}`}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => trackProfileEvent(profile?.slug, 'WHATSAPP_CLICK')}
           className="h-11 w-11 flex items-center justify-center border border-border bg-surface rounded-xl text-brand hover:border-brand-border hover:bg-brand-light active:scale-95 transition-all shrink-0 shadow-xs"
           aria-label={t('profile.public.whatsapp', 'WhatsApp')}
           title={t('profile.public.whatsapp', 'WhatsApp')}
@@ -233,6 +235,7 @@ function MobileContactBar({ profile }) {
       {c.phone && !isPhonePrimary && (
         <a
           href={`tel:${c.phone}`}
+          onClick={() => trackProfileEvent(profile?.slug, 'PHONE_CLICK')}
           className="h-11 w-11 flex items-center justify-center border border-border bg-surface rounded-xl text-ink-2 hover:border-emerald-500/50 hover:text-emerald-500 hover:bg-emerald-500/10 active:scale-95 transition-all shrink-0 shadow-xs"
           aria-label={t('profile.public.callDirectly', 'Call directly')}
           title={c.phone}
@@ -247,6 +250,7 @@ function MobileContactBar({ profile }) {
           href={`https://t.me/${c.telegram.replace('@', '')}`}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => trackProfileEvent(profile?.slug, 'TELEGRAM_CLICK')}
           className="h-11 w-11 flex items-center justify-center border border-border bg-surface rounded-xl text-sky-500 hover:text-sky-400 hover:border-sky-500/50 hover:bg-sky-500/10 active:scale-95 transition-all shrink-0 shadow-xs"
           aria-label="Telegram"
           title="Telegram"
@@ -260,6 +264,10 @@ function MobileContactBar({ profile }) {
         href={primaryHref}
         target={primaryHref.startsWith('http') ? '_blank' : undefined}
         rel={primaryHref.startsWith('http') ? 'noopener noreferrer' : undefined}
+        onClick={() => {
+          const type = isPhonePrimary ? 'PHONE_CLICK' : (c.whatsapp ? 'WHATSAPP_CLICK' : 'EMAIL_CLICK')
+          trackProfileEvent(profile?.slug, type)
+        }}
         className="
           flex-1 h-11 px-4 rounded-xl
           bg-brand hover:bg-brand-hover active:bg-brand-hover
@@ -306,12 +314,19 @@ export default function PublicProfilePage() {
 
   const isProfileOwner = !!(myProfile && profile && myProfile.slug === profile.slug)
 
-  /* ── Save to device viewing history ───────────────────────────────────── */
+  /* ── Save to device viewing history & track view event ────────────────── */
   useEffect(() => {
     if (profile?.slug) {
       saveViewedProfile(profile)
+
+      // Deduplicate view count per session for this profile
+      const sessionKey = `viewed_profile_${profile.slug}`
+      if (!sessionStorage.getItem(sessionKey)) {
+        sessionStorage.setItem(sessionKey, '1')
+        trackProfileEvent(profile.slug, 'VIEW')
+      }
     }
-  }, [profile])
+  }, [profile?.slug])
 
   /* ── Handlers ──────────────────────────────────────────────────────────── */
   async function handleReviewSubmit(data) {

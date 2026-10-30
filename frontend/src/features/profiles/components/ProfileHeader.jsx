@@ -14,6 +14,7 @@ import { useState } from 'react'
 import { MapPin, BadgeCheck, Star, Share2, Phone, Mail, Globe, MessageCircle, Send, Navigation } from 'lucide-react'
 import { OpenStatusBadge } from './OpenStatusBadge.jsx'
 import { SocialLinks } from './SocialLinks.jsx'
+import { trackProfileEvent } from '../../../services/profiles.service.js'
 
 const TYPE_LABELS = {
   PERSONAL:      'Personal',
@@ -169,6 +170,7 @@ export function ProfileHeader({ profile }) {
               <a
                 href={`https://t.me/${profile.contact.telegram.replace('@', '')}`}
                 target="_blank" rel="noopener noreferrer"
+                onClick={() => profile.slug && trackProfileEvent(profile.slug, 'TELEGRAM_CLICK')}
                 aria-label="Telegram"
                 className="
                   h-9 w-9 flex items-center justify-center
@@ -183,6 +185,7 @@ export function ProfileHeader({ profile }) {
             {profile.contact?.phone && (
               <a
                 href={`tel:${profile.contact.phone}`}
+                onClick={() => profile.slug && trackProfileEvent(profile.slug, 'PHONE_CLICK')}
                 aria-label={`Call ${profile.display_name}`}
                 className="
                   h-9 w-9 flex items-center justify-center
@@ -197,6 +200,7 @@ export function ProfileHeader({ profile }) {
             {profile.contact?.email && (
               <a
                 href={`mailto:${profile.contact.email}`}
+                onClick={() => profile.slug && trackProfileEvent(profile.slug, 'EMAIL_CLICK')}
                 aria-label={`Email ${profile.display_name}`}
                 className="
                   h-9 w-9 flex items-center justify-center
@@ -212,6 +216,7 @@ export function ProfileHeader({ profile }) {
               <a
                 href={profile.contact.website}
                 target="_blank" rel="noopener noreferrer"
+                onClick={() => profile.slug && trackProfileEvent(profile.slug, 'WEBSITE_CLICK')}
                 aria-label="Website"
                 className="
                   h-9 w-9 flex items-center justify-center
@@ -223,8 +228,6 @@ export function ProfileHeader({ profile }) {
                 <Globe size={14} />
               </a>
             )}
-
-
           </div>
         </div>
 

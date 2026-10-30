@@ -327,3 +327,30 @@ export async function unpublishProfile() {
   const res = await apiClient.post('/profile/unpublish')
   return res.data.data
 }
+
+// ── Analytics & Event Tracking ───────────────────────────────────────────────
+
+/**
+ * Record an analytics event for a profile (e.g. 'VIEW', 'PHONE_CLICK', 'WHATSAPP_CLICK', etc.)
+ */
+export async function trackProfileEvent(slug, eventType = 'VIEW', metadata = {}) {
+  const s = sanitizeSlug(slug)
+  if (!s) return null
+  try {
+    const res = await apiClient.post(`/profiles/@${s}/track`, { event_type: eventType, metadata })
+    return res.data.data
+  } catch (err) {
+    // Analytics tracking should fail silently and not disrupt the user
+    console.debug('Analytics track error:', err?.message)
+    return null
+  }
+}
+
+/**
+ * Get profile analytics summary for dashboard owner.
+ */
+export async function getMyProfileAnalytics() {
+  const res = await apiClient.get('/profile/analytics')
+  return res.data.data
+}
+

@@ -13,6 +13,7 @@ import {
   isDay24Hours,
   isDayOvernight,
 } from '../../../utils/businessHours.js'
+import { trackProfileEvent } from '../../../services/profiles.service.js'
 
 /* ── AvailabilitySection ────────────────────────────────────────────────────── */
 function AvailabilitySection({ businessHours }) {
@@ -123,28 +124,31 @@ function AvailabilitySection({ businessHours }) {
 }
 
 /* ── ContactSection ─────────────────────────────────────────────────────────── */
-function ContactSection({ contact }) {
+function ContactSection({ contact, slug }) {
   const { t } = useTranslation()
   if (!contact) return null
   const hasAny = Object.values(contact).some(Boolean)
   if (!hasAny) return null
 
   const items = [
-    contact.phone    && { href: `tel:${contact.phone}`,                                Icon: Phone,         label: contact.phone,                     external: false },
-    contact.whatsapp && { href: `https://wa.me/${contact.whatsapp.replace(/\D/g,'')}`, Icon: MessageCircle, label: t('profile.public.whatsapp'),      external: true  },
-    contact.telegram && { href: `https://t.me/${contact.telegram.replace('@','')}`,    Icon: Send,          label: contact.telegram.startsWith('@') ? contact.telegram : `@${contact.telegram}`, external: true },
-    contact.email    && { href: `mailto:${contact.email}`,                             Icon: Mail,          label: contact.email,                     external: false },
-    contact.website  && { href: contact.website,                                       Icon: Globe,         label: contact.website.replace(/^https?:\/\//, ''), external: true },
+    contact.phone    && { href: `tel:${contact.phone}`,                                Icon: Phone,         label: contact.phone,                     external: false, type: 'PHONE_CLICK' },
+    contact.whatsapp && { href: `https://wa.me/${contact.whatsapp.replace(/\D/g,'')}`, Icon: MessageCircle, label: t('profile.public.whatsapp'),      external: true,  type: 'WHATSAPP_CLICK' },
+    contact.telegram && { href: `https://t.me/${contact.telegram.replace('@','')}`,    Icon: Send,          label: contact.telegram.startsWith('@') ? contact.telegram : `@${contact.telegram}`, external: true, type: 'TELEGRAM_CLICK' },
+    contact.email    && { href: `mailto:${contact.email}`,                             Icon: Mail,          label: contact.email,                     external: false, type: 'EMAIL_CLICK' },
+    contact.website  && { href: contact.website,                                       Icon: Globe,         label: contact.website.replace(/^https?:\/\//, ''), external: true, type: 'WEBSITE_CLICK' },
   ].filter(Boolean)
 
   return (
     <div className="space-y-2">
-      {items.map(({ href, Icon, label, external }) => (
+      {items.map(({ href, Icon, label, external, type }) => (
         <a
           key={href}
           href={href}
           target={external ? '_blank' : undefined}
           rel={external ? 'noopener noreferrer' : undefined}
+          onClick={() => {
+            if (slug) trackProfileEvent(slug, type)
+          }}
           className="
             flex items-center gap-3
             text-[13px] text-ink-2 hover:text-brand
@@ -246,7 +250,7 @@ export function ProfileAbout({ profile, compact = false }) {
       {/* Contact */}
       {hasContact && (
         <Section title={t('profile.hours.contact')}>
-          <ContactSection contact={contact} />
+          <ContactSection contact={contact} slug={profile.slug} />
         </Section>
       )}
     </div>

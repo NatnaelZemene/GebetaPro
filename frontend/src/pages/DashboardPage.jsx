@@ -10,7 +10,7 @@ import { Button } from '../components/ui/Button.jsx'
 import { Badge } from '../components/ui/Badge.jsx'
 import { Skeleton } from '../components/ui/Skeleton.jsx'
 import {
-  useMyProfile, useProfileCompletion,
+  useMyProfile, useProfileCompletion, useProfileAnalytics,
   usePublishProfile, useUnpublishProfile,
 } from '../features/profiles/hooks/useProfile.js'
 import { useMySubscription } from '../features/subscriptions/hooks/useSubscriptions.js'
@@ -20,16 +20,16 @@ import {
 
 function StatCard({ label, value, icon, loading, sub }) {
   return (
-    <div className="bg-surface border border-border rounded-2xl p-5">
+    <div className="bg-surface border border-border rounded-2xl p-5 hover:border-border-strong hover:shadow-xs transition-all duration-200">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-[11.5px] font-semibold text-ink-3 uppercase tracking-widest">{label}</span>
-        <span className="text-ink-3">{icon}</span>
+        <span className="text-[11.5px] font-semibold text-ink-3 uppercase tracking-wider">{label}</span>
+        <span className="text-ink-2 p-1.5 rounded-lg bg-surface-2 border border-border/60 shrink-0">{icon}</span>
       </div>
       {loading
-        ? <Skeleton className="h-7 w-16" />
-        : <div className="text-2xl font-extrabold text-ink tracking-tight">{value ?? '—'}</div>
+        ? <Skeleton className="h-8 w-20" />
+        : <div className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">{value ?? '0'}</div>
       }
-      {sub && <p className="text-[11.5px] text-ink-3 mt-1">{sub}</p>}
+      {sub && <p className="text-[11.5px] font-medium text-ink-3 mt-1.5 truncate">{sub}</p>}
     </div>
   )
 }
@@ -49,6 +49,7 @@ export default function DashboardPage() {
   const isLoggedIn = !!localStorage.getItem('accessToken')
 
   const { data: profile, isLoading: profileLoading } = useMyProfile()
+  const { data: analytics, isLoading: analyticsLoading } = useProfileAnalytics()
   const { data: completion, isLoading: completionLoading } = useProfileCompletion()
   const { data: subscription, isLoading: subLoading } = useMySubscription()
   const publishMutation   = usePublishProfile()
@@ -279,10 +280,36 @@ export default function DashboardPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <StatCard label={t('dashboard.stats.profileViews')}  value="—" icon={<Eye size={15} />} sub={t('dashboard.stats.last30Days')} />
-          <StatCard label={t('dashboard.stats.contactClicks')} value="—" icon={<TrendingUp size={15} />} sub={t('dashboard.stats.last30Days')} />
-          <StatCard label={t('dashboard.stats.reviews')} value={profile?.review_count ?? '—'} icon={<Star size={15} />} loading={profileLoading} />
-          <StatCard label={t('dashboard.stats.plan')} value={subLoading ? '—' : planName} icon={<CreditCard size={15} />} loading={subLoading} />
+          <StatCard
+            label={t('dashboard.stats.profileViews')}
+            value={(analytics?.views_30d ?? profile?.views_30d ?? 0).toLocaleString()}
+            icon={<Eye size={15} />}
+            loading={profileLoading && analyticsLoading}
+            sub={t('dashboard.stats.last30Days')}
+          />
+          <StatCard
+            label={t('dashboard.stats.contactClicks')}
+            value={(analytics?.contact_clicks_30d ?? profile?.contact_clicks_30d ?? 0).toLocaleString()}
+            icon={<TrendingUp size={15} />}
+            loading={profileLoading && analyticsLoading}
+            sub={t('dashboard.stats.last30Days')}
+          />
+          <StatCard
+            label={t('dashboard.stats.reviews')}
+            value={(analytics?.review_count ?? profile?.review_count ?? 0).toLocaleString()}
+            icon={<Star size={15} />}
+            loading={profileLoading && analyticsLoading}
+            sub={(analytics?.avg_rating || profile?.avg_rating) > 0
+              ? `${Number(analytics?.avg_rating || profile?.avg_rating).toFixed(1)} ★ rating`
+              : t('dashboard.stats.noReviews', 'No reviews yet')}
+          />
+          <StatCard
+            label={t('dashboard.stats.plan')}
+            value={subLoading ? '—' : planName}
+            icon={<CreditCard size={15} />}
+            loading={subLoading}
+            sub={subscription?.status ? subscription.status.toLowerCase() : undefined}
+          />
         </div>
 
         {/* Subscription */}

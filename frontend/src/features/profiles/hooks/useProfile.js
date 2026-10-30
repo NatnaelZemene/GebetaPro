@@ -20,6 +20,7 @@ const KEYS = {
   myPosts:     (p) => ['profile', 'posts', p],
   myAchievements: ['profile', 'achievements'],
   businessDetails: ['profile', 'business'],
+  analytics:   ['profile', 'analytics'],
 }
 
 const isAuthed = () => !!localStorage.getItem('accessToken')
@@ -32,6 +33,15 @@ export function useMyProfile() {
     queryFn:  api.getMyProfile,
     enabled:  isAuthed(),
     retry: false,
+  })
+}
+
+export function useProfileAnalytics() {
+  return useQuery({
+    queryKey: KEYS.analytics,
+    queryFn:  api.getMyProfileAnalytics,
+    enabled:  isAuthed(),
+    staleTime: 60 * 1000,
   })
 }
 
