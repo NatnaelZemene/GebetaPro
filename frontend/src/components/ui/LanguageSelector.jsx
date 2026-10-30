@@ -31,6 +31,7 @@ export function LanguageSelector({
   className = '',
   variant = 'dropdown',
   align = 'right',
+  fullWidth = false,
 }) {
   const { i18n, t }  = useTranslation()
   const current       = LANGUAGES.find(l => l.code === i18n.language) || LANGUAGES[0]
@@ -132,7 +133,7 @@ export function LanguageSelector({
   }
 
   return (
-    <div ref={containerRef} className={`relative inline-block ${className}`}>
+    <div ref={containerRef} className={`relative ${fullWidth ? 'w-full block' : 'inline-block'} ${className}`}>
       {/* Trigger button */}
       <button
         type="button"
@@ -142,20 +143,30 @@ export function LanguageSelector({
         aria-label={t('lang.select', 'Language')}
         onClick={() => setOpen(o => !o)}
         className={[
-          'inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg',
-          'bg-surface-2 border border-border',
-          'text-ink-2 text-[12px] font-semibold',
-          'hover:border-brand-border hover:text-ink transition-all duration-150',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1',
-          open ? 'border-brand-border text-ink' : '',
+          fullWidth
+            ? 'w-full h-11 px-3.5 rounded-2xl justify-between flex items-center'
+            : 'inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg',
+          'bg-surface border border-border text-ink cursor-pointer',
+          'hover:border-ink/30 hover:bg-surface-2 transition-all duration-150 select-none shadow-xs',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink',
+          open ? 'border-ink/40 bg-surface-2' : '',
         ].join(' ')}
       >
-        <Globe size={12} aria-hidden="true" className="shrink-0 text-ink-3" />
-        <span>{current.label}</span>
+        <span className="flex items-center gap-2.5 min-w-0">
+          <Globe size={fullWidth ? 15 : 12} aria-hidden="true" className="shrink-0 text-ink-3" />
+          <span className={`${fullWidth ? 'text-[13.5px]' : 'text-[12px]'} font-semibold text-ink truncate`}>
+            {fullWidth ? current.native : current.label}
+          </span>
+          {fullWidth && (
+            <span className="text-[12px] text-ink-3 shrink-0 font-medium">
+              ({current.label} · {current.full})
+            </span>
+          )}
+        </span>
         <ChevronDown
-          size={10}
+          size={fullWidth ? 14 : 10}
           aria-hidden="true"
-          className={`shrink-0 text-ink-4 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+          className={`shrink-0 text-ink-3 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
         />
       </button>
 
@@ -166,30 +177,32 @@ export function LanguageSelector({
           aria-label={t('lang.select', 'Language')}
           aria-activedescendant={`lang-opt-${current.code}`}
           className={[
-            align === 'left'
-              ? 'absolute left-0 top-[calc(100%+6px)] z-[200]'
-              : 'absolute right-0 top-[calc(100%+6px)] z-[200]',
-            'w-48 rounded-xl border border-border',
-            'bg-surface shadow-lg shadow-black/10',
-            'py-1 overflow-hidden',
+            fullWidth
+              ? 'absolute left-0 right-0 top-[calc(100%+6px)] z-[200] w-full'
+              : align === 'left'
+                ? 'absolute left-0 top-[calc(100%+6px)] z-[200] w-52'
+                : 'absolute right-0 top-[calc(100%+6px)] z-[200] w-52',
+            'rounded-2xl border border-border',
+            'bg-surface shadow-xl shadow-black/15',
+            'p-1.5 overflow-hidden',
             'animate-fade-in',
           ].join(' ')}
         >
           {/* GPS Auto-detect button */}
-          <li className="border-b border-border mb-1 pb-1">
+          <li className="border-b border-border/80 mb-1 pb-1">
             <button
               type="button"
               onClick={handleAutoDetect}
               disabled={detecting}
-              className="w-full flex items-center gap-2 px-3 py-2 text-left text-[12px] font-medium text-brand hover:bg-brand-light/30 transition-colors disabled:opacity-50 cursor-pointer"
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-[12.5px] font-medium text-ink-2 hover:bg-surface-2 hover:text-ink transition-colors disabled:opacity-50 cursor-pointer"
             >
               {detecting ? (
-                <Loader2 size={13} className="animate-spin text-brand" />
+                <Loader2 size={14} className="animate-spin text-ink-3 shrink-0" />
               ) : (
-                <MapPin size={13} className="text-brand shrink-0" />
+                <MapPin size={14} className="text-ink-3 shrink-0" />
               )}
               <span className="truncate">
-                {detecting ? 'Detecting region…' : 'Auto-detect location'}
+                {detecting ? 'Detecting region…' : t('lang.autoDetect', 'Auto-detect location')}
               </span>
             </button>
           </li>
@@ -207,24 +220,24 @@ export function LanguageSelector({
                   type="button"
                   onClick={() => select(code)}
                   className={[
-                    'w-full flex items-center justify-between gap-2 px-3 py-2',
+                    'w-full flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-xl',
                     'text-left text-[13px] transition-colors duration-100 cursor-pointer',
                     'focus-visible:outline-none focus-visible:bg-surface-2',
                     isActive
-                      ? 'text-brand bg-brand-light/40 font-semibold'
-                      : 'text-ink-2 hover:bg-surface-2 hover:text-ink',
+                      ? 'text-ink bg-surface-2 font-bold border border-border/80'
+                      : 'text-ink-2 hover:bg-surface-2/60 hover:text-ink border border-transparent',
                   ].join(' ')}
                 >
-                  <span className="flex items-center gap-2">
-                    <span className="w-6 text-center text-[11px] font-bold text-ink-3 tabular-nums">
+                  <span className="flex items-center gap-2.5">
+                    <span className={`w-7 h-6 rounded-md flex items-center justify-center text-[10.5px] font-bold tabular-nums shrink-0 ${isActive ? 'bg-ink text-surface' : 'bg-surface-2 text-ink-3'}`}>
                       {label}
                     </span>
                     <span>
-                      <span className="block leading-tight">{native}</span>
-                      <span className="block text-[10.5px] text-ink-4 leading-tight">{full}</span>
+                      <span className="block leading-tight font-semibold text-ink">{native}</span>
+                      <span className="block text-[11px] text-ink-3 leading-tight">{full}</span>
                     </span>
                   </span>
-                  {isActive && <Check size={12} className="shrink-0 text-brand" aria-hidden="true" />}
+                  {isActive && <Check size={14} className="shrink-0 text-ink" aria-hidden="true" />}
                 </button>
               </li>
             )

@@ -369,7 +369,7 @@ export function Navbar() {
               <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-ink-4 px-2 mb-2">
                 {t('lang.select', 'Language')}
               </p>
-              <LanguageSelector variant="segmented" />
+              <LanguageSelector fullWidth align="left" />
             </div>
 
             <div>
