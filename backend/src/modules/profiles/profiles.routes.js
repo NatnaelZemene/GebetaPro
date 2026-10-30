@@ -90,6 +90,9 @@ publicProfilesRouter.get('/@:slug/achievements',  ctrl.getPublicAchievements)
 // Reviews (public reads)
 publicProfilesRouter.get('/@:slug/reviews', validate(reviewSlugParamSchema), ctrl.listReviews)
 
+// Profile analytics & event tracking (views, contact clicks)
+publicProfilesRouter.post('/@:slug/track', ctrl.trackProfileEvent)
+
 // Profile map pins
 publicProfilesRouter.get('/map-pins', ctrl.getProfileMapPins)
 
@@ -98,6 +101,9 @@ export const dashboardProfileRouter = Router()
 
 // All private routes require authentication
 dashboardProfileRouter.use(authenticate)
+
+// Profile analytics
+dashboardProfileRouter.get('/analytics', ctrl.getMyProfileAnalytics)
 
 // Profile images
 dashboardProfileRouter.post('/avatar/upload',  singleUploadMiddleware, ctrl.uploadAvatar)

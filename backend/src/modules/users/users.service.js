@@ -79,12 +79,14 @@ function formatProfile(row) {
   }
 }
 
+import { getProfileAnalyticsSummary } from '../profiles/profiles.repository.js'
+
 // ── Profile operations ─────────────────────────────────────────────────────────
 
 /**
  * Get the authenticated user's profile, including business hours and social links.
  * @param {string} userId - From req.user.id (authenticated identity)
- * @returns {Promise<object>} Profile data with business hours and social links
+ * @returns {Promise<object>} Profile data with business hours, social links, and analytics
  * @throws {Error} 404 PROFILE_NOT_FOUND if user has no profile
  */
 export async function getProfile(userId) {
@@ -94,16 +96,23 @@ export async function getProfile(userId) {
     throw createError('Profile not found', 404, 'PROFILE_NOT_FOUND')
   }
 
-  // Fetch related business details
-  const [businessHours, socialLinks] = await Promise.all([
+  // Fetch related business details and analytics summary
+  const [businessHours, socialLinks, analytics] = await Promise.all([
     profileRepo.getBusinessHours(profile.id),
     profileRepo.getSocialLinks(profile.id),
+    getProfileAnalyticsSummary(profile.id).catch(() => ({})),
   ])
 
   return {
     ...formatProfile(profile),
     business_hours: businessHours,
     social_links: socialLinks,
+    views_30d: analytics?.views_30d ?? 0,
+    views_total: analytics?.views_total ?? 0,
+    contact_clicks_30d: analytics?.contact_clicks_30d ?? 0,
+    contact_clicks_total: analytics?.contact_clicks_total ?? 0,
+    review_count: analytics?.review_count ?? 0,
+    avg_rating: analytics?.avg_rating ?? 0,
   }
 }
 

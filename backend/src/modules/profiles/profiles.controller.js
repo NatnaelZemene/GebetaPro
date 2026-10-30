@@ -282,3 +282,23 @@ export const markAllNotificationsRead = asyncHandler(async (req, res) => {
   await svc.markAllNotificationsRead(req.user.id)
   sendSuccess(res, 'All marked as read', null)
 })
+
+// ── Analytics & Event Tracking ───────────────────────────────────────────────
+
+export const trackProfileEvent = asyncHandler(async (req, res) => {
+  const { slug } = req.params
+  const { event_type, type, metadata } = req.body || {}
+  const event = event_type || type || 'VIEW'
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || null
+  const userAgent = req.headers['user-agent'] || null
+
+  const result = await profilesRepo.recordProfileAnalyticsEvent(slug, event, metadata || {}, ip, userAgent)
+  sendSuccess(res, 'Event recorded', result)
+})
+
+export const getMyProfileAnalytics = asyncHandler(async (req, res) => {
+  const { profileId } = await _resolveProfile(req.user.id)
+  const stats = await profilesRepo.getProfileAnalyticsSummary(profileId)
+  sendSuccess(res, 'Analytics retrieved', stats)
+})
+

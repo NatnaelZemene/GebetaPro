@@ -1064,3 +1064,66 @@ export async function markAllNotificationsRead(userId) {
     [userId]
   )
 }
+
+// ── M. Profile Analytics & Tracking ──────────────────────────────────────────
+
+export async function recordProfileAnalyticsEvent(slugOrId, eventType, metadata = {}, ip = null, userAgent = null) {
+  const profileRes = await pool.query(
+    'SELECT id FROM profiles WHERE id::text = $1 OR slug = $1 LIMIT 1',
+    [slugOrId]
+  )
+  if (!profileRes.rows[0]) return null
+  const profileId = profileRes.rows[0].id
+
+  const validEvents = ['VIEW', 'CONTACT_CLICK', 'PHONE_CLICK', 'EMAIL_CLICK', 'WHATSAPP_CLICK', 'TELEGRAM_CLICK', 'WEBSITE_CLICK']
+  const normalizedType = validEvents.includes(eventType) ? eventType : 'VIEW'
+
+  await pool.query(
+    `INSERT INTO profile_analytics_events (profile_id, event_type, metadata, visitor_ip, user_agent)
+     VALUES ($1, $2, $3, $4, $5)`,
+    [profileId, normalizedType, JSON.stringify(metadata), ip, userAgent]
+  )
+
+  if (normalizedType === 'VIEW') {
+    await pool.query('UPDATE profiles SET views_count = views_count + 1 WHERE id = $1', [profileId])
+  } else {
+    await pool.query('UPDATE profiles SET contact_clicks_count = contact_clicks_count + 1 WHERE id = $1', [profileId])
+  }
+
+  return { success: true, profileId }
+}
+
+export async function getProfileAnalyticsSummary(profileId) {
+  const [statsRes, reviewsRes, profileRes] = await Promise.all([
+    pool.query(`
+      SELECT
+        COUNT(*) FILTER (WHERE event_type = 'VIEW' AND created_at >= now() - interval '30 days')::int AS views_30d,
+        COUNT(*) FILTER (WHERE event_type = 'VIEW')::int AS views_total,
+        COUNT(*) FILTER (WHERE event_type != 'VIEW' AND created_at >= now() - interval '30 days')::int AS contact_clicks_30d,
+        COUNT(*) FILTER (WHERE event_type != 'VIEW')::int AS contact_clicks_total
+      FROM profile_analytics_events
+      WHERE profile_id = $1
+    `, [profileId]),
+    pool.query(`
+      SELECT 
+        COUNT(*)::int AS review_count, 
+        COALESCE(ROUND(AVG(rating)::numeric, 1), 0)::float AS avg_rating
+      FROM profile_reviews
+      WHERE profile_id = $1
+    `, [profileId]),
+    pool.query('SELECT views_count, contact_clicks_count FROM profiles WHERE id = $1', [profileId]),
+  ])
+
+  const stats = statsRes.rows[0] || {}
+  const reviews = reviewsRes.rows[0] || {}
+  const p = profileRes.rows[0] || {}
+
+  return {
+    views_30d: stats.views_30d || p.views_count || 0,
+    views_total: Math.max(stats.views_total || 0, p.views_count || 0),
+    contact_clicks_30d: stats.contact_clicks_30d || p.contact_clicks_count || 0,
+    contact_clicks_total: Math.max(stats.contact_clicks_total || 0, p.contact_clicks_count || 0),
+    review_count: reviews.review_count || 0,
+    avg_rating: reviews.avg_rating || 0,
+  }
+}
