@@ -791,3 +791,67 @@ input[type="number"]::-webkit-outer-spin-button {
   padding-top: 0;
   border-top: none;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   LEAFLET MAP & POPUP THEME INTEGRATION
+   Ensures map popups adapt seamlessly to both Light and Dark mode.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+.leaflet-popup-content-wrapper {
+  background: var(--surface) !important;
+  color: var(--ink) !important;
+  border-radius: 14px !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.22), 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.dark .leaflet-popup-content-wrapper {
+  background: #111720 !important;
+  color: #f3f4f6 !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  box-shadow: 0 16px 40px -4px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.06) !important;
+}
+
+.leaflet-popup-tip {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: none !important;
+}
+
+.dark .leaflet-popup-tip {
+  background: #111720 !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+}
+
+.leaflet-popup-content {
+  margin: 12px !important;
+  line-height: normal !important;
+}
+
+/* Close button styled with circular backdrop for high contrast against photos */
+.leaflet-container a.leaflet-popup-close-button {
+  top: 8px !important;
+  right: 8px !important;
+  width: 24px !important;
+  height: 24px !important;
+  line-height: 22px !important;
+  text-align: center !important;
+  border-radius: 9999px !important;
+  background: rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(4px) !important;
+  color: #ffffff !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  transition: all 0.15s ease !important;
+  z-index: 100 !important;
+}
+
+.leaflet-container a.leaflet-popup-close-button:hover {
+  background: rgba(0, 0, 0, 0.85) !important;
+  color: #ffffff !important;
+  transform: scale(1.08) !important;
+}
+
