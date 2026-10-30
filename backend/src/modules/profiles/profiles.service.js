@@ -973,6 +973,10 @@ export async function updateGalleryImage(userId, imageId, data) {
 
   if (data.is_primary) {
     await repo.clearPrimaryProfileImage(profile.id)
+    await repo.updateProfile(userId, {
+      cover_url: existing.image_url,
+      cover_storage_key: existing.storage_key || null,
+    })
   }
 
   const updated = await repo.updateProfileImage(imageId, profile.id, {
@@ -1006,11 +1010,20 @@ export async function deleteGalleryImage(userId, imageId) {
 
   await repo.deleteProfileImage(imageId, profile.id)
 
-  if (existing.is_primary) {
-    // If the deleted image was primary, promote the next available image if one exists
+  if (existing.is_primary || existing.image_url === profile.cover_url) {
+    // If the deleted image was primary cover photo, promote the next available photo or clear cover
     const remaining = await repo.getProfileImages(profile.id)
     if (remaining && remaining.length > 0) {
       await repo.updateProfileImage(remaining[0].id, profile.id, { isPrimary: true })
+      await repo.updateProfile(userId, {
+        cover_url: remaining[0].image_url,
+        cover_storage_key: remaining[0].storage_key || null,
+      })
+    } else {
+      await repo.updateProfile(userId, {
+        cover_url: null,
+        cover_storage_key: null,
+      })
     }
   }
 

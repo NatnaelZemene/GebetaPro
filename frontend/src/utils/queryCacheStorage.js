@@ -25,6 +25,8 @@ const PERSIST_KEY_PREFIXES = [
 function shouldPersistKey(queryKey) {
   if (!Array.isArray(queryKey) || queryKey.length === 0) return false
   const primary = String(queryKey[0])
+  // Never persist the editable profile form to localStorage so image changes are never masked by stale cache
+  if (primary === 'profile' && queryKey[1] === 'mine') return false
   return PERSIST_KEY_PREFIXES.includes(primary)
 }
 

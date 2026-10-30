@@ -633,6 +633,16 @@ export default function ProfileEditPage() {
 
   const [avatarPreview, setAvatarPreview] = useState(null)
   const [coverPreview, setCoverPreview]   = useState(null)
+  const [coverBroken, setCoverBroken]     = useState(false)
+  const [avatarBroken, setAvatarBroken]   = useState(false)
+
+  useEffect(() => {
+    setCoverBroken(false)
+  }, [profile?.cover_url, coverPreview])
+
+  useEffect(() => {
+    setAvatarBroken(false)
+  }, [profile?.avatar_url, avatarPreview])
 
   async function handleAvatarChange(e) {
     const file = e.target.files?.[0]
@@ -642,6 +652,7 @@ export default function ProfileEditPage() {
     // Instant optimistic preview (0ms latency!)
     const localUrl = URL.createObjectURL(file)
     setAvatarPreview(localUrl)
+    setAvatarBroken(false)
 
     try {
       // Compress in browser (~30ms) to reduce 5-10MB photos to ~70KB
@@ -676,6 +687,7 @@ export default function ProfileEditPage() {
     // Instant optimistic preview (0ms latency!)
     const localUrl = URL.createObjectURL(file)
     setCoverPreview(localUrl)
+    setCoverBroken(false)
 
     try {
       // Compress cover image in browser (~50ms)
@@ -906,8 +918,8 @@ export default function ProfileEditPage() {
           )}
 
           <div className="relative h-32 bg-surface-2 group cursor-pointer" onClick={() => coverRef.current?.click()}>
-            {coverUrl
-              ? <img src={coverUrl} alt="" className="w-full h-full object-cover" />
+            {coverUrl && !coverBroken
+              ? <img src={coverUrl} alt="" className="w-full h-full object-cover" onError={() => setCoverBroken(true)} />
               : <div className="w-full h-full bg-gradient-to-br from-surface-2 to-border" />
             }
             <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
@@ -922,7 +934,7 @@ export default function ProfileEditPage() {
             {coverUrl && (
               <button type="button"
                 onClick={(e) => { e.stopPropagation(); setCoverPreview(null); deleteCoverMutation.mutate() }}
-                className="absolute top-2 right-2 w-6 h-6 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white"
+                className="absolute top-2 right-2 w-6 h-6 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white z-10"
                 aria-label={t('profile.edit.removeCover')}>
                 <X size={11} />
               </button>
@@ -934,8 +946,8 @@ export default function ProfileEditPage() {
           <div className="px-5 pb-5 flex items-end gap-4 -mt-10">
             <div className="relative shrink-0 group cursor-pointer" onClick={() => avatarRef.current?.click()}>
               <div className="w-20 h-20 rounded-xl border-2 border-surface bg-surface-2 overflow-hidden shadow-sm">
-                {avatarUrl
-                  ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                {avatarUrl && !avatarBroken
+                  ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" onError={() => setAvatarBroken(true)} />
                   : <div className="w-full h-full flex items-center justify-center bg-brand/10">
                       <span className="text-2xl font-bold text-brand">{profile?.display_name?.[0]?.toUpperCase() || '?'}</span>
                     </div>
@@ -948,6 +960,21 @@ export default function ProfileEditPage() {
                 <div className="absolute inset-0 bg-black/40 rounded-xl flex items-center justify-center">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 </div>
+              )}
+              {avatarUrl && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setAvatarPreview(null)
+                    deleteAvatarMutation.mutate()
+                  }}
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-black/75 hover:bg-red-600 rounded-full flex items-center justify-center text-white z-10 transition-colors shadow-sm cursor-pointer"
+                  aria-label="Remove avatar photo"
+                  title="Remove photo"
+                >
+                  <X size={10} />
+                </button>
               )}
             </div>
             <input ref={avatarRef} type="file" accept="image/*" className="hidden"

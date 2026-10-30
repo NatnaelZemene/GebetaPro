@@ -35,6 +35,7 @@ export function useMyProfile() {
     queryFn:  api.getMyProfile,
     enabled:  isAuthed(),
     retry: false,
+    staleTime: 0,
   })
 }
 
@@ -87,8 +88,8 @@ export function useUploadAvatar() {
       if (data?.avatar_url) {
         qc.setQueryData(KEYS.myProfile, (old) => old ? { ...old, avatar_url: data.avatar_url } : old)
       }
-      qc.invalidateQueries({ queryKey: KEYS.myProfile })
-      qc.invalidateQueries({ queryKey: ['profiles'] })
+      qc.invalidateQueries({ queryKey: KEYS.myProfile, refetchType: 'all' })
+      qc.invalidateQueries({ queryKey: ['profiles'], refetchType: 'all' })
       qc.invalidateQueries({ queryKey: KEYS.completion })
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('gebetapro:profile_updated', { detail: { type: 'avatar', url: data?.avatar_url } }))
@@ -101,10 +102,19 @@ export function useDeleteAvatar() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: () => api.deleteAvatar(),
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: KEYS.myProfile })
+      const prev = qc.getQueryData(KEYS.myProfile)
+      qc.setQueryData(KEYS.myProfile, (old) => old ? { ...old, avatar_url: null } : old)
+      return { prev }
+    },
+    onError: (err, variables, context) => {
+      if (context?.prev) qc.setQueryData(KEYS.myProfile, context.prev)
+    },
     onSuccess: () => {
       qc.setQueryData(KEYS.myProfile, (old) => old ? { ...old, avatar_url: null } : old)
-      qc.invalidateQueries({ queryKey: KEYS.myProfile })
-      qc.invalidateQueries({ queryKey: ['profiles'] })
+      qc.invalidateQueries({ queryKey: KEYS.myProfile, refetchType: 'all' })
+      qc.invalidateQueries({ queryKey: ['profiles'], refetchType: 'all' })
       qc.invalidateQueries({ queryKey: KEYS.completion })
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('gebetapro:profile_updated', { detail: { type: 'avatar', url: null } }))
@@ -121,8 +131,8 @@ export function useUploadCover() {
       if (data?.cover_url) {
         qc.setQueryData(KEYS.myProfile, (old) => old ? { ...old, cover_url: data.cover_url } : old)
       }
-      qc.invalidateQueries({ queryKey: KEYS.myProfile })
-      qc.invalidateQueries({ queryKey: ['profiles'] })
+      qc.invalidateQueries({ queryKey: KEYS.myProfile, refetchType: 'all' })
+      qc.invalidateQueries({ queryKey: ['profiles'], refetchType: 'all' })
       qc.invalidateQueries({ queryKey: KEYS.completion })
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('gebetapro:profile_updated', { detail: { type: 'cover', url: data?.cover_url } }))
@@ -135,10 +145,19 @@ export function useDeleteCover() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: () => api.deleteCover(),
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: KEYS.myProfile })
+      const prev = qc.getQueryData(KEYS.myProfile)
+      qc.setQueryData(KEYS.myProfile, (old) => old ? { ...old, cover_url: null } : old)
+      return { prev }
+    },
+    onError: (err, variables, context) => {
+      if (context?.prev) qc.setQueryData(KEYS.myProfile, context.prev)
+    },
     onSuccess: () => {
       qc.setQueryData(KEYS.myProfile, (old) => old ? { ...old, cover_url: null } : old)
-      qc.invalidateQueries({ queryKey: KEYS.myProfile })
-      qc.invalidateQueries({ queryKey: ['profiles'] })
+      qc.invalidateQueries({ queryKey: KEYS.myProfile, refetchType: 'all' })
+      qc.invalidateQueries({ queryKey: ['profiles'], refetchType: 'all' })
       qc.invalidateQueries({ queryKey: KEYS.completion })
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('gebetapro:profile_updated', { detail: { type: 'cover', url: null } }))
