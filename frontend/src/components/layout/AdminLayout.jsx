@@ -125,7 +125,7 @@ function SidebarContent({ collapsed, onClose, onRequestLogout }) {
                     className={({ isActive }) => `relative flex items-center gap-3 ${collapsed ? 'h-10 w-10 justify-center mx-auto rounded-xl' : 'h-10 px-3 rounded-xl'} text-[12.5px] font-medium transition-all duration-150 hover:no-underline group select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 dark:focus-visible:ring-white focus-visible:ring-inset ${isActive ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 font-semibold shadow-xs' : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800/60 hover:text-neutral-950 dark:hover:text-white'}`}
                     aria-label={collapsed ? label : undefined}
                   >
-                    {({ isActive }) => <><Icon size={16} aria-hidden="true" className={`shrink-0 transition-colors ${isActive ? 'text-white dark:text-neutral-950' : 'text-neutral-400 dark:text-neutral-500 group-hover:text-neutral-900 dark:group-hover:text-white'}`} />{!collapsed && <span className="truncate">{label}</span>}</>}
+                    {({ isActive }) => <><Icon size={16} aria-hidden="true" className={`shrink-0 transition-colors ${isActive ? '!text-white dark:!text-neutral-950' : 'text-neutral-400 dark:text-neutral-500 group-hover:text-neutral-900 dark:group-hover:text-white'}`} />{!collapsed && <span className={`truncate transition-colors ${isActive ? '!text-white dark:!text-neutral-950 font-semibold' : 'text-neutral-600 dark:text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white'}`}>{label}</span>}</>}
                   </NavLink>
                 </Tip>
               ))}

@@ -238,7 +238,7 @@ export function DashboardLayout({ children, title }) {
 
   const NAV = [
     { to: '/dashboard',              label: typeof t('dashboard.overview') === 'string' ? t('dashboard.overview') : 'Overview',          icon: <LayoutDashboard size={15} aria-hidden="true" />, end: true },
-    { to: '/dashboard/profile',      label: typeof t('dashboard.myProfile') === 'string' ? t('dashboard.myProfile') : 'My Profile',         icon: <User size={15} aria-hidden="true" /> },
+    { to: '/dashboard/profile',      label: typeof t('dashboard.myProfile') === 'string' ? t('dashboard.myProfile') : 'My Profile',         icon: <User size={15} aria-hidden="true" />,            end: true },
     { to: '/dashboard/subscription', label: typeof t('dashboard.subscription') === 'string' ? t('dashboard.subscription') : 'Subscription', icon: <CreditCard size={15} aria-hidden="true" /> },
   ]
 
@@ -290,12 +290,18 @@ export function DashboardLayout({ children, title }) {
               <>
                 <span className={`shrink-0 transition-colors ${
                   isActive
-                    ? 'text-white dark:text-neutral-950'
+                    ? '!text-white dark:!text-neutral-950'
                     : 'text-neutral-400 dark:text-neutral-500 group-hover:text-neutral-900 dark:group-hover:text-white'
                 }`}>
                   {icon}
                 </span>
-                <span className="truncate">{label}</span>
+                <span className={`truncate transition-colors ${
+                  isActive
+                    ? '!text-white dark:!text-neutral-950 font-semibold'
+                    : 'text-neutral-600 dark:text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white'
+                }`}>
+                  {label}
+                </span>
               </>
             )}
           </NavLink>
@@ -324,12 +330,18 @@ export function DashboardLayout({ children, title }) {
               <>
                 <span className={`shrink-0 transition-colors ${
                   isActive
-                    ? 'text-white dark:text-neutral-950'
+                    ? '!text-white dark:!text-neutral-950'
                     : 'text-neutral-400 dark:text-neutral-500 group-hover:text-neutral-900 dark:group-hover:text-white'
                 }`}>
                   {icon}
                 </span>
-                <span className="truncate">{label}</span>
+                <span className={`truncate transition-colors ${
+                  isActive
+                    ? '!text-white dark:!text-neutral-950 font-semibold'
+                    : 'text-neutral-600 dark:text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white'
+                }`}>
+                  {label}
+                </span>
               </>
             )}
           </NavLink>
