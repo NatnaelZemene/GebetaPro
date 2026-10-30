@@ -502,6 +502,7 @@
     "hours": {
       "title": "Business Hours",
       "subtitle": "Set your working hours. Visitors will see whether you're open right now, and your full weekly schedule on your profile.",
+      "selectTime": "Select time",
       "closed": "Closed",
       "to": "to",
       "setOpen": "Set open",

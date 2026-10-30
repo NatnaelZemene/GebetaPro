@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/Button.jsx'
 import { Skeleton } from '../../components/ui/Skeleton.jsx'
 import { NoProfileGuard } from '../../features/profiles/components/NoProfileGuard.jsx'
 import { useBusinessDetails, useUpsertBusinessDetails } from '../../features/profiles/hooks/useProfile.js'
+import { TimeWheelPicker, formatTimeDisplay } from '../../components/ui/TimeWheelPicker.jsx'
 
 const DAY_INDICES = [0, 1, 2, 3, 4, 5, 6]
 
@@ -25,6 +26,7 @@ export default function BusinessHoursPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
+  const [pickerState, setPickerState] = useState(null)
 
   if (data && hours === null) {
     if (data.business_hours?.length === 7) {
@@ -68,57 +70,94 @@ export default function BusinessHoursPage() {
     </DashboardLayout>
   )
 
+  const sortedHours = [...currentHours].sort((a, b) => {
+    const order = [1, 2, 3, 4, 5, 6, 0]
+    return order.indexOf(a.day_of_week) - order.indexOf(b.day_of_week)
+  })
+
   return (
     <DashboardLayout title={t('profile.hours.title')}>
       <NoProfileGuard>
-        <div className="max-w-lg space-y-5">
+        <div className="max-w-xl space-y-5">
           <p className="text-[13px] text-ink-2">
             {t('profile.hours.subtitle')}
           </p>
 
-          <form onSubmit={handleSave} className="space-y-2">
-            {currentHours.sort((a, b) => {
-              const order = [1, 2, 3, 4, 5, 6, 0]
-              return order.indexOf(a.day_of_week) - order.indexOf(b.day_of_week)
-            }).map((h) => {
+          <form onSubmit={handleSave} className="space-y-2.5">
+            {sortedHours.map((h) => {
               const realIdx = currentHours.indexOf(h)
+              const dayName = t(`profile.hours.days.${h.day_of_week}`)
+
               return (
-                <div key={h.day_of_week}
-                  className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
-                    h.is_closed ? 'bg-surface-2 border-border opacity-60' : 'bg-surface border-border'
+                <div
+                  key={h.day_of_week}
+                  className={`flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3 p-3 sm:p-3.5 rounded-xl border transition-all ${
+                    h.is_closed ? 'bg-surface-2/60 border-border opacity-70' : 'bg-surface border-border shadow-xs'
                   }`}
                 >
-                  <span className="text-[13px] font-semibold text-ink w-24 shrink-0">
-                    {t(`profile.hours.days.${h.day_of_week}`)}
+                  <span className="text-[13.5px] font-semibold text-ink w-28 shrink-0">
+                    {dayName}
                   </span>
 
                   {h.is_closed ? (
-                    <span className="text-[13px] text-ink-3 flex-1">{t('profile.hours.closed')}</span>
+                    <span className="text-[13px] text-ink-3 flex-1 italic">{t('profile.hours.closed')}</span>
                   ) : (
                     <div className="flex items-center gap-2 flex-1">
-                      <input
-                        type="time"
-                        value={h.opens_at}
-                        onChange={e => update(realIdx, 'opens_at', e.target.value)}
-                        className="h-8 px-2 bg-canvas border border-border rounded text-[13px] text-ink outline-none focus:border-brand"
-                      />
+                      {/* Opens at button */}
+                      <button
+                        type="button"
+                        onClick={() => setPickerState({
+                          dayIdx: realIdx,
+                          field: 'opens_at',
+                          time: h.opens_at || '09:00',
+                          title: `${dayName} • ${t('profile.hours.openNow', 'Opens at')}`,
+                        })}
+                        className="
+                          inline-flex items-center justify-between gap-2 h-8 px-2.5 sm:px-3
+                          bg-canvas border border-border hover:border-brand-border
+                          rounded-lg text-[13px] font-medium text-ink tabular-nums
+                          hover:bg-surface-2 transition-all duration-150 cursor-pointer select-none
+                          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand
+                        "
+                        aria-label={`${dayName} opens at`}
+                      >
+                        <span>{formatTimeDisplay(h.opens_at)}</span>
+                        <Clock size={12} className="text-ink-3 shrink-0" aria-hidden="true" />
+                      </button>
+
                       <span className="text-ink-3 text-[12px]">{t('profile.hours.to')}</span>
-                      <input
-                        type="time"
-                        value={h.closes_at}
-                        onChange={e => update(realIdx, 'closes_at', e.target.value)}
-                        className="h-8 px-2 bg-canvas border border-border rounded text-[13px] text-ink outline-none focus:border-brand"
-                      />
+
+                      {/* Closes at button */}
+                      <button
+                        type="button"
+                        onClick={() => setPickerState({
+                          dayIdx: realIdx,
+                          field: 'closes_at',
+                          time: h.closes_at || '18:00',
+                          title: `${dayName} • ${t('profile.hours.closesAt', 'Closes at').replace('{{time}}', '')}`,
+                        })}
+                        className="
+                          inline-flex items-center justify-between gap-2 h-8 px-2.5 sm:px-3
+                          bg-canvas border border-border hover:border-brand-border
+                          rounded-lg text-[13px] font-medium text-ink tabular-nums
+                          hover:bg-surface-2 transition-all duration-150 cursor-pointer select-none
+                          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand
+                        "
+                        aria-label={`${dayName} closes at`}
+                      >
+                        <span>{formatTimeDisplay(h.closes_at)}</span>
+                        <Clock size={12} className="text-ink-3 shrink-0" aria-hidden="true" />
+                      </button>
                     </div>
                   )}
 
                   <button
                     type="button"
                     onClick={() => update(realIdx, 'is_closed', !h.is_closed)}
-                    className={`text-[11.5px] font-medium px-2.5 py-1 rounded-full border transition-all shrink-0 ${
+                    className={`text-[11.5px] font-medium px-2.5 py-1 rounded-full border transition-all shrink-0 cursor-pointer self-start sm:self-auto ${
                       h.is_closed
                         ? 'bg-canvas border-border text-ink-2 hover:border-brand hover:text-brand'
-                        : 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100'
+                        : 'bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/15'
                     }`}
                   >
                     {h.is_closed ? t('profile.hours.setOpen') : t('profile.hours.markClosed')}
@@ -129,13 +168,26 @@ export default function BusinessHoursPage() {
 
             {error && <p className="text-[13px] text-danger">{error}</p>}
 
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex items-center gap-3 pt-3">
               <Button type="submit" variant="primary" icon={<Clock size={13} />} loading={saving}>
                 {t('profile.hours.saveHours')}
               </Button>
               {saved && <span className="text-[13px] text-emerald-600 font-medium">{t('profile.hours.saved')}</span>}
             </div>
           </form>
+
+          {/* Time Wheel Picker Dialog */}
+          <TimeWheelPicker
+            isOpen={Boolean(pickerState)}
+            initialTime={pickerState?.time || '09:00'}
+            title={pickerState?.title}
+            onSave={(newTime) => {
+              if (pickerState) {
+                update(pickerState.dayIdx, pickerState.field, newTime)
+              }
+            }}
+            onClose={() => setPickerState(null)}
+          />
         </div>
       </NoProfileGuard>
     </DashboardLayout>

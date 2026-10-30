@@ -491,6 +491,7 @@
     "hours": {
       "title": "Sa'aatii daldalaa",
       "subtitle": "Sa'aatii hojii kee qindeessi. Daawwatoonni ammaan ala yoo banaa taate fi karoora torban guutuu ni agartu.",
+      "selectTime": "Sa'aatii filadhaa",
       "closed": "Cufaa",
       "to": "hanga",
       "setOpen": "Banaa godhi",
