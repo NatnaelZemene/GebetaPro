@@ -49,10 +49,10 @@ export function ThemeToggle({
           aria-label="Light theme"
           className={`
             flex items-center justify-center gap-1.5 ${isFullWidth ? 'py-2 px-2 rounded-lg' : 'px-2.5 py-1 rounded-md'} text-[12px] font-medium transition-all cursor-pointer
-            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink
             ${theme === 'light'
-              ? 'bg-surface text-ink shadow-xs border border-border/80 font-semibold'
-              : 'text-ink-3 hover:text-ink hover:bg-surface/50 border border-transparent'}
+              ? 'bg-ink text-surface shadow-xs font-semibold'
+              : 'text-ink-2 hover:text-ink hover:bg-surface/50 border border-transparent'}
           `}
         >
           <Sun size={13} className="shrink-0" />
@@ -66,10 +66,10 @@ export function ThemeToggle({
           aria-label="Dark theme"
           className={`
             flex items-center justify-center gap-1.5 ${isFullWidth ? 'py-2 px-2 rounded-lg' : 'px-2.5 py-1 rounded-md'} text-[12px] font-medium transition-all cursor-pointer
-            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink
             ${theme === 'dark'
-              ? 'bg-surface text-ink shadow-xs border border-border/80 font-semibold'
-              : 'text-ink-3 hover:text-ink hover:bg-surface/50 border border-transparent'}
+              ? 'bg-ink text-surface shadow-xs font-semibold'
+              : 'text-ink-2 hover:text-ink hover:bg-surface/50 border border-transparent'}
           `}
         >
           <Moon size={13} className="shrink-0" />
@@ -83,10 +83,10 @@ export function ThemeToggle({
           aria-label="System theme"
           className={`
             flex items-center justify-center gap-1.5 ${isFullWidth ? 'py-2 px-2 rounded-lg' : 'px-2.5 py-1 rounded-md'} text-[12px] font-medium transition-all cursor-pointer
-            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink
             ${theme === 'system'
-              ? 'bg-surface text-ink shadow-xs border border-border/80 font-semibold'
-              : 'text-ink-3 hover:text-ink hover:bg-surface/50 border border-transparent'}
+              ? 'bg-ink text-surface shadow-xs font-semibold'
+              : 'text-ink-2 hover:text-ink hover:bg-surface/50 border border-transparent'}
           `}
         >
           <Monitor size={13} className="shrink-0" />

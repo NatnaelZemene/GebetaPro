@@ -90,16 +90,16 @@ export function LanguageSelector({
                 aria-pressed={isActive}
                 className={`
                   py-2 px-1 rounded-lg text-center transition-all duration-150 cursor-pointer flex flex-col items-center justify-center
-                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink
                   ${isActive
-                    ? 'bg-brand text-brand-fg font-semibold shadow-xs'
+                    ? 'bg-ink text-surface font-semibold shadow-xs'
                     : 'text-ink-2 hover:text-ink hover:bg-surface/60 font-medium'}
                 `}
               >
-                <span className="text-[12px] leading-tight truncate max-w-full">
+                <span className={`text-[12px] leading-tight truncate max-w-full ${isActive ? 'text-surface font-bold' : 'text-ink font-medium'}`}>
                   {code === 'om' ? 'Oromoo' : native}
                 </span>
-                <span className={`text-[10px] uppercase tracking-wide leading-none mt-0.5 ${isActive ? 'text-brand-fg/80' : 'text-ink-4'}`}>
+                <span className={`text-[10.5px] uppercase tracking-wide leading-none mt-1 font-semibold ${isActive ? 'text-surface/80' : 'text-ink-3'}`}>
                   {label}
                 </span>
               </button>
@@ -113,17 +113,17 @@ export function LanguageSelector({
           onClick={handleAutoDetect}
           disabled={detecting}
           className="
-            w-full flex items-center justify-center gap-2 py-2 px-3
-            text-[12px] font-medium text-brand hover:text-brand-hover
-            bg-brand-light/30 border border-brand-border/40 rounded-xl
-            hover:bg-brand-light/50 transition-all duration-150 cursor-pointer disabled:opacity-50
-            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand
+            w-full flex items-center justify-center gap-2 py-2.5 px-3
+            text-[12px] font-medium text-ink-2 hover:text-ink
+            bg-surface-2/60 border border-border rounded-xl
+            hover:bg-surface-2 hover:border-ink/20 transition-all duration-150 cursor-pointer disabled:opacity-50
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink
           "
         >
           {detecting ? (
-            <Loader2 size={13} className="animate-spin text-brand shrink-0" />
+            <Loader2 size={13} className="animate-spin text-ink-3 shrink-0" />
           ) : (
-            <MapPin size={13} className="text-brand shrink-0" />
+            <MapPin size={13} className="text-ink-3 shrink-0" />
           )}
           <span>{detecting ? 'Detecting region…' : t('lang.autoDetect', 'Auto-detect language by location')}</span>
         </button>
