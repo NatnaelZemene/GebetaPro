@@ -204,6 +204,10 @@ export async function searchProfiles(query) {
   return { profiles: rows, pagination: buildPagination(total, page, pageSize) }
 }
 
+export async function getSearchSuggestions(query) {
+  return repo.getSearchSuggestions(query)
+}
+
 // ── Slug availability ──────────────────────────────────────────────────────────
 
 export async function checkSlugAvailability(slug) {

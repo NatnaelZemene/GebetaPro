@@ -77,6 +77,7 @@ function singleUploadMiddleware(req, res, next) {
 export const publicProfilesRouter = Router()
 
 publicProfilesRouter.get('/search',           validate(searchProfilesSchema), ctrl.searchProfiles)
+publicProfilesRouter.get('/suggestions',      ctrl.getSearchSuggestions)
 publicProfilesRouter.get('/check-slug/:slug', validate(slugParamSchema),      ctrl.checkSlug)
 
 // All @slug routes — slug param without the @ prefix after route match

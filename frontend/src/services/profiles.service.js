@@ -51,6 +51,12 @@ export async function searchProfiles(params = {}) {
   return res.data.data
 }
 
+export async function getSearchSuggestions(query) {
+  if (!query || !query.trim()) return { profiles: [], categories: [] }
+  const res = await apiClient.get('/profiles/suggestions', { params: { q: query.trim() } })
+  return res.data.data
+}
+
 export async function checkSlugAvailability(slug) {
   const res = await apiClient.get(`/profiles/check-slug/${slug}`)
   return res.data.data

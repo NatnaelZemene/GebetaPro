@@ -40,6 +40,7 @@ import { RadiusSelector }    from '../features/locations/components/RadiusSelect
 import { UserLocationButtonControlled } from '../features/locations/components/UserLocationButton.jsx'
 import { useGeolocation }    from '../features/locations/hooks/useGeolocation.js'
 import { SortDropdown, SORT_OPTIONS_CONFIG } from '../features/profiles/components/SortDropdown.jsx'
+import { UltimateSearchBar } from '../features/profiles/components/UltimateSearchBar.jsx'
 
 /* ── Constants ───────────────────────────────────────────────────────────────── */
 
@@ -889,164 +890,46 @@ export default function DirectoryPage() {
               {t('directory.findAnyone')}
             </h1>
 
-            {/* ── Unified search bar ──────────────────────────────────── */}
-            <form
-              onSubmit={submitSearch}
-              className="
-                bg-canvas border border-border rounded-2xl sm:rounded-xl
-                shadow-xs hover:border-brand-border/60
-                focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/10
-                transition-all duration-150
-                mb-5 overflow-hidden
-              "
-              role="search"
-              aria-label="Search the directory"
-            >
-              {/* Responsive Layout:
-                  - Mobile: 2 dedicated rows (Full-width query on top, compact location + search button on bottom).
-                  - Tablet/Desktop (sm+): 1 seamless horizontal bar with spacious query and compact location.
-              */}
-              <div className="flex flex-col sm:flex-row sm:items-center">
-
-                {/* Primary Query: Name, Profession, Service, Shop (spacious & prominent) */}
-                <div className="flex items-center flex-1 min-w-0 gap-2.5 px-3.5 sm:px-4 h-11 sm:h-12">
-                  <Search size={16} className="text-brand shrink-0" aria-hidden="true" />
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    placeholder={t('directory.searchPlaceholder')}
-                    value={searchInput}
-                    onChange={e => setSearchInput(e.target.value)}
-                    className="
-                      flex-1 bg-transparent text-[13.5px] sm:text-[14px] text-ink
-                      placeholder:text-ink-3 outline-none min-w-0 font-normal
-                    "
-                    aria-label="Search query"
-                  />
-                  {searchInput && (
-                    <button
-                      type="button"
-                      onClick={() => { setSearchInput(''); updateFilter('search', '') }}
-                      className="w-5 h-5 rounded-full flex items-center justify-center text-ink-3 hover:text-ink hover:bg-surface-2 transition-colors shrink-0 focus-visible:outline-none cursor-pointer"
-                      aria-label="Clear search"
-                    >
-                      <X size={13} />
-                    </button>
-                  )}
-                </div>
-
-                {/* Divider: horizontal on mobile, vertical on sm+ */}
-                <div className="h-px bg-border/60 mx-3 sm:hidden" aria-hidden="true" />
-                <div className="hidden sm:block w-px h-6 bg-border self-center" aria-hidden="true" />
-
-                {/* Secondary section: Location input + Submit button */}
-                <div className="flex items-center justify-between gap-2 px-2.5 sm:px-2 py-1.5 sm:py-0 sm:w-auto">
-
-                  {/* Location (compact) */}
-                  <div className="flex items-center flex-1 sm:w-44 lg:w-48 gap-2 px-2 sm:px-2.5 h-9 sm:h-12 min-w-0">
-                    <MapPin size={14} className="text-ink-3 shrink-0" aria-hidden="true" />
-                    <input
-                      type="text"
-                      placeholder={t('directory.locationPlaceholder')}
-                      value={cityInput}
-                      onChange={e => setCityInput(e.target.value)}
-                      className="
-                        flex-1 bg-transparent text-[12.5px] sm:text-[13.5px] text-ink
-                        placeholder:text-ink-3 outline-none min-w-0
-                      "
-                      aria-label={t('directory.locationPlaceholder')}
-                    />
-                    {cityInput && (
-                      <button
-                        type="button"
-                        onClick={() => { setCityInput(''); updateFilter('city', '') }}
-                        className="w-4 h-4 rounded-full flex items-center justify-center text-ink-3 hover:text-ink hover:bg-surface-2 transition-colors shrink-0 focus-visible:outline-none cursor-pointer"
-                        aria-label="Clear location"
-                      >
-                        <X size={12} />
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Submit Button */}
-                  <button
-                    type="submit"
-                    className="
-                      h-9 sm:h-10 px-4 sm:px-5 rounded-xl sm:rounded-lg
-                      bg-brand text-white text-[12.5px] sm:text-[13.5px] font-semibold
-                      hover:bg-brand-hover active:scale-[0.98]
-                      transition-all duration-150 flex items-center justify-center gap-1.5
-                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1
-                      cursor-pointer select-none shrink-0 shadow-xs
-                    "
-                  >
-                    <Search size={14} className="shrink-0" />
-                    <span>{t('directory.searchBtn')}</span>
-                  </button>
-
-                </div>
-
-              </div>
-            </form>
-
-            {/* ── Recent searches history chips ─────────────────────── */}
-            {recentSearches.length > 0 && (
-              <div
-                className="
-                  flex items-center gap-2 mb-4 overflow-x-auto pb-1 text-[12.5px]
-                  -mx-5 px-5 sm:mx-0 sm:px-0
-                "
-                style={{ scrollbarWidth: 'none' }}
-                aria-label="Recent searches"
-              >
-                <span className="flex items-center gap-1.5 text-ink-3 font-medium shrink-0">
-                  <Clock size={13} className="text-brand shrink-0" />
-                  <span className="text-[12px]">{t('directory.recentSearches')}:</span>
-                </span>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  {recentSearches.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => handleSelectRecentSearch(item)}
-                      className="
-                        group inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full
-                        bg-surface-2 border border-border/80 text-ink-2
-                        hover:border-brand-border hover:text-ink hover:bg-brand-light/20
-                        transition-all duration-150 text-[12px] cursor-pointer
-                      "
-                      title={item.search + (item.city ? ` · ${item.city}` : '')}
-                    >
-                      <span className="truncate max-w-[140px]">
-                        {item.search || t('home.all', 'All')}
-                        {item.city && <span className="text-ink-4"> · {item.city}</span>}
-                      </span>
-                      <span
-                        role="button"
-                        onClick={(e) => handleRemoveRecentSearch(e, item.id)}
-                        className="w-3.5 h-3.5 rounded-full flex items-center justify-center text-ink-4 hover:text-danger hover:bg-danger-light transition-colors ml-0.5"
-                        aria-label="Remove search"
-                      >
-                        ×
-                      </span>
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={handleClearAllSearches}
-                    className="text-[11.5px] text-ink-4 hover:text-danger transition-colors underline-offset-2 hover:underline ml-1 shrink-0 cursor-pointer"
-                  >
-                    {t('directory.clearHistory')}
-                  </button>
-                </div>
-              </div>
-            )}
+            {/* ── Ultimate Command Bar Search Engine ─────────────────── */}
+            <UltimateSearchBar
+              initialSearch={searchInput}
+              initialCity={cityInput}
+              onSearch={({ search, city, category_id }) => {
+                if (search !== undefined) {
+                  setSearchInput(search)
+                  updateFilter('search', search)
+                }
+                if (city !== undefined) {
+                  setCityInput(city)
+                  updateFilter('city', city)
+                }
+                if (category_id !== undefined) {
+                  updateFilter('category_id', category_id)
+                }
+                if (search || city) {
+                  saveSearchHistory({ search: search || '', city: city || '' })
+                  setRecentSearches(getSearchHistory())
+                }
+              }}
+              recentSearches={recentSearches}
+              onSelectRecent={(item) => handleSelectRecentSearch(item)}
+              onClearRecent={handleClearAllSearches}
+              onUseCurrentLocation={() => {
+                if (!geo.supported) return
+                if (geo.lat == null) {
+                  geo.requestLocation()
+                }
+                setUseNearMe(true)
+                updateFilter('page', 1)
+              }}
+              isLocating={geo.loading}
+            />
 
             {/* ── Category quick-nav ──────────────────────────────────── */}
             {categories.filter(c => !c.isChild).length > 0 && (
               <div
                 className="
-                  flex items-center gap-1 overflow-x-auto pb-0
+                  flex items-center gap-1.5 overflow-x-auto pb-3 pt-1
                   -mx-5 px-5 sm:-mx-8 sm:px-8
                 "
                 style={{ scrollbarWidth: 'none' }}
@@ -1057,12 +940,12 @@ export default function DirectoryPage() {
                   type="button"
                   onClick={() => updateFilter('category_id', '')}
                   className={`
-                    flex items-center gap-1.5 px-3 py-2.5
-                    text-[13px] font-medium whitespace-nowrap
-                    border-b-2 transition-all duration-150 shrink-0
+                    flex items-center gap-1.5 px-3 py-1.5
+                    text-[12.5px] font-medium whitespace-nowrap rounded-lg
+                    transition-all duration-150 shrink-0 cursor-pointer
                     ${!filters.category_id
-                      ? 'border-brand text-brand'
-                      : 'border-transparent text-ink-2 hover:text-ink hover:border-border'
+                      ? 'bg-ink text-surface font-semibold shadow-xs'
+                      : 'text-ink-2 hover:text-ink hover:bg-surface-2/80'
                     }
                   `}
                 >
@@ -1074,12 +957,12 @@ export default function DirectoryPage() {
                     type="button"
                     onClick={() => updateFilter('category_id', cat.id)}
                     className={`
-                      flex items-center gap-1.5 px-3 py-2.5
-                      text-[13px] font-medium whitespace-nowrap
-                      border-b-2 transition-all duration-150 shrink-0
+                      flex items-center gap-1.5 px-3 py-1.5
+                      text-[12.5px] font-medium whitespace-nowrap rounded-lg
+                      transition-all duration-150 shrink-0 cursor-pointer
                       ${filters.category_id === cat.id
-                        ? 'border-brand text-brand'
-                        : 'border-transparent text-ink-2 hover:text-ink hover:border-border'
+                        ? 'bg-ink text-surface font-semibold shadow-xs'
+                        : 'text-ink-2 hover:text-ink hover:bg-surface-2/80'
                       }
                     `}
                     aria-pressed={filters.category_id === cat.id}
@@ -1333,7 +1216,7 @@ export default function DirectoryPage() {
                           h-8 w-8 flex items-center justify-center
                           transition-colors duration-150
                           ${viewMode === mode
-                            ? 'bg-brand text-white'
+                            ? 'bg-ink text-surface font-semibold shadow-xs'
                             : 'text-ink-3 hover:bg-surface-2 hover:text-ink'
                           }
                         `}

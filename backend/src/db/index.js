@@ -65,11 +65,13 @@ function getNodePool() {
       ...getPoolOptions(),
       max: 10,
       idleTimeoutMillis: 30_000,
-      connectionTimeoutMillis: 5_000,
+      connectionTimeoutMillis: 15_000,
+      keepAlive: true,
+      keepAliveInitialDelayMillis: 10_000,
     })
 
     nodePool.on('error', (err) => {
-      logger.error({ err }, 'Unexpected error on idle PostgreSQL client')
+      logger.error({ err: err?.message || err }, 'Unexpected error on idle PostgreSQL client')
     })
   }
   return nodePool

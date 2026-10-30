@@ -61,6 +61,11 @@ export const searchProfiles = asyncHandler(async (req, res) => {
   sendSuccess(res, 'Search results', result)
 })
 
+export const getSearchSuggestions = asyncHandler(async (req, res) => {
+  const result = await svc.getSearchSuggestions(req.query.q || '')
+  sendSuccess(res, 'Search suggestions', result)
+})
+
 export const checkSlug = asyncHandler(async (req, res) => {
   const result = await svc.checkSlugAvailability(req.params.slug)
   sendSuccess(res, 'Slug availability checked', result)

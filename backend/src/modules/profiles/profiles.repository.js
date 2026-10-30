@@ -279,6 +279,8 @@ export async function searchProfiles({
       OR p.city ILIKE $${n}
       OR p.area ILIKE $${n}
       OR c.name ILIKE $${n}
+      OR EXISTS (SELECT 1 FROM profile_services ps WHERE ps.profile_id = p.id AND ps.name ILIKE $${n})
+      OR EXISTS (SELECT 1 FROM profile_products pr WHERE pr.profile_id = p.id AND pr.name ILIKE $${n})
     )`)
   }
 
@@ -375,6 +377,57 @@ export async function searchProfiles({
 
   return { rows: dataResult.rows, total }
 }
+
+/**
+ * Fast search suggestions for live auto-complete command bar.
+ * Returns matching categories, top matching profiles, and relevant keywords.
+ */
+export async function getSearchSuggestions(query) {
+  if (!query || query.trim().length < 2) {
+    return { profiles: [], categories: [] }
+  }
+  const term = `%${query.trim()}%`
+
+  // 1. Top 4 matching published profiles
+  const profilesPromise = pool.query(
+    `SELECT p.id, p.display_name, p.slug, p.headline, p.avatar_url, p.city, p.is_verified, c.name AS category_name,
+            COALESCE(r.avg_rating, 0) AS avg_rating, COALESCE(r.review_count, 0) AS review_count
+     FROM profiles p
+     LEFT JOIN categories c ON p.category_id = c.id
+     LEFT JOIN (
+       SELECT profile_id, ROUND(AVG(rating)::numeric, 1) AS avg_rating, COUNT(*)::int AS review_count
+       FROM profile_reviews GROUP BY profile_id
+     ) r ON r.profile_id = p.id
+     WHERE p.is_published = TRUE
+       AND p.verification_status != 'SUSPENDED'
+       AND (
+         p.display_name ILIKE $1
+         OR p.headline ILIKE $1
+         OR c.name ILIKE $1
+         OR EXISTS (SELECT 1 FROM profile_services ps WHERE ps.profile_id = p.id AND ps.name ILIKE $1)
+       )
+     ORDER BY p.is_verified DESC, r.avg_rating DESC, p.created_at DESC
+     LIMIT 4`,
+    [term],
+  )
+
+  // 2. Matching categories
+  const categoriesPromise = pool.query(
+    `SELECT id, name, slug, icon, parent_id
+     FROM categories
+     WHERE is_active = TRUE AND name ILIKE $1
+     ORDER BY parent_id NULLS FIRST, name ASC
+     LIMIT 4`,
+    [term],
+  )
+
+  const [profilesRes, categoriesRes] = await Promise.all([profilesPromise, categoriesPromise])
+  return {
+    profiles: profilesRes.rows,
+    categories: categoriesRes.rows,
+  }
+}
+
 
 // ── B. Update profile (extended fields) ──────────────────────────────────────
 
