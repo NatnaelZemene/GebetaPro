@@ -32,19 +32,19 @@ const PROFILE_IMAGES = {
   // ── Home Services ──────────────────────────────────────────────────────────
   'abebe-plumbing': {
     avatar_url: U('1558618666-fcd25c85cd64'),
-    cover_url:  UC('1504328345936-525aa2d8b9d6'),
+    cover_url:  UC('1585704032915-c3400ca199e7'),
   },
   'tigist-electrical': {
     avatar_url: U('1621905251189-08b45d6a269e'),
-    cover_url:  UC('1558449028-90aed4338d28'),
+    cover_url:  UC('1621905251189-08b45d6a269e'),
   },
   'samuel-cleaning-co': {
     avatar_url: U('1581578731548-c64695cc6952'),
-    cover_url:  UC('1527515862127-a4fc93a693f8'),
+    cover_url:  UC('1527515637462-cff94eecc1ac'),
   },
   'meron-painting': {
     avatar_url: U('1562259929-b4e1fd3aef09'),
-    cover_url:  UC('1586023492125-27264f3ec1e9'),
+    cover_url:  UC('1589939705384-5185137a7f0f'),
   },
   'yonas-garden-landscape': {
     avatar_url: U('1416879595882-3373a0480b5b'),
@@ -58,7 +58,7 @@ const PROFILE_IMAGES = {
   },
   'dawit-specialty-coffee': {
     avatar_url: U('1495474472287-4d71bcdd2085'),
-    cover_url:  UC('1442512595331-8f998af22731'),
+    cover_url:  UC('1501339847302-ac426a4a7cbb'),
   },
   'hiwot-artisan-bakery': {
     avatar_url: U('1509440159596-0249088772ff'),
@@ -76,7 +76,7 @@ const PROFILE_IMAGES = {
   // ── Professional Services ──────────────────────────────────────────────────
   'belay-law-office': {
     avatar_url: U('1589829545856-d10d557cf95f'),
-    cover_url:  UC('1436450412741-6b79e17512d4'),
+    cover_url:  UC('1453728013993-6d66e9c9123a'),
   },
   'rahel-tax-finance': {
     avatar_url: U('1554224155-6726b3ff858f'),
@@ -88,7 +88,7 @@ const PROFILE_IMAGES = {
   },
   'almaz-general-clinic': {
     avatar_url: U('1576091160550-2173dba999ef'),
-    cover_url:  UC('1519494026892-476f6045a2f1'),
+    cover_url:  UC('1584515979956-d9f6e5d09982'),
   },
 
   // ── Beauty & Wellness ──────────────────────────────────────────────────────
@@ -98,7 +98,7 @@ const PROFILE_IMAGES = {
   },
   'biruk-kings-barber': {
     avatar_url: U('1503951914875-452162b0f3f1'),
-    cover_url:  UC('1599351431202-1d0a0a1df55a'),
+    cover_url:  UC('1503951914875-452162b0f3f1'),
   },
   'tsehay-wellness-spa': {
     avatar_url: U('1600334129128-685c5582fd35'),
@@ -106,11 +106,11 @@ const PROFILE_IMAGES = {
   },
   'kidus-fitness-center': {
     avatar_url: U('1534438327276-14e5300c3a48'),
-    cover_url:  UC('1571902943202-507ec2618e8f'),
+    cover_url:  UC('1534438327276-14e5300c3a48'),
   },
   'betlhem-nail-studio': {
     avatar_url: U('1604654894610-df63bc536371'),
-    cover_url:  UC('1522338242992-b7b43f45a4c2'),
+    cover_url:  UC('1604654894610-df63bc536371'),
   },
 
   // ── Education & Tutoring ───────────────────────────────────────────────────
@@ -124,7 +124,7 @@ const PROFILE_IMAGES = {
   },
   'eyob-language-center': {
     avatar_url: U('1456513080510-7bf3a84b82f8'),
-    cover_url:  UC('1434030216411-0b793f4b6f74'),
+    cover_url:  UC('1497633762265-9d179a990aa6'),
   },
 
   // ── Technology & Repair ────────────────────────────────────────────────────
@@ -134,20 +134,20 @@ const PROFILE_IMAGES = {
   },
   'dagim-web-studio': {
     avatar_url: U('1498050108023-c5249f4df085'),
-    cover_url:  UC('1461749280684-dccba630e2f6'),
+    cover_url:  UC('1517048676732-d65bc937f952'),
   },
   'eden-software-solutions': {
-    avatar_url: U('1461749280684-dccba630e2f6'),
-    cover_url:  UC('1555949963-ff9fe0c870ba'),
+    avatar_url: U('1551434678-e076c223a692'),
+    cover_url:  UC('1498050108023-c5249f4df085'),
   },
 
   // ── Transport & Logistics ──────────────────────────────────────────────────
   'habtamu-private-driver': {
     avatar_url: U('1449965408869-eaa3f722e40d'),
-    cover_url:  UC('1485291571150-772eaa2d7a5c'),
+    cover_url:  UC('1503376780353-7e6692767b70'),
   },
   'tewodros-moving-service': {
-    avatar_url: U('1558618047-3c8c41e4a09c'),
+    avatar_url: U('1586528116311-ad8dd3c8310d'),
     cover_url:  UC('1600880292203-757bb62b4baf'),
   },
   'meseret-fast-delivery': {
@@ -175,12 +175,12 @@ const PROFILE_IMAGES = {
     cover_url:  UC('1503387762-592deb58ef4e'),
   },
   'muluken-tiling-flooring': {
-    avatar_url: U('1545269776-fbe4f2ad2d27'),
+    avatar_url: U('1581094794329-c8112a89af12'),
     cover_url:  UC('1600585154526-990dced4db0d'),
   },
   'henok-roofing-works': {
     avatar_url: U('1600585154340-be6161a56a0c'),
-    cover_url:  UC('1504328345936-525aa2d8b9d6'),
+    cover_url:  UC('1531834685032-c34bf0d84c77'),
   },
   'amanuel-metal-works': {
     avatar_url: U('1504917595217-d4dc5ebe6122'),
@@ -189,7 +189,7 @@ const PROFILE_IMAGES = {
 
   // ── Retail & Shops ─────────────────────────────────────────────────────────
   'tigstu-general-store': {
-    avatar_url: U('1534452203293-dd4d3b062c89'),
+    avatar_url: U('1490481651871-ab68de25d43d'),
     cover_url:  UC('1472851294608-062f824d29cc'),
   },
   'shewaye-fashion-boutique': {
@@ -197,24 +197,24 @@ const PROFILE_IMAGES = {
     cover_url:  UC('1441986380878-c4248f5b8b5b'),
   },
   'wubit-electronics-store': {
-    avatar_url: U('1526738549149-8e07eca56323'),
+    avatar_url: U('1581092160607-ee22621dd758'),
     cover_url:  UC('1518770660439-4636190af475'),
   },
   'beletu-shop-owner': {
-    avatar_url: U('1519058082350-08716243f91a'),
+    avatar_url: U('1567401893414-76b7b1e5a7a5'),
     cover_url:  UC('1472851294608-062f824d29cc'),
   },
 
   // ── Fitness (user-created) ─────────────────────────────────────────────────
   'amen-fitness-and-gym': {
     avatar_url: U('1534438327276-14e5300c3a48'),
-    cover_url:  UC('1571902943202-507ec2618e8f'),
+    cover_url:  UC('1534438327276-14e5300c3a48'),
   },
 
   // ── Cafe (user-created) ────────────────────────────────────────────────────
   'cafe': {
     avatar_url: U('1495474472287-4d71bcdd2085'),
-    cover_url:  UC('1442512595331-8f998af22731'),
+    cover_url:  UC('1501339847302-ac426a4a7cbb'),
   },
 
   // ── Personal profiles ──────────────────────────────────────────────────────
@@ -232,7 +232,7 @@ const PROFILE_IMAGES = {
   },
   'sport': {
     avatar_url: U('1534438327276-14e5300c3a48'),
-    cover_url:  UC('1571902943202-507ec2618e8f'),
+    cover_url:  UC('1534438327276-14e5300c3a48'),
   },
 }
 
