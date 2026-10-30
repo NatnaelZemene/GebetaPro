@@ -1,15 +1,14 @@
 /**
- * SortDropdown.jsx — Advanced, accessible, and beautifully styled sort dropdown.
+ * SortDropdown.jsx — Professional SaaS sort dropdown component.
  *
- * Features:
- *   - Glassmorphic floating menu with smooth micro-animations.
- *   - Rich item representation with icons, labels, and descriptive captions.
- *   - Active selection indicators (tinted badge, active checkmark).
- *   - Complete click-outside and Escape key dismissal.
- *   - Full ARIA semantics: role="listbox", aria-activedescendant, aria-expanded.
+ * Designed with enterprise-grade aesthetics:
+ *   - Monochromatic, purpose-built Lucide icons (no AI-style sparkles or pastel badges).
+ *   - Subtle trigger with ArrowUpDown indicator.
+ *   - Clean floating menu with precise typography, option subtitles, and active checkmarks.
+ *   - Full keyboard navigation (Escape), click-outside dismissal, and ARIA roles.
  */
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Sparkles, Star, Clock, ArrowDownAZ, ChevronDown, Check } from 'lucide-react'
+import { TrendingUp, Star, Clock, ArrowDownAZ, ArrowUpDown, ChevronDown, Check } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 export const SORT_OPTIONS_CONFIG = [
@@ -19,8 +18,7 @@ export const SORT_OPTIONS_CONFIG = [
     defaultLabel: 'Recommended',
     descKey: 'directory.sortDesc.recommended',
     defaultDesc: 'Best match & featured providers',
-    icon: Sparkles,
-    accentClass: 'text-brand bg-brand-light/30 border-brand/20',
+    icon: TrendingUp,
   },
   {
     value: 'rating',
@@ -29,7 +27,6 @@ export const SORT_OPTIONS_CONFIG = [
     descKey: 'directory.sortDesc.rating',
     defaultDesc: 'Top customer reviews and star ratings',
     icon: Star,
-    accentClass: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
   },
   {
     value: 'newest',
@@ -38,7 +35,6 @@ export const SORT_OPTIONS_CONFIG = [
     descKey: 'directory.sortDesc.newest',
     defaultDesc: 'Recently registered and updated',
     icon: Clock,
-    accentClass: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
   },
   {
     value: 'name',
@@ -47,7 +43,6 @@ export const SORT_OPTIONS_CONFIG = [
     descKey: 'directory.sortDesc.name',
     defaultDesc: 'Alphabetical order by provider name',
     icon: ArrowDownAZ,
-    accentClass: 'text-violet-500 bg-violet-500/10 border-violet-500/20',
   },
 ]
 
@@ -57,7 +52,6 @@ export function SortDropdown({ value = 'featured', onChange, className = '' }) {
   const containerRef = useRef(null)
 
   const activeOption = SORT_OPTIONS_CONFIG.find(o => o.value === value) || SORT_OPTIONS_CONFIG[0]
-  const ActiveIcon = activeOption.icon
 
   const close = useCallback(() => setOpen(false), [])
 
@@ -92,38 +86,21 @@ export function SortDropdown({ value = 'featured', onChange, className = '' }) {
         aria-expanded={open}
         aria-label={`Sort by: ${t(activeOption.labelKey, activeOption.defaultLabel)}`}
         className={`
-          group inline-flex items-center gap-2 h-9 pl-2.5 pr-3 rounded-xl
-          bg-surface border text-ink font-medium text-[12.5px] sm:text-[13px]
-          transition-all duration-200 cursor-pointer select-none
-          shadow-[0_1px_3px_rgba(0,0,0,0.06)]
+          inline-flex items-center gap-2 h-8 px-2.5 rounded-lg
+          bg-surface border border-border text-ink text-[12.5px] font-medium
+          hover:border-brand-border hover:bg-surface-2 transition-all duration-150
+          cursor-pointer select-none
           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1
-          ${open
-            ? 'border-brand ring-2 ring-brand/10 shadow-[0_4px_16px_rgba(0,0,0,0.08)] bg-surface-2'
-            : 'border-border hover:border-brand-border hover:bg-surface-2'
-          }
+          ${open ? 'border-brand text-ink ring-2 ring-brand/10 bg-surface-2' : ''}
         `}
       >
-        <span
-          className={`
-            w-5 h-5 rounded-lg flex items-center justify-center border shrink-0 transition-transform duration-200
-            ${activeOption.accentClass}
-            group-hover:scale-105
-          `}
-          aria-hidden="true"
-        >
-          <ActiveIcon size={12} className="stroke-[2.2]" />
-        </span>
-
-        <span className="truncate text-ink leading-none font-semibold">
+        <ArrowUpDown size={12} className="text-ink-3 shrink-0" aria-hidden="true" />
+        <span className="truncate max-w-[130px] font-medium">
           {t(activeOption.labelKey, activeOption.defaultLabel)}
         </span>
-
         <ChevronDown
-          size={13}
-          className={`
-            text-ink-3 transition-transform duration-200 shrink-0
-            ${open ? 'rotate-180 text-brand' : 'group-hover:text-ink'}
-          `}
+          size={11}
+          className={`text-ink-3 shrink-0 transition-transform duration-150 ${open ? 'rotate-180 text-brand' : ''}`}
           aria-hidden="true"
         />
       </button>
@@ -135,26 +112,25 @@ export function SortDropdown({ value = 'featured', onChange, className = '' }) {
           tabIndex={-1}
           aria-label="Sort options"
           className="
-            absolute right-0 mt-2 w-64 sm:w-72
-            bg-surface/95 backdrop-blur-xl
-            border border-border/80 rounded-2xl
-            shadow-[0_12px_36px_rgba(0,0,0,0.18)]
-            z-50 p-1.5 overflow-hidden
-            animate-in fade-in zoom-in-95 duration-150 origin-top-right
+            absolute right-0 mt-1.5 w-64 sm:w-72
+            bg-surface border border-border rounded-xl
+            shadow-xl shadow-black/15 dark:shadow-black/60
+            z-50 py-1 overflow-hidden
+            animate-fade-in
           "
         >
           {/* Header */}
-          <div className="px-3 pt-2 pb-1.5 flex items-center justify-between border-b border-border/50 mb-1">
-            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-3">
-              {t('directory.sortBy', 'Sort Results')}
+          <div className="px-3 py-1.5 border-b border-border/70 flex items-center justify-between mb-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-ink-3">
+              {t('directory.sortBy', 'Sort By')}
             </span>
-            <span className="text-[10.5px] text-ink-4">
+            <span className="text-[10px] text-ink-4">
               {SORT_OPTIONS_CONFIG.length} {t('directory.options', 'options')}
             </span>
           </div>
 
           {/* Options List */}
-          <div className="space-y-0.5">
+          <div className="px-1 space-y-0.5">
             {SORT_OPTIONS_CONFIG.map((option) => {
               const isSelected = option.value === value
               const Icon = option.icon
@@ -166,42 +142,38 @@ export function SortDropdown({ value = 'featured', onChange, className = '' }) {
                   aria-selected={isSelected}
                   onClick={() => handleSelect(option.value)}
                   className={`
-                    w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left
-                    transition-all duration-150 cursor-pointer select-none group
+                    w-full flex items-start gap-2.5 px-2.5 py-2 rounded-lg text-left
+                    transition-colors duration-100 cursor-pointer select-none group
                     focus-visible:outline-none focus-visible:bg-surface-2
                     ${isSelected
-                      ? 'bg-brand/10 text-brand font-semibold shadow-xs'
-                      : 'text-ink-2 hover:text-ink hover:bg-surface-2'
+                      ? 'bg-brand-light/40 text-brand font-medium'
+                      : 'text-ink-2 hover:bg-surface-2 hover:text-ink'
                     }
                   `}
                 >
-                  <span
-                    className={`
-                      w-7 h-7 rounded-lg flex items-center justify-center border shrink-0
-                      transition-all duration-150
-                      ${option.accentClass}
-                      ${isSelected ? 'scale-105 shadow-xs' : 'group-hover:scale-105'}
-                    `}
+                  <Icon
+                    size={15}
+                    className={`mt-0.5 shrink-0 transition-colors ${
+                      isSelected ? 'text-brand' : 'text-ink-3 group-hover:text-ink'
+                    }`}
                     aria-hidden="true"
-                  >
-                    <Icon size={14} className="stroke-[2.2]" />
-                  </span>
+                  />
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[13px] leading-tight truncate font-semibold">
-                        {t(option.labelKey, option.defaultLabel)}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-ink-3 truncate leading-snug mt-0.5">
+                    <span className={`block text-[12.5px] leading-tight truncate ${
+                      isSelected ? 'font-semibold text-brand' : 'font-medium text-ink'
+                    }`}>
+                      {t(option.labelKey, option.defaultLabel)}
+                    </span>
+                    <span className={`block text-[11px] leading-tight mt-0.5 truncate ${
+                      isSelected ? 'text-brand/80' : 'text-ink-3'
+                    }`}>
                       {t(option.descKey, option.defaultDesc)}
-                    </p>
+                    </span>
                   </div>
 
                   {isSelected && (
-                    <span className="w-5 h-5 rounded-full bg-brand/15 text-brand flex items-center justify-center shrink-0">
-                      <Check size={12} className="stroke-[2.8]" />
-                    </span>
+                    <Check size={13} className="mt-0.5 text-brand shrink-0 ml-1" aria-hidden="true" />
                   )}
                 </button>
               )
