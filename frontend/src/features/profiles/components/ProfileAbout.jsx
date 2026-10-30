@@ -6,79 +6,21 @@ import { MapPin, Navigation, Phone, Mail, Globe, MessageCircle, Send } from 'luc
 import { useTranslation } from 'react-i18next'
 import { ProfileLocationMap } from './ProfileLocationMap.jsx'
 
-/* ── Time helper (locale-independent 12-hr format) ──────────────────────────── */
-function fmt24to12(timeStr) {
-  if (!timeStr) return ''
-  const [h, m] = timeStr.split(':').map(Number)
-  const period = h >= 12 ? 'PM' : 'AM'
-  const h12    = h % 12 || 12
-  return `${h12}:${String(m).padStart(2, '0')} ${period}`
-}
-
-/* ── Today's open/closed status calculation ─────────────────────────────────── */
-function getTodayStatus(businessHours, t) {
-  if (!businessHours?.length) return null
-  const now   = new Date()
-  const day   = now.getDay()
-  const today = businessHours.find(h => h.day_of_week === day)
-  if (!today) return null
-
-  if (today.is_closed) {
-    return { open: false, label: t('profile.hours.closedToday'), nextMsg: null }
-  }
-
-  if (!today.opens_at || !today.closes_at) return null
-
-  const [openH,  openM]  = today.opens_at.split(':').map(Number)
-  const [closeH, closeM] = today.closes_at.split(':').map(Number)
-  const nowMins          = now.getHours() * 60 + now.getMinutes()
-  const openMins         = openH  * 60 + openM
-  const closeMins        = closeH * 60 + closeM
-  const isOpen           = nowMins >= openMins && nowMins < closeMins
-
-  if (isOpen) {
-    return {
-      open:   true,
-      label:  t('profile.hours.openNow'),
-      detail: t('profile.hours.closesAt', { time: fmt24to12(today.closes_at) }),
-      nextMsg: null,
-    }
-  }
-
-  // Closed — figure out when it next opens
-  let nextMsg = null
-  if (nowMins < openMins) {
-    // Opens later today
-    nextMsg = t('profile.hours.opensAt', { time: fmt24to12(today.opens_at) })
-  } else {
-    // Look ahead up to 7 days
-    for (let offset = 1; offset <= 7; offset++) {
-      const nextDay   = (day + offset) % 7
-      const nextHours = businessHours.find(h => h.day_of_week === nextDay)
-      if (nextHours && !nextHours.is_closed && nextHours.opens_at) {
-        if (offset === 1) {
-          nextMsg = t('profile.hours.opensTomorrow', { time: fmt24to12(nextHours.opens_at) })
-        } else {
-          nextMsg = t('profile.hours.opensOn', {
-            day:  t(`profile.hours.days.${nextDay}`),
-            time: fmt24to12(nextHours.opens_at),
-          })
-        }
-        break
-      }
-    }
-  }
-
-  return { open: false, label: t('profile.hours.closedNow'), detail: null, nextMsg }
-}
+import {
+  evaluateBusinessStatus,
+  format24to12,
+  getCurrentTimeInZone,
+  isDay24Hours,
+  isDayOvernight,
+} from '../../../utils/businessHours.js'
 
 /* ── AvailabilitySection ────────────────────────────────────────────────────── */
 function AvailabilitySection({ businessHours }) {
   const { t } = useTranslation()
   if (!businessHours?.length) return null
 
-  const todayIndex = new Date().getDay()
-  const status     = getTodayStatus(businessHours, t)
+  const todayIndex = getCurrentTimeInZone().day
+  const status     = evaluateBusinessStatus(businessHours, t)
 
   // Sort hours Mon→Sun for display
   const sorted = [...businessHours].sort((a, b) => {
@@ -120,11 +62,21 @@ function AvailabilitySection({ businessHours }) {
       {/* Weekly schedule */}
       <div className="space-y-0.5">
         {sorted.map(h => {
-          const isToday  = h.day_of_week === todayIndex
-          const isClosed = h.is_closed || (!h.opens_at && !h.closes_at)
-          const timeRange = isClosed
-            ? null
-            : `${fmt24to12(h.opens_at)} – ${fmt24to12(h.closes_at)}`
+          const isToday      = h.day_of_week === todayIndex
+          const isClosed     = h.is_closed || (!h.opens_at && !h.closes_at)
+          const is24h        = isDay24Hours(h)
+          const isOvernight  = isDayOvernight(h)
+
+          let timeRange = null
+          if (!isClosed) {
+            if (is24h) {
+              timeRange = t('profile.hours.open24h', 'Open 24 hours')
+            } else if (isOvernight) {
+              timeRange = `${format24to12(h.opens_at)} – ${format24to12(h.closes_at)} (+1)`
+            } else {
+              timeRange = `${format24to12(h.opens_at)} – ${format24to12(h.closes_at)}`
+            }
+          }
 
           return (
             <div
