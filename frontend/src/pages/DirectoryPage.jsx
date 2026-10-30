@@ -882,13 +882,15 @@ export default function DirectoryPage() {
         <div className="bg-surface border-b border-border">
           <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-8 pb-0">
 
-            {/* Context label */}
-            <p className="text-[11.5px] font-semibold uppercase tracking-[0.12em] text-ink-3 mb-1.5">
-              {t('directory.title')}
-            </p>
-            <h1 className="text-[22px] sm:text-[26px] font-bold text-ink tracking-tight mb-5">
-              {t('directory.findAnyone')}
-            </h1>
+            {/* Context header — centered above search bar */}
+            <div className="text-center max-w-2xl mx-auto mb-6">
+              <p className="text-[11.5px] font-bold uppercase tracking-[0.14em] text-ink-3 mb-1.5">
+                {t('directory.title')}
+              </p>
+              <h1 className="text-[24px] sm:text-[30px] font-extrabold text-ink tracking-tight">
+                {t('directory.findAnyone')}
+              </h1>
+            </div>
 
             {/* ── Ultimate Command Bar Search Engine ─────────────────── */}
             <UltimateSearchBar
@@ -930,7 +932,7 @@ export default function DirectoryPage() {
               <div
                 className="
                   flex items-center gap-1.5 overflow-x-auto pb-3 pt-1
-                  -mx-5 px-5 sm:-mx-8 sm:px-8
+                  -mx-5 px-5 sm:-mx-8 sm:px-8 sm:justify-center
                 "
                 style={{ scrollbarWidth: 'none' }}
                 role="navigation"
