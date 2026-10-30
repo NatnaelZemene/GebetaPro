@@ -67,19 +67,20 @@ export async function createAndSendPasswordResetToken(email) {
   const expiresIn = config.passwordReset.expiresIn
   const expirationHours = parseInt(expiresIn, 10) || 1
   
-  // Send password reset email (non-blocking — don't await SMTP)
-  sendPasswordResetEmail({
-    to: user.email,
-    resetUrl,
-    expirationHours,
-  }).then(emailSent => {
+  // Send password reset email
+  try {
+    const emailSent = await sendPasswordResetEmail({
+      to: user.email,
+      resetUrl,
+      expirationHours,
+    })
     if (!emailSent) {
       logger.warn({ userId: user.id }, 'Failed to send password reset email')
     }
-  }).catch(err => {
+  } catch (err) {
     logger.warn({ userId: user.id, error: err.message }, 'Failed to send password reset email')
-  })
-  
+  }
+
   logger.info({ userId: user.id }, 'Password reset token created successfully')
 }
 

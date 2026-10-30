@@ -126,6 +126,10 @@ export const config = {
     from: env('EMAIL_FROM', 'noreply@localdiscovery.com'),
   },
 
+  /** Optional HTTP email provider keys (resend / brevo) */
+  resendApiKey: env('RESEND_API_KEY', ''),
+  brevoApiKey:  env('BREVO_API_KEY', ''),
+
   /**
    * Chapa — Ethiopian payment gateway (Phase 6).
    *

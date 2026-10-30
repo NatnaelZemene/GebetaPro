@@ -215,54 +215,254 @@ function passwordResetTemplate(resetUrl, expirationHours) {
   `)
 }
 
+// ── Multi-Platform Email Delivery (Node.js & Cloudflare Workers) ────────────
+
+/**
+ * Send an email via Cloudflare Worker's raw TLS TCP socket (port 465).
+ */
+async function sendViaCloudflareSocket({ host, port = 465, user, pass, from, to, subject, html }) {
+  const { connect } = await import('cloudflare:sockets')
+  const socket = connect({ hostname: host, port: Number(port) }, { secureTransport: 'on' })
+
+  const reader = socket.readable.getReader()
+  const writer = socket.writable.getWriter()
+  const encoder = new TextEncoder()
+  const decoder = new TextDecoder()
+
+  let buffer = ''
+  async function readLine() {
+    while (!buffer.includes('\n')) {
+      const { value, done } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+    }
+    const idx = buffer.indexOf('\n')
+    if (idx === -1) {
+      const line = buffer
+      buffer = ''
+      return line
+    }
+    const line = buffer.slice(0, idx + 1)
+    buffer = buffer.slice(idx + 1)
+    return line
+  }
+
+  async function expectReply(expectedPrefixes) {
+    let lastLine = ''
+    while (true) {
+      const line = await readLine()
+      lastLine = line
+      // Standard SMTP replies start with a 3-digit code followed by space or hyphens
+      if (/^\d{3} /.test(line) || /^\d{3}$/.test(line.trim())) {
+        break
+      }
+    }
+    const code = lastLine.slice(0, 3)
+    if (!expectedPrefixes.includes(code)) {
+      throw new Error(`SMTP error (${code}): ${lastLine.trim()}`)
+    }
+    return lastLine
+  }
+
+  async function sendCmd(cmd) {
+    await writer.write(encoder.encode(cmd + '\r\n'))
+  }
+
+  try {
+    await expectReply(['220'])
+    await sendCmd('EHLO localhost')
+    await expectReply(['250'])
+    await sendCmd('AUTH LOGIN')
+    await expectReply(['334'])
+    await sendCmd(btoa(user))
+    await expectReply(['334'])
+    await sendCmd(btoa(pass))
+    await expectReply(['235'])
+    await sendCmd(`MAIL FROM:<${from}>`)
+    await expectReply(['250'])
+    await sendCmd(`RCPT TO:<${to}>`)
+    await expectReply(['250'])
+    await sendCmd('DATA')
+    await expectReply(['354'])
+
+    const rawEmail = [
+      `From: "${APP_NAME}" <${from}>`,
+      `To: ${to}`,
+      `Subject: ${subject}`,
+      'MIME-Version: 1.0',
+      'Content-Type: text/html; charset=UTF-8',
+      'Content-Transfer-Encoding: 7bit',
+      '',
+      html,
+      '.',
+    ].join('\r\n')
+
+    await writer.write(encoder.encode(rawEmail + '\r\n'))
+    await expectReply(['250'])
+
+    await sendCmd('QUIT')
+    try { await expectReply(['221']) } catch {}
+
+    logger.info({ recipientDomain: to?.split('@')[1] }, 'Email sent successfully via Cloudflare Worker SMTP socket')
+    return true
+  } finally {
+    try { reader.releaseLock() } catch {}
+    try { writer.releaseLock() } catch {}
+    try { await socket.close() } catch {}
+  }
+}
+
+/**
+ * Send an email via Resend HTTP API (works across all platforms).
+ */
+async function sendViaResend({ to, subject, html }) {
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${config.resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: config.smtp.from.includes('<') ? config.smtp.from : `"${APP_NAME}" <${config.smtp.from}>`,
+        to: [to],
+        subject,
+        html,
+      }),
+    })
+    if (!res.ok) {
+      const errText = await res.text()
+      throw new Error(`Resend API HTTP ${res.status}: ${errText}`)
+    }
+    const data = await res.json()
+    logger.info({ messageId: data.id, recipientDomain: to?.split('@')[1] }, 'Email sent successfully via Resend API')
+    return true
+  } catch (err) {
+    logger.error({ error: err.message, recipientDomain: to?.split('@')[1] }, 'Failed to send email via Resend API')
+    return false
+  }
+}
+
+/**
+ * Send an email via Brevo HTTP API (works across all platforms).
+ */
+async function sendViaBrevo({ to, subject, html }) {
+  try {
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'api-key': config.brevoApiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        sender: { name: APP_NAME, email: config.smtp.from },
+        to: [{ email: to }],
+        subject,
+        htmlContent: html,
+      }),
+    })
+    if (!res.ok) {
+      const errText = await res.text()
+      throw new Error(`Brevo API HTTP ${res.status}: ${errText}`)
+    }
+    const data = await res.json()
+    logger.info({ messageId: data.messageId, recipientDomain: to?.split('@')[1] }, 'Email sent successfully via Brevo API')
+    return true
+  } catch (err) {
+    logger.error({ error: err.message, recipientDomain: to?.split('@')[1] }, 'Failed to send email via Brevo API')
+    return false
+  }
+}
+
+/**
+ * Universal email dispatcher: routes to Resend, Brevo, Cloudflare Sockets, or Nodemailer.
+ */
+async function deliverEmail({ to, subject, html }) {
+  // Option 1: Resend HTTP API
+  if (config.resendApiKey) {
+    return sendViaResend({ to, subject, html })
+  }
+
+  // Option 2: Brevo HTTP API
+  if (config.brevoApiKey) {
+    return sendViaBrevo({ to, subject, html })
+  }
+
+  // Option 3: SMTP Credentials configured
+  if (config.smtp.user && config.smtp.password) {
+    const isCloudflare = Boolean(process.env.CLOUDFLARE_WORKER || process.env.CLOUDFLARE_HYPERDRIVE)
+
+    if (isCloudflare) {
+      try {
+        return await sendViaCloudflareSocket({
+          host: config.smtp.host || 'smtp.gmail.com',
+          port: config.smtp.port === 587 ? 465 : (config.smtp.port || 465),
+          user: config.smtp.user,
+          pass: config.smtp.password,
+          from: config.smtp.from,
+          to,
+          subject,
+          html,
+        })
+      } catch (err) {
+        logger.error(
+          {
+            recipientDomain: to?.split('@')[1] || 'unknown',
+            smtpHost: config.smtp.host,
+            error: err.message,
+          },
+          'Cloudflare Worker SMTP socket delivery failed',
+        )
+        return false
+      }
+    }
+
+    // Standard Node.js environment — use Nodemailer
+    try {
+      const info = await getTransporter().sendMail({
+        from: `"${APP_NAME}" <${config.smtp.from}>`,
+        to,
+        subject,
+        html,
+      })
+      logger.info(
+        { messageId: info.messageId, recipientDomain: to?.split('@')[1] },
+        'Email sent successfully via Nodemailer SMTP',
+      )
+      return true
+    } catch (err) {
+      logger.error(
+        {
+          recipientDomain: to?.split('@')[1] || 'unknown',
+          smtpHost: config.smtp.host,
+          smtpPort: config.smtp.port,
+          errorCode: err.code,
+          errorMessage: err.message,
+          response: err.response,
+        },
+        'Nodemailer SMTP delivery failed',
+      )
+      return false
+    }
+  }
+
+  logger.warn(
+    { recipientDomain: to?.split('@')[1] || 'unknown' },
+    'Email delivery skipped: No email credentials configured (SMTP_USER/SMTP_PASSWORD, RESEND_API_KEY, or BREVO_API_KEY)',
+  )
+  return false
+}
+
 // ── Public API ───────────────────────────────────────────────────────────────
 
 /**
  * Send a verification email to the user.
  * Returns true on success, false on failure.
- * Logs provider response and error details (without secrets).
  */
 export async function sendVerificationEmail({ to, verificationUrl, expirationHours }) {
-  // Guard: if SMTP is not configured at all, log clearly and return false
-  if (!config.smtp.user || !config.smtp.password) {
-    logger.warn(
-      { recipientDomain: to?.split('@')[1] || 'unknown' },
-      'Verification email not sent — SMTP credentials (SMTP_USER / SMTP_PASSWORD) are not configured',
-    )
-    return false
-  }
-
-  try {
-    const html = verificationTemplate(verificationUrl, Number(expirationHours) || 24)
-    const info = await getTransporter().sendMail({
-      from:    `"${APP_NAME}" <${config.smtp.from}>`,
-      to,
-      subject: `Verify your email — ${APP_NAME}`,
-      html,
-    })
-    logger.info(
-      { messageId: info.messageId, recipientDomain: to?.split('@')[1] },
-      'Verification email sent successfully',
-    )
-    return true
-  } catch (err) {
-    // Log diagnostics without credentials or full stack
-    logger.error(
-      {
-        recipientDomain: to?.split('@')[1] || 'unknown',
-        smtpHost:       config.smtp.host,
-        smtpPort:       config.smtp.port,
-        smtpUser:       config.smtp.user ? config.smtp.user.slice(0, 8) + '***' : 'not-set',
-        fromAddress:    config.smtp.from,
-        errorCode:      err.code,
-        errorMessage:   err.message,
-        responseCode:   err.responseCode,
-        response:       err.response,
-      },
-      'Failed to send verification email — check SMTP credentials and Brevo sender verification',
-    )
-    return false
-  }
+  const html = verificationTemplate(verificationUrl, Number(expirationHours) || 24)
+  const subject = `Verify your email — ${APP_NAME}`
+  return deliverEmail({ to, subject, html })
 }
 
 /**
@@ -270,48 +470,26 @@ export async function sendVerificationEmail({ to, verificationUrl, expirationHou
  * Returns true on success, false on failure.
  */
 export async function sendPasswordResetEmail({ to, resetUrl, expirationHours }) {
-  if (!config.smtp.user || !config.smtp.password) {
-    logger.warn(
-      { recipientDomain: to?.split('@')[1] || 'unknown' },
-      'Password reset email not sent — SMTP credentials are not configured',
-    )
-    return false
-  }
-
-  try {
-    const html = passwordResetTemplate(resetUrl, Number(expirationHours) || 1)
-    const info = await getTransporter().sendMail({
-      from:    `"${APP_NAME}" <${config.smtp.from}>`,
-      to,
-      subject: `Reset your password — ${APP_NAME}`,
-      html,
-    })
-    logger.info(
-      { messageId: info.messageId, recipientDomain: to?.split('@')[1] },
-      'Password reset email sent successfully',
-    )
-    return true
-  } catch (err) {
-    logger.error(
-      {
-        recipientDomain: to?.split('@')[1] || 'unknown',
-        smtpHost:       config.smtp.host,
-        smtpPort:       config.smtp.port,
-        errorCode:      err.code,
-        errorMessage:   err.message,
-        responseCode:   err.responseCode,
-        response:       err.response,
-      },
-      'Failed to send password reset email',
-    )
-    return false
-  }
+  const html = passwordResetTemplate(resetUrl, Number(expirationHours) || 1)
+  const subject = `Reset your password — ${APP_NAME}`
+  return deliverEmail({ to, subject, html })
 }
 
 /**
  * Verify SMTP connection is working (used for health checks).
  */
 export async function verifySmtpConnection() {
+  if (config.resendApiKey || config.brevoApiKey) {
+    logger.info('HTTP email API configured and ready')
+    return true
+  }
+
+  const isCloudflare = Boolean(process.env.CLOUDFLARE_WORKER || process.env.CLOUDFLARE_HYPERDRIVE)
+  if (isCloudflare) {
+    // In Cloudflare Workers, check that credentials exist
+    return Boolean(config.smtp.user && config.smtp.password)
+  }
+
   try {
     await getTransporter().verify()
     logger.info('SMTP connection verified')

@@ -12,7 +12,11 @@
 		"FRONTEND_URL": "https://gebetapro.mekliton.workers.dev",
 		"CORS_ORIGINS": "https://gebetapro.mekliton.workers.dev",
 		"CLOUDFLARE_WORKER": "true",
-		"CLOUDFLARE_HYPERDRIVE": "true"
+		"CLOUDFLARE_HYPERDRIVE": "true",
+		"SMTP_HOST": "smtp.gmail.com",
+		"SMTP_PORT": "465",
+		"SMTP_SECURE": "true",
+		"EMAIL_FROM": "natnaelzemene21@gmail.com"
 	},
 	"assets": {
 		"directory": "../frontend/dist",
