@@ -622,11 +622,10 @@ export default function DirectoryPage() {
   const [radiusKm, setRadiusKm]   = useState(10)
   const [useNearMe, setUseNearMe] = useState(false)
 
-  /* ── Filter state (initialized from URL params) ─────────────────────────── */
-  // Normalise search/city on init: if the URL carries a translated term
-  // (e.g. navigated from the Amharic homepage), resolve it to English
-  // so the backend ILIKE query can match stored data.
-  const [filters, setFilters] = useState({
+  /* ── Filter state (derived directly from URL params as single source of truth) ── */
+  // Deriving filter state from searchParams eliminates circular sync effects,
+  // preventing rapid re-render oscillation ("vibration blinking") when users filter or navigate.
+  const filters = useMemo(() => ({
     search:        toEnglishSearchTerm(searchParams.get('search')  || ''),
     category_id:   searchParams.get('category_id')   || '',
     city:          toEnglishCity(searchParams.get('city')          || ''),
@@ -636,7 +635,7 @@ export default function DirectoryPage() {
     open_now:      searchParams.get('open_now')      === 'true',
     sort:          searchParams.get('sort')           || 'featured',
     page:          parseInt(searchParams.get('page')  || '1', 10) || 1,
-  })
+  }), [searchParams])
 
   /* ── Local search input (tracks typed value before submit) ─────────────── */
   // We keep the raw typed/translated text in the input box so the UI feels
@@ -644,64 +643,6 @@ export default function DirectoryPage() {
   const [searchInput, setSearchInput] = useState(filters.search)
   // Same pattern for the inline city field in the top bar
   const [cityInput, setCityInput] = useState(filters.city)
-
-  // Sync filters to URL searchParams
-  useEffect(() => {
-    const next = new URLSearchParams()
-    if (filters.search)        next.set('search', filters.search)
-    if (filters.category_id)   next.set('category_id', filters.category_id)
-    if (filters.city)          next.set('city', filters.city)
-    if (filters.country)       next.set('country', filters.country)
-    if (filters.profile_type)  next.set('profile_type', filters.profile_type)
-    if (filters.verified_only) next.set('verified_only', 'true')
-    if (filters.open_now)      next.set('open_now', 'true')
-    if (filters.sort && filters.sort !== 'featured') next.set('sort', filters.sort)
-    if (filters.page > 1)      next.set('page', String(filters.page))
-
-    if (next.toString() !== searchParams.toString()) {
-      setSearchParams(next, { replace: true })
-    }
-  }, [filters, searchParams, setSearchParams])
-
-  // Sync external URL changes back to filter state
-  useEffect(() => {
-    const nextSearch = toEnglishSearchTerm(searchParams.get('search') || '')
-    const nextCat    = searchParams.get('category_id') || ''
-    const nextCity   = toEnglishCity(searchParams.get('city') || '')
-    const nextCountry = searchParams.get('country') || ''
-    const nextType   = searchParams.get('profile_type') || ''
-    const nextVer    = searchParams.get('verified_only') === 'true'
-    const nextOpen   = searchParams.get('open_now') === 'true'
-    const nextSort   = searchParams.get('sort') || 'featured'
-    const nextPage   = parseInt(searchParams.get('page') || '1', 10) || 1
-
-    setFilters(prev => {
-      if (
-        prev.search === nextSearch &&
-        prev.category_id === nextCat &&
-        prev.city === nextCity &&
-        prev.country === nextCountry &&
-        prev.profile_type === nextType &&
-        prev.verified_only === nextVer &&
-        prev.open_now === nextOpen &&
-        prev.sort === nextSort &&
-        prev.page === nextPage
-      ) {
-        return prev
-      }
-      return {
-        search: nextSearch,
-        category_id: nextCat,
-        city: nextCity,
-        country: nextCountry,
-        profile_type: nextType,
-        verified_only: nextVer,
-        open_now: nextOpen,
-        sort: nextSort,
-        page: nextPage,
-      }
-    })
-  }, [searchParams])
 
   useEffect(() => {
     setSearchInput(filters.search)
@@ -729,8 +670,15 @@ export default function DirectoryPage() {
     const c = item.city || ''
     setSearchInput(s)
     setCityInput(c)
-    updateFilter('search', toEnglishSearchTerm(s))
-    updateFilter('city', toEnglishCity(c))
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev)
+      const resolvedSearch = toEnglishSearchTerm(s)
+      const resolvedCity = toEnglishCity(c)
+      if (resolvedSearch) next.set('search', resolvedSearch); else next.delete('search')
+      if (resolvedCity) next.set('city', resolvedCity); else next.delete('city')
+      next.delete('page')
+      return next
+    }, { replace: true })
   }
 
   function handleRemoveRecentSearch(e, id) {
@@ -791,16 +739,29 @@ export default function DirectoryPage() {
 
   /* ── Handlers ───────────────────────────────────────────────────────────── */
   const updateFilter = useCallback((key, value) => {
-    // Normalise city and search values to English before storing, so the
-    // backend ILIKE query always matches the English data in the database.
-    let resolved = value
-    if (key === 'search' && typeof value === 'string') {
-      resolved = toEnglishSearchTerm(value)
-    } else if (key === 'city' && typeof value === 'string') {
-      resolved = toEnglishCity(value)
-    }
-    setFilters(f => ({ ...f, [key]: resolved, page: key === 'page' ? value : 1 }))
-  }, [])
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev)
+      let resolved = value
+      if (key === 'search' && typeof value === 'string') {
+        resolved = toEnglishSearchTerm(value)
+      } else if (key === 'city' && typeof value === 'string') {
+        resolved = toEnglishCity(value)
+      }
+
+      if (!resolved || resolved === 'featured' || (key === 'page' && Number(resolved) <= 1)) {
+        next.delete(key)
+      } else {
+        next.set(key, String(resolved))
+      }
+
+      // Any filter change other than page resets page back to 1
+      if (key !== 'page') {
+        next.delete('page')
+      }
+
+      return next
+    }, { replace: true })
+  }, [setSearchParams])
 
   function submitSearch(e) {
     e?.preventDefault()
@@ -810,21 +771,21 @@ export default function DirectoryPage() {
       saveSearchHistory({ search: cleanSearch, city: cleanCity })
       setRecentSearches(getSearchHistory())
     }
-    // Resolve any translated term to its English canonical before sending to
-    // the backend. Unknown freeform text passes through unchanged.
-    updateFilter('search', toEnglishSearchTerm(cleanSearch))
-    // Also commit the inline city field
-    updateFilter('city', toEnglishCity(cleanCity))
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev)
+      const resolvedSearch = toEnglishSearchTerm(cleanSearch)
+      const resolvedCity = toEnglishCity(cleanCity)
+      if (resolvedSearch) next.set('search', resolvedSearch); else next.delete('search')
+      if (resolvedCity) next.set('city', resolvedCity); else next.delete('city')
+      next.delete('page')
+      return next
+    }, { replace: true })
   }
 
   function clearFilters() {
-    setFilters({
-      search: '', category_id: '', city: '', country: '',
-      profile_type: '', verified_only: false, open_now: false, sort: 'featured', page: 1,
-    })
     setSearchInput('')
     setCityInput('')
-    setSearchParams({})
+    setSearchParams(new URLSearchParams(), { replace: true })
     setUseNearMe(false)
     geo.clear?.()
   }
@@ -897,21 +858,32 @@ export default function DirectoryPage() {
               initialSearch={searchInput}
               initialCity={cityInput}
               onSearch={({ search, city, category_id }) => {
-                if (search !== undefined) {
-                  setSearchInput(search)
-                  updateFilter('search', search)
-                }
-                if (city !== undefined) {
-                  setCityInput(city)
-                  updateFilter('city', city)
-                }
-                if (category_id !== undefined) {
-                  updateFilter('category_id', category_id)
-                }
-                if (search || city) {
-                  saveSearchHistory({ search: search || '', city: city || '' })
+                const s = search !== undefined ? search : searchInput
+                const c = city !== undefined ? city : cityInput
+                if (search !== undefined) setSearchInput(search)
+                if (city !== undefined) setCityInput(city)
+
+                if (s || c) {
+                  saveSearchHistory({ search: s || '', city: c || '' })
                   setRecentSearches(getSearchHistory())
                 }
+
+                setSearchParams(prev => {
+                  const next = new URLSearchParams(prev)
+                  if (search !== undefined) {
+                    const resolved = toEnglishSearchTerm(search)
+                    if (resolved) next.set('search', resolved); else next.delete('search')
+                  }
+                  if (city !== undefined) {
+                    const resolved = toEnglishCity(city)
+                    if (resolved) next.set('city', resolved); else next.delete('city')
+                  }
+                  if (category_id !== undefined) {
+                    if (category_id) next.set('category_id', category_id); else next.delete('category_id')
+                  }
+                  next.delete('page')
+                  return next
+                }, { replace: true })
               }}
               recentSearches={recentSearches}
               onSelectRecent={(item) => handleSelectRecentSearch(item)}
@@ -1292,11 +1264,13 @@ export default function DirectoryPage() {
               </div>
 
               {/* ── Results ──────────────────────────────────────────── */}
-              {isFetching && profiles.length > 0 && (
-                <div className="w-full h-0.5 bg-border/40 overflow-hidden mb-3 rounded-full" aria-hidden="true">
-                  <div className="h-full bg-ink/50 dark:bg-white/50 animate-pulse w-1/3 rounded-full mx-auto" />
-                </div>
-              )}
+              <div className="w-full h-1 mb-2 overflow-hidden rounded-full" aria-hidden="true">
+                {isFetching && profiles.length > 0 && (
+                  <div className="w-full h-full bg-border/40 overflow-hidden">
+                    <div className="h-full bg-ink/50 dark:bg-white/50 animate-pulse w-1/3 rounded-full mx-auto" />
+                  </div>
+                )}
+              </div>
               {isLoading && profiles.length === 0 ? (
                 /* Skeleton grid — mirrors real layout */
                 viewMode === 'list' ? (
