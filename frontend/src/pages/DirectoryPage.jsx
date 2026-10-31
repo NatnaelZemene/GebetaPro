@@ -19,7 +19,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import {
   Search, SlidersHorizontal, X, MapPin, LayoutGrid, List, Map,
-  ChevronDown, ChevronUp, Users, BadgeCheck, LocateFixed, ArrowRight,
+  ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Users, BadgeCheck, LocateFixed, ArrowRight,
   ArrowUpRight, History, Clock, Star,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -57,9 +57,13 @@ const SORT_OPTION_VALUES = [
 function flattenCategories(tree) {
   const result = []
   for (const cat of tree) {
-    result.push(cat)
-    if (Array.isArray(cat.children)) {
-      for (const child of cat.children) result.push({ ...child, isChild: true })
+    if (cat.isChild !== undefined) {
+      result.push(cat)
+    } else {
+      result.push({ ...cat, isChild: !!cat.parent_id })
+      if (Array.isArray(cat.children)) {
+        for (const child of cat.children) result.push({ ...child, isChild: true })
+      }
     }
   }
   return result
@@ -214,7 +218,7 @@ function FilterPanel({
             <button
               key={cat.id}
               type="button"
-              onClick={() => updateFilter('category_id', cat.id)}
+              onClick={() => updateFilter('category_id', filters.category_id === cat.id ? '' : cat.id)}
               className={`
                 text-left text-[13px] px-2 py-1.5 rounded-lg transition-colors duration-100
                 flex items-center gap-1.5
@@ -602,6 +606,154 @@ function Pagination({ page, totalPages, onPageChange }) {
   )
 }
 
+/**
+ * CategoryQuickNav — Horizontal scrollable category pill bar with smooth desktop controls.
+ * Fixes left-overflow clipping on 14-inch laptops by enforcing start-alignment and providing scroll chevrons.
+ */
+function CategoryQuickNav({ categories, selectedCategoryId, onSelectCategory }) {
+  const { t } = useTranslation()
+  const scrollRef = useRef(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
+
+  const rootCategories = useMemo(
+    () => categories.filter(c => !c.isChild),
+    [categories],
+  )
+
+  const updateScrollState = useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const { scrollLeft, scrollWidth, clientWidth } = el
+    setCanScrollLeft(scrollLeft > 6)
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 6)
+  }, [])
+
+  useEffect(() => {
+    updateScrollState()
+    const el = scrollRef.current
+    if (!el) return
+
+    el.addEventListener('scroll', updateScrollState, { passive: true })
+    window.addEventListener('resize', updateScrollState)
+
+    return () => {
+      el.removeEventListener('scroll', updateScrollState)
+      window.removeEventListener('resize', updateScrollState)
+    }
+  }, [updateScrollState, rootCategories])
+
+  const handleScroll = (direction) => {
+    const el = scrollRef.current
+    if (!el) return
+    const offset = direction === 'left' ? -320 : 320
+    el.scrollBy({ left: offset, behavior: 'smooth' })
+  }
+
+  if (rootCategories.length === 0) return null
+
+  return (
+    <div className="relative mt-2 pb-3">
+      {/* Left scroll chevron & gentle fade */}
+      {canScrollLeft && (
+        <>
+          <div
+            className="absolute left-0 top-0 bottom-3 w-12 bg-gradient-to-r from-surface to-transparent pointer-events-none z-[5]"
+            aria-hidden="true"
+          />
+          <button
+            type="button"
+            onClick={() => handleScroll('left')}
+            className="
+              absolute left-0 top-1/2 -translate-y-1/2 z-10
+              w-7 h-7 sm:w-8 sm:h-8 rounded-full
+              bg-surface/95 border border-border shadow-md
+              flex items-center justify-center text-ink hover:text-brand hover:scale-105 active:scale-95
+              transition-all duration-150 cursor-pointer backdrop-blur-sm
+            "
+            aria-label="Scroll categories left"
+          >
+            <ChevronLeft size={16} />
+          </button>
+        </>
+      )}
+
+      {/* Scrollable pill track: starts cleanly at left margin, never clips */}
+      <div
+        ref={scrollRef}
+        className="
+          flex items-center gap-1.5 overflow-x-auto py-1 px-1
+          justify-start scroll-smooth
+          [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden
+        "
+        role="navigation"
+        aria-label="Filter by category"
+      >
+        <button
+          type="button"
+          onClick={() => onSelectCategory('')}
+          className={`
+            flex items-center gap-1.5 px-3 py-1.5
+            text-[12.5px] font-medium whitespace-nowrap rounded-lg
+            transition-all duration-150 shrink-0 cursor-pointer
+            ${!selectedCategoryId
+              ? 'bg-ink text-surface font-semibold shadow-xs'
+              : 'text-ink-2 hover:text-ink hover:bg-surface-2/80'
+            }
+          `}
+        >
+          {t('directory.allCategories')}
+        </button>
+
+        {rootCategories.map(cat => (
+          <button
+            key={cat.id}
+            type="button"
+            onClick={() => onSelectCategory(cat.id)}
+            className={`
+              flex items-center gap-1.5 px-3 py-1.5
+              text-[12.5px] font-medium whitespace-nowrap rounded-lg
+              transition-all duration-150 shrink-0 cursor-pointer
+              ${selectedCategoryId === cat.id
+                ? 'bg-ink text-surface font-semibold shadow-xs'
+                : 'text-ink-2 hover:text-ink hover:bg-surface-2/80'
+              }
+            `}
+            aria-pressed={selectedCategoryId === cat.id}
+          >
+            <CategoryIconInline slug={cat.slug} name={cat.name} size={13} />
+            {cat.name}
+          </button>
+        ))}
+      </div>
+
+      {/* Right scroll chevron & gentle fade */}
+      {canScrollRight && (
+        <>
+          <div
+            className="absolute right-0 top-0 bottom-3 w-12 bg-gradient-to-l from-surface to-transparent pointer-events-none z-[5]"
+            aria-hidden="true"
+          />
+          <button
+            type="button"
+            onClick={() => handleScroll('right')}
+            className="
+              absolute right-0 top-1/2 -translate-y-1/2 z-10
+              w-7 h-7 sm:w-8 sm:h-8 rounded-full
+              bg-surface/95 border border-border shadow-md
+              flex items-center justify-center text-ink hover:text-brand hover:scale-105 active:scale-95
+              transition-all duration-150 cursor-pointer backdrop-blur-sm
+            "
+            aria-label="Scroll categories right"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </>
+      )}
+    </div>
+  )
+}
+
 /* ════════════════════════════════════════════════════════════════════════════════
    DirectoryPage
 ════════════════════════════════════════════════════════════════════════════════ */
@@ -900,53 +1052,11 @@ export default function DirectoryPage() {
             />
 
             {/* ── Category quick-nav ──────────────────────────────────── */}
-            {categories.filter(c => !c.isChild).length > 0 && (
-              <div
-                className="
-                  flex items-center gap-1.5 overflow-x-auto pb-3 pt-1
-                  -mx-5 px-5 sm:-mx-8 sm:px-8 sm:justify-center
-                "
-                style={{ scrollbarWidth: 'none' }}
-                role="navigation"
-                aria-label="Filter by category"
-              >
-                <button
-                  type="button"
-                  onClick={() => updateFilter('category_id', '')}
-                  className={`
-                    flex items-center gap-1.5 px-3 py-1.5
-                    text-[12.5px] font-medium whitespace-nowrap rounded-lg
-                    transition-all duration-150 shrink-0 cursor-pointer
-                    ${!filters.category_id
-                      ? 'bg-ink text-surface font-semibold shadow-xs'
-                      : 'text-ink-2 hover:text-ink hover:bg-surface-2/80'
-                    }
-                  `}
-                >
-                  {t('directory.allCategories')}
-                </button>
-                {categories.filter(c => !c.isChild).map(cat => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => updateFilter('category_id', cat.id)}
-                    className={`
-                      flex items-center gap-1.5 px-3 py-1.5
-                      text-[12.5px] font-medium whitespace-nowrap rounded-lg
-                      transition-all duration-150 shrink-0 cursor-pointer
-                      ${filters.category_id === cat.id
-                        ? 'bg-ink text-surface font-semibold shadow-xs'
-                        : 'text-ink-2 hover:text-ink hover:bg-surface-2/80'
-                      }
-                    `}
-                    aria-pressed={filters.category_id === cat.id}
-                  >
-                    <CategoryIconInline slug={cat.slug} name={cat.name} size={13} />
-                    {cat.name}
-                  </button>
-                ))}
-              </div>
-            )}
+            <CategoryQuickNav
+              categories={categories}
+              selectedCategoryId={filters.category_id}
+              onSelectCategory={(id) => updateFilter('category_id', filters.category_id === id ? '' : id)}
+            />
           </div>
         </div>
 
