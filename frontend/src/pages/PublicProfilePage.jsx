@@ -53,9 +53,40 @@ function ViewAllLink({ label, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex items-center gap-1 text-[13px] font-medium text-brand hover:text-brand-hover hover:underline transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
+      className="
+        group relative inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl
+        text-[12.5px] font-semibold tracking-wide
+        bg-surface/90 hover:bg-surface text-ink hover:text-brand
+        border border-border/80 hover:border-brand-border
+        shadow-xs hover:shadow-md hover:shadow-brand/15 dark:hover:shadow-[0_0_20px_rgba(45,212,191,0.18)]
+        active:scale-[0.97] transition-all duration-200 ease-out
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2
+        cursor-pointer select-none shrink-0 overflow-hidden backdrop-blur-sm
+      "
     >
-      {label} <ArrowRight size={13} />
+      <span
+        className="
+          absolute inset-0 -translate-x-full group-hover:translate-x-full
+          transition-transform duration-700 ease-in-out pointer-events-none
+          bg-gradient-to-r from-transparent via-brand/15 to-transparent
+        "
+        aria-hidden="true"
+      />
+      <span className="relative z-10 leading-none">{label}</span>
+      <span
+        className="
+          relative z-10 w-5 h-5 rounded-lg bg-surface-2 text-ink-3
+          group-hover:bg-brand group-hover:text-brand-fg group-hover:shadow-xs
+          flex items-center justify-center shrink-0
+          transition-all duration-200 ease-out
+        "
+        aria-hidden="true"
+      >
+        <ArrowRight
+          size={12}
+          className="transition-transform duration-200 ease-out group-hover:translate-x-0.5"
+        />
+      </span>
     </button>
   )
 }

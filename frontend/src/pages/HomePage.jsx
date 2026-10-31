@@ -206,6 +206,58 @@ function HeroSearchForm({ onSearch }) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
+   ExploreAllButton — Advanced interactive button for section headers & discovery
+───────────────────────────────────────────────────────────────────────────── */
+function ExploreAllButton({ onClick, label, ariaLabel, className = '' }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={ariaLabel || label}
+      className={`
+        group relative inline-flex items-center gap-2.5 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl
+        text-[13px] sm:text-[13.5px] font-semibold tracking-wide
+        bg-surface/90 hover:bg-surface text-ink hover:text-brand
+        border border-border/80 hover:border-brand-border
+        shadow-xs hover:shadow-md hover:shadow-brand/15 dark:hover:shadow-[0_0_24px_rgba(45,212,191,0.2)]
+        active:scale-[0.97] transition-all duration-200 ease-out
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2
+        cursor-pointer select-none shrink-0 overflow-hidden backdrop-blur-sm
+        ${className}
+      `}
+    >
+      {/* Dynamic light shimmer sweep on hover */}
+      <span
+        className="
+          absolute inset-0 -translate-x-full group-hover:translate-x-full
+          transition-transform duration-700 ease-in-out pointer-events-none
+          bg-gradient-to-r from-transparent via-brand/15 to-transparent
+        "
+        aria-hidden="true"
+      />
+
+      <span className="relative z-10 leading-none">{label}</span>
+
+      {/* Embedded arrow badge with dynamic hover transformation */}
+      <span
+        className="
+          relative z-10 w-6 h-6 rounded-lg bg-surface-2 text-ink-3
+          group-hover:bg-brand group-hover:text-brand-fg group-hover:shadow-xs
+          flex items-center justify-center shrink-0
+          transition-all duration-200 ease-out
+        "
+        aria-hidden="true"
+      >
+        <ArrowRight
+          size={13}
+          className="transition-transform duration-200 ease-out group-hover:translate-x-0.5"
+        />
+      </span>
+    </button>
+  )
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
    Category gateway card (asymmetric discovery grid)
 ───────────────────────────────────────────────────────────────────────────── */
 function CategoryGateway({ cat, large = false, onClick }) {
@@ -272,7 +324,7 @@ export default function HomePage() {
   const { data: categoriesData } = useCategories()
   const topCategories = useMemo(() => {
     const tree = Array.isArray(categoriesData) ? categoriesData : []
-    return tree.slice(0, 8)
+    return tree.filter(c => !c.parent_id).slice(0, 8)
   }, [categoriesData])
 
   const { data: featuredData, isLoading } = useProfileSearch({ page_size: 8 })
@@ -468,17 +520,12 @@ export default function HomePage() {
                   {t('home.whatLookingFor')}
                 </h2>
               </div>
-              <button
+              <ExploreAllButton
                 onClick={() => navigate('/directory')}
-                className="
-                  hidden sm:flex items-center gap-1.5
-                  text-[13px] font-medium text-ink-2 hover:text-ink
-                  transition-colors duration-150
-                "
-                aria-label="View all categories"
-              >
-                {t('home.viewAll')} <ChevronRight size={14} />
-              </button>
+                label={t('home.exploreAll')}
+                ariaLabel={t('home.viewAllCategories')}
+                className="hidden sm:inline-flex"
+              />
             </div>
 
             {/* Desktop: asymmetric bento layout */}
@@ -534,14 +581,14 @@ export default function HomePage() {
               ))}
             </div>
 
-            {/* Mobile — view all link */}
-            <div className="sm:hidden mt-4 text-center">
-              <button
+            {/* Mobile — explore all categories */}
+            <div className="sm:hidden mt-6 text-center">
+              <ExploreAllButton
                 onClick={() => navigate('/directory')}
-                className="text-[13px] font-medium text-brand flex items-center gap-1 mx-auto hover:text-brand-hover hover:no-underline transition-colors"
-              >
-                {t('home.viewAllCategories')} <ChevronRight size={13} />
-              </button>
+                label={t('home.exploreAll')}
+                ariaLabel={t('home.viewAllCategories')}
+                className="w-full justify-center max-w-xs mx-auto"
+              />
             </div>
           </section>
         )}
@@ -566,15 +613,12 @@ export default function HomePage() {
                   {t('home.peopleMakingThings')}
                 </h2>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                iconRight={<ArrowRight size={13} />}
+              <ExploreAllButton
                 onClick={() => navigate('/directory')}
-                className="hidden sm:inline-flex text-ink-2 shrink-0"
-              >
-                {t('home.seeAll')}
-              </Button>
+                label={t('home.exploreAll')}
+                ariaLabel={t('home.seeAllListings')}
+                className="hidden sm:inline-flex"
+              />
             </div>
 
             {/* Content */}
@@ -628,16 +672,14 @@ export default function HomePage() {
                   ))}
                 </div>
 
-                {/* Mobile — see all */}
-                <div className="sm:hidden mt-6 text-center">
-                  <Button
-                    variant="secondary"
-                    size="md"
-                    iconRight={<ArrowRight size={14} />}
+                {/* Mobile — explore all */}
+                <div className="sm:hidden mt-8 text-center">
+                  <ExploreAllButton
                     onClick={() => navigate('/directory')}
-                  >
-                    {t('home.seeAllListings')}
-                  </Button>
+                    label={t('home.exploreAll')}
+                    ariaLabel={t('home.seeAllListings')}
+                    className="w-full justify-center max-w-xs mx-auto"
+                  />
                 </div>
               </>
             )}
