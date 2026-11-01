@@ -16,6 +16,7 @@
     "db:migrate:status": "node database/migrate.js --status",
     "db:seed": "node database/seed.js",
     "db:seed:demo": "node database/seed_demo.js",
+    "db:seed:gondar": "node database/seed_gondar_real_data.js",
     "db:seed:gondar-presentation": "node database/seed_gondar_presentation.js",
     "db:cleanup:gondar-presentation": "node database/cleanup_gondar_presentation.js"
   },
