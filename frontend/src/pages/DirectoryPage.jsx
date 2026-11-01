@@ -993,7 +993,14 @@ export default function DirectoryPage() {
             Compact. Focused. The search is the centrepiece.
         ════════════════════════════════════════════════════════════════════ */}
         <div className="bg-surface border-b border-border">
-          <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-5 sm:pt-6 pb-0">
+          <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-6 pb-0">
+
+            {/* Context header */}
+            <div className="text-center max-w-2xl mx-auto mb-5">
+              <h1 className="text-[22px] sm:text-[28px] font-extrabold text-ink tracking-tight">
+                {t('directory.findAnyone')}
+              </h1>
+            </div>
 
             {/* ── Ultimate Command Bar Search Engine ─────────────────── */}
             <UltimateSearchBar
