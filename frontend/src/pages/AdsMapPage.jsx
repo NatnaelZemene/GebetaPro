@@ -13,6 +13,7 @@ import { Button } from '../components/ui/Button.jsx'
 import { MapListingsView } from '../features/locations/components/MapListingsView.jsx'
 import { RadiusSelector } from '../features/locations/components/RadiusSelector.jsx'
 import { UserLocationButtonControlled } from '../features/locations/components/UserLocationButton.jsx'
+import { MapCategoryDropdown } from '../features/locations/components/MapCategoryDropdown.jsx'
 import { useGeolocation } from '../features/locations/hooks/useGeolocation.js'
 import { useMapPins } from '../features/locations/hooks/useMapPins.js'
 import { findNearby } from '../features/locations/services/locationsService.js'
@@ -62,7 +63,7 @@ export default function DirectoryMapPage() {
       <main className="flex-1 flex flex-col" id="main-content">
 
         {/* Toolbar */}
-        <div className="bg-surface border-b border-border px-4 py-2.5 flex flex-wrap items-center gap-3">
+        <div className="relative z-30 bg-surface border-b border-border px-4 py-2.5 flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2 shrink-0">
             <MapPin size={15} className="text-brand" />
             <span className="text-[14px] font-semibold text-ink">Profile map</span>
@@ -85,19 +86,12 @@ export default function DirectoryMapPage() {
             />
           </div>
 
-          {/* Category filter */}
-          <select
+          {/* Advanced Category filter dropdown */}
+          <MapCategoryDropdown
+            categories={categories}
             value={categoryId}
-            onChange={e => setCategoryId(e.target.value)}
-            className="h-8 pl-2 pr-6 bg-canvas border border-border rounded-lg text-[13px] text-ink-2 outline-none focus:border-brand appearance-none cursor-pointer hidden sm:block"
-          >
-            <option value="">{t('directory.allCategories')}</option>
-            {categories.map(cat => (
-              <option key={cat.id} value={cat.id}>
-                {t(`categories.${cat.name}`, { defaultValue: cat.name })}
-              </option>
-            ))}
-          </select>
+            onChange={setCategoryId}
+          />
 
           {/* GPS + Radius */}
           <div className="flex items-center gap-2 ml-auto">
