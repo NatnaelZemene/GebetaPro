@@ -30,8 +30,8 @@ const PLAN_OPTS = [
 
 const STATUS_BADGE = {
   ACTIVE:  <Badge variant="success" dot size="xs">Active</Badge>,
-  EXPIRED: <Badge variant="default" dot size="xs">Expired</Badge>,
-  FREE:    <Badge variant="default" dot size="xs">Free</Badge>,
+  EXPIRED: <Badge variant="danger"  dot size="xs">Expired</Badge>,
+  FREE:    <Badge variant="default" size="xs">Free Plan</Badge>,
 }
 
 const PLAN_BADGE = {
@@ -90,27 +90,72 @@ function CopyButton({ text, label = 'Copy' }) {
 
 /* ── Days remaining indicator ──────────────────────────────────────────── */
 function DaysLeft({ end, status }) {
-  if (!end || status !== 'ACTIVE') return null
+  if (status === 'FREE') {
+    return <span className="text-[11px] text-ink-4 font-normal">Perpetual</span>
+  }
+  if (!end) return null
   const ms = new Date(end) - Date.now()
   const d  = Math.ceil(ms / 86400000)
-  if (d < 0)   return <span className="text-[11px] text-danger font-medium">Expired</span>
-  if (d === 0) return <span className="text-[11px] text-warning font-medium">Expires today</span>
-  if (d <= 7)  return <span className="text-[11px] text-warning font-medium">{d}d left</span>
-  return <span className="text-[11px] text-ink-3">{d}d left</span>
+
+  if (status === 'EXPIRED' || d < 0) {
+    const ago = Math.abs(d)
+    return (
+      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-600 dark:text-rose-400">
+        Expired {ago > 0 ? `${ago}d ago` : 'today'}
+      </span>
+    )
+  }
+
+  if (d === 0) {
+    return (
+      <span className="inline-flex items-center px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[11px] font-bold">
+        Expires today!
+      </span>
+    )
+  }
+
+  if (d <= 3) {
+    return (
+      <span className="inline-flex items-center px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[11px] font-bold">
+        {d}d left (critical)
+      </span>
+    )
+  }
+
+  if (d <= 7) {
+    return (
+      <span className="inline-flex items-center px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[11px] font-medium">
+        {d}d left
+      </span>
+    )
+  }
+
+  return <span className="text-[11.5px] text-ink-3 tabular-nums font-medium">{d} days left</span>
 }
 
 /* ── Expiry bar ────────────────────────────────────────────────────────── */
 function ExpiryBar({ start, end, status }) {
   if (!start || !end || status !== 'ACTIVE') return null
   const total   = new Date(end) - new Date(start)
+  if (total <= 0) return null
   const elapsed = Date.now() - new Date(start)
   const pct     = Math.max(0, Math.min(100, (elapsed / total) * 100))
-  const isLow   = pct > 80
+  const isCritical = pct >= 90
+  const isWarning  = pct >= 75 && !isCritical
 
   return (
-    <div className="mt-1.5 w-full max-w-[80px] h-1 bg-surface-2 rounded-full overflow-hidden">
+    <div
+      className="mt-1.5 w-full max-w-[90px] h-1.5 bg-surface-2 dark:bg-surface-2/60 rounded-full overflow-hidden border border-border/40"
+      title={`${Math.round(pct)}% of billing period elapsed`}
+    >
       <div
-        className={`h-full rounded-full transition-all ${isLow ? 'bg-warning' : 'bg-brand'}`}
+        className={`h-full rounded-full transition-all duration-300 ${
+          isCritical
+            ? 'bg-rose-500'
+            : isWarning
+            ? 'bg-amber-500'
+            : 'bg-emerald-500'
+        }`}
         style={{ width: `${pct}%` }}
       />
     </div>
