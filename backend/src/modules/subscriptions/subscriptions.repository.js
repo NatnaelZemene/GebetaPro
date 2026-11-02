@@ -510,8 +510,12 @@ export async function findAllSubscriptions({
   }
 
   if (plan) {
-    params.push(plan.toUpperCase())
-    whereClause += ` AND sp.name = $${params.length}`
+    if (plan.toUpperCase() === 'PAID') {
+      whereClause += ` AND sp.name != 'FREE'`
+    } else {
+      params.push(plan.toUpperCase())
+      whereClause += ` AND sp.name = $${params.length}`
+    }
   }
 
   if (expiring_days) {

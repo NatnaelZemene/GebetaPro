@@ -17,6 +17,13 @@ const STATUS_OPTS = [
   { value: 'EXPIRED', label: 'Expired' },
 ]
 
+const PLAN_OPTS = [
+  { value: 'FREE',     label: 'Free' },
+  { value: 'BASIC',    label: 'Basic' },
+  { value: 'PRO',      label: 'Pro' },
+  { value: 'BUSINESS', label: 'Business' },
+]
+
 const STATUS_BADGE = {
   ACTIVE:  <Badge variant="success" dot size="xs">Active</Badge>,
   EXPIRED: <Badge variant="default" dot size="xs">Expired</Badge>,
@@ -63,6 +70,8 @@ export default function AdminSubscriptionsPage() {
   const [searchParams] = useSearchParams()
   const [search, setSearch] = useState(searchParams.get('search') || '')
   const [status, setStatus] = useState(searchParams.get('status') || '')
+  const [plan,   setPlan]   = useState(searchParams.get('plan')   || '')
+  const [expiringDays, setExpiringDays] = useState(searchParams.get('expiring_days') || '')
   const [page,   setPage]   = useState(1)
   const [debSearch, setDebSearch] = useState(search)
 
@@ -71,12 +80,14 @@ export default function AdminSubscriptionsPage() {
     return () => clearTimeout(t)
   }, [search])
 
-  useEffect(() => { setPage(1) }, [debSearch, status])
+  useEffect(() => { setPage(1) }, [debSearch, status, plan, expiringDays])
 
   const params = {
     page, page_size: 20,
-    ...(debSearch && { search: debSearch }),
-    ...(status    && { status }),
+    ...(debSearch    && { search: debSearch }),
+    ...(status       && { status }),
+    ...(plan         && { plan }),
+    ...(expiringDays && { expiring_days: expiringDays }),
   }
 
   const { data, isLoading, error } = useAdminSubscriptions(params)
@@ -90,6 +101,50 @@ export default function AdminSubscriptionsPage() {
   const expiredSubs  = Number(overview?.expired_subscriptions ?? 0)
   const mrrEtb       = Number(overview?.mrr_etb ?? overview?.total_revenue_etb ?? 0)
   const activeRate   = totalSubs > 0 ? Math.round((activeSubs / totalSubs) * 100) : 100
+
+  // Quick segment tab selection
+  const activeSegment = expiringDays === '7'
+    ? 'expiring'
+    : plan === 'PAID'
+    ? 'paid'
+    : status === 'ACTIVE'
+    ? 'active'
+    : status === 'EXPIRED'
+    ? 'expired'
+    : 'all'
+
+  function handleSelectSegment(seg) {
+    setPage(1)
+    if (seg === 'all') {
+      setStatus('')
+      setPlan('')
+      setExpiringDays('')
+    } else if (seg === 'active') {
+      setStatus('ACTIVE')
+      setPlan('')
+      setExpiringDays('')
+    } else if (seg === 'expiring') {
+      setStatus('')
+      setPlan('')
+      setExpiringDays('7')
+    } else if (seg === 'expired') {
+      setStatus('EXPIRED')
+      setPlan('')
+      setExpiringDays('')
+    } else if (seg === 'paid') {
+      setStatus('')
+      setPlan('PAID')
+      setExpiringDays('')
+    }
+  }
+
+  const SEGMENTS = [
+    { id: 'all',      label: 'All Subscriptions', count: totalSubs },
+    { id: 'active',   label: 'Active',            count: activeSubs },
+    { id: 'expiring', label: 'Expiring Soon (7d)', count: expiringSoon, alert: expiringSoon > 0 },
+    { id: 'expired',  label: 'Expired',           count: expiredSubs },
+    { id: 'paid',     label: 'Paid Plans' },
+  ]
 
   const columns = [
     {
@@ -206,21 +261,61 @@ export default function AdminSubscriptionsPage() {
         />
       </div>
 
+      {/* Segment filter pills */}
+      <div className="flex items-center gap-1.5 p-1 bg-surface-2/60 dark:bg-surface-2/30 border border-border/70 rounded-xl w-fit mb-4 overflow-x-auto max-w-full">
+        {SEGMENTS.map(tab => {
+          const isCurrent = activeSegment === tab.id
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => handleSelectSegment(tab.id)}
+              className={`
+                px-3 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-150 cursor-pointer whitespace-nowrap
+                flex items-center gap-2
+                ${isCurrent
+                  ? 'bg-surface dark:bg-canvas text-ink shadow-xs font-semibold'
+                  : 'text-ink-3 hover:text-ink hover:bg-surface/50'
+                }
+              `}
+            >
+              <span>{tab.label}</span>
+              {tab.count !== undefined && (
+                <span
+                  className={`
+                    px-1.5 py-0.2 rounded-md text-[11px] font-semibold tabular-nums
+                    ${tab.alert
+                      ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold'
+                      : isCurrent
+                      ? 'bg-brand/10 text-brand'
+                      : 'bg-surface-2 text-ink-3'
+                    }
+                  `}
+                >
+                  {tab.count.toLocaleString()}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+
       <div className="flex flex-col gap-5">
         <div className="flex flex-wrap items-center gap-2">
           <SearchBar
             value={search}
             onChange={setSearch}
-            placeholder="Search by email…"
+            placeholder="Search by email, name, business…"
             className="w-full sm:flex-1 sm:max-w-xs"
           />
           <FilterSelect value={status} onChange={setStatus} options={STATUS_OPTS} placeholder="All statuses" />
-          {(search || status) && (
+          <FilterSelect value={plan}   onChange={setPlan}   options={PLAN_OPTS}   placeholder="All plans" />
+          {(search || status || plan || expiringDays) && (
             <button
-              onClick={() => { setSearch(''); setStatus('') }}
-              className="text-[12.5px] text-ink-3 hover:text-danger transition-colors"
+              onClick={() => { setSearch(''); setStatus(''); setPlan(''); setExpiringDays('') }}
+              className="text-[12.5px] text-ink-3 hover:text-danger transition-colors cursor-pointer"
             >
-              Clear
+              Clear filters
             </button>
           )}
         </div>
