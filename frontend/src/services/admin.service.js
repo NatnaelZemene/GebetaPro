@@ -48,6 +48,11 @@ export async function activateUser(userId) {
   return r.data.data
 }
 
+export async function bulkUpdateUserStatus(userIds, status) {
+  const r = await apiClient.patch('/admin/users/bulk-status', { userIds, status })
+  return r.data.data
+}
+
 export async function promoteUser(userId) {
   const r = await apiClient.patch(`/admin/users/${userId}/promote`)
   return r.data.data

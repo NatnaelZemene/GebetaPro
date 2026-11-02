@@ -47,6 +47,13 @@ const setStatusSchema = z.object({
   }),
 })
 
+const bulkStatusSchema = z.object({
+  body: z.object({
+    userIds: z.array(z.string().uuid()).min(1).max(100),
+    status:  z.enum(['ACTIVE', 'SUSPENDED']),
+  }),
+})
+
 const listQuerySchema = z.object({
   query: z.object({
     page:      z.coerce.number().int().positive().optional(),
@@ -86,6 +93,7 @@ router.get('/revenue',                              ...guard,                   
 
 // ── Users ─────────────────────────────────────────────────────────────────────
 router.get('/users',                                ...guard, validate(listQuerySchema),           ctrl.listUsers)
+router.patch('/users/bulk-status',                  ...guard, validate(bulkStatusSchema),          ctrl.bulkUpdateUserStatus)
 router.get('/users/:userId',                        ...guard, validate(uuidParam('userId')),       ctrl.getUserDetail)
 router.get('/users/:userId/ads',                    ...guard, validate(uuidParam('userId')),       ctrl.getUserAds)
 router.patch('/users/:userId/suspend',              ...guard, validate(uuidParam('userId')),       ctrl.suspendUser)

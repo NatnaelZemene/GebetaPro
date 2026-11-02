@@ -49,6 +49,12 @@ export const activateUser = asyncHandler(async (req, res) => {
   sendSuccess(res, 'User activated', result)
 })
 
+export const bulkUpdateUserStatus = asyncHandler(async (req, res) => {
+  const { userIds, status } = req.body
+  const result = await service.bulkUpdateUserStatus(userIds, status, req.user.id)
+  sendSuccess(res, `Updated ${result.length} users to ${status}`, result)
+})
+
 export const promoteToAdmin = asyncHandler(async (req, res) => {
   const result = await service.promoteToAdmin(req.params.userId, req.user.id)
   sendSuccess(res, 'User promoted to admin', result)

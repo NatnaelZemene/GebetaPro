@@ -128,6 +128,17 @@ export function useActivateUser() {
   })
 }
 
+export function useBulkUserStatus() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ userIds, status }) => api.bulkUpdateUserStatus(userIds, status),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'users'] })
+      qc.invalidateQueries({ queryKey: ['admin', 'stats'] })
+    },
+  })
+}
+
 export function usePromoteUser() {
   const qc = useQueryClient()
   return useMutation({

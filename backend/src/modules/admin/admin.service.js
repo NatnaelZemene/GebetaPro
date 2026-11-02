@@ -86,6 +86,16 @@ export async function activateUser(userId, adminId) {
   return updated
 }
 
+export async function bulkUpdateUserStatus(userIds, status, adminId) {
+  const safeIds = userIds.filter(id => id !== adminId)
+  if (safeIds.length === 0) {
+    throw createError('No valid accounts to update (cannot modify your own account status)', 400, 'INVALID_USER_IDS')
+  }
+  const updated = await repo.bulkUpdateUserStatus(safeIds, status, adminId)
+  logger.info({ adminId, count: updated.length, status }, 'Admin bulk-updated user statuses')
+  return updated
+}
+
 export async function promoteToAdmin(userId, adminId) {
   if (userId === adminId) throw createError('Cannot change your own role', 409, 'CANNOT_SELF_PROMOTE')
   const user = await repo.findUserById(userId)

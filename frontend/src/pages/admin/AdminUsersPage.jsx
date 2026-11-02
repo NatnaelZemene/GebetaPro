@@ -13,12 +13,13 @@ import { useSearchParams } from 'react-router-dom'
 import {
   Shield, ShieldOff, UserCheck, UserX, Trash2,
   MoreHorizontal, BadgeCheck, AlertTriangle, Users, UserPlus,
-  Copy, Check, ExternalLink,
+  Copy, Check, ExternalLink, Download, X,
 } from 'lucide-react'
 import { AdminLayout }  from '../../components/layout/AdminLayout.jsx'
 import { Badge }        from '../../components/ui/Badge.jsx'
 import { CategoryIconInline } from '../../features/profiles/components/CategoryIcon.jsx'
 import { UserDetailDrawer } from '../../features/admin/components/UserDetailDrawer.jsx'
+import { exportUsersToCSV } from '../../features/admin/utils/exportUsersCSV.js'
 import { useFocusTrap } from '../../hooks/useFocusTrap.js'
 import {
   AdminTable, SearchBar, FilterSelect,
@@ -26,7 +27,7 @@ import {
 } from '../../features/admin/components/AdminTable.jsx'
 import {
   useAdminUsers, useAdminStats, useSuspendUser, useActivateUser,
-  usePromoteUser, useDemoteUser, useDeleteUser,
+  usePromoteUser, useDemoteUser, useDeleteUser, useBulkUserStatus,
 } from '../../features/admin/hooks/useAdmin.js'
 
 /* ── Badges ────────────────────────────────────────────────────────────── */
@@ -100,6 +101,28 @@ function CopyButton({ text, label = 'Copy' }) {
     >
       {copied ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
     </button>
+  )
+}
+
+/* ── Table row & header checkbox with indeterminate support ────────────── */
+function TableCheckbox({ checked, indeterminate, onChange, ariaLabel }) {
+  const ref = useRef(null)
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.indeterminate = Boolean(indeterminate)
+    }
+  }, [indeterminate])
+
+  return (
+    <input
+      ref={ref}
+      type="checkbox"
+      checked={checked}
+      onChange={onChange}
+      onClick={e => e.stopPropagation()}
+      className="w-4 h-4 rounded border-border text-brand focus:ring-brand/20 accent-brand cursor-pointer transition-colors"
+      aria-label={ariaLabel}
+    />
   )
 }
 
@@ -355,12 +378,18 @@ export default function AdminUsersPage() {
   const promote  = usePromoteUser()
   const demote   = useDemoteUser()
   const deleteUser = useDeleteUser()
+  const bulkStatus = useBulkUserStatus()
 
   const [confirmDelete, setConfirmDelete] = useState(null) // holds the user object to delete
   const [selectedUser, setSelectedUser] = useState(null) // holds user for slide-over drawer
+  const [selectedIds, setSelectedIds] = useState([]) // selected user ids for bulk actions
 
-  const anyMutating = suspend.isPending || activate.isPending || promote.isPending || demote.isPending || deleteUser.isPending
-  const mutationError = suspend.error || activate.error || promote.error || demote.error || deleteUser.error
+  useEffect(() => {
+    setSelectedIds([])
+  }, [debSearch, status, role, page])
+
+  const anyMutating = suspend.isPending || activate.isPending || promote.isPending || demote.isPending || deleteUser.isPending || bulkStatus.isPending
+  const mutationError = suspend.error || activate.error || promote.error || demote.error || deleteUser.error || bulkStatus.error
 
   const users      = data?.users      || []
   const pagination = data?.pagination || null
@@ -398,7 +427,69 @@ export default function AdminUsersPage() {
     { id: 'admins', label: 'Admins' },
   ]
 
+  const allSelectedOnPage = users.length > 0 && users.every(u => selectedIds.includes(u.id))
+  const someSelectedOnPage = users.length > 0 && users.some(u => selectedIds.includes(u.id)) && !allSelectedOnPage
+
+  function toggleSelectAllOnPage() {
+    if (allSelectedOnPage) {
+      const pageIds = new Set(users.map(u => u.id))
+      setSelectedIds(prev => prev.filter(id => !pageIds.has(id)))
+    } else {
+      const currentSet = new Set(selectedIds)
+      users.forEach(u => currentSet.add(u.id))
+      setSelectedIds(Array.from(currentSet))
+    }
+  }
+
+  function toggleSelectUser(userId) {
+    setSelectedIds(prev =>
+      prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
+    )
+  }
+
+  function handleBulkStatus(targetStatus) {
+    if (selectedIds.length === 0) return
+    bulkStatus.mutate(
+      { userIds: selectedIds, status: targetStatus },
+      {
+        onSuccess: () => {
+          setSelectedIds([])
+        },
+      }
+    )
+  }
+
+  function handleExportSelected() {
+    const selectedList = users.filter(u => selectedIds.includes(u.id))
+    exportUsersToCSV(selectedList, `selected-users-${new Date().toISOString().slice(0, 10)}.csv`)
+  }
+
   const columns = [
+    {
+      key: 'select',
+      label: (
+        <div className="flex items-center justify-center">
+          <TableCheckbox
+            checked={allSelectedOnPage}
+            indeterminate={someSelectedOnPage}
+            onChange={toggleSelectAllOnPage}
+            ariaLabel="Select all users on this page"
+          />
+        </div>
+      ),
+      render: u => (
+        <div className="flex items-center justify-center" onClick={e => e.stopPropagation()}>
+          <TableCheckbox
+            checked={selectedIds.includes(u.id)}
+            onChange={() => toggleSelectUser(u.id)}
+            ariaLabel={`Select user ${u.display_name || u.email}`}
+          />
+        </div>
+      ),
+      className: 'w-10 px-3',
+      cellClass: 'w-10 px-3 text-center',
+      skeletonWidth: '16px',
+    },
     {
       key: 'user',
       label: 'User & Profile',
@@ -608,7 +699,7 @@ export default function AdminUsersPage() {
           <SearchBar
             value={search}
             onChange={setSearch}
-            placeholder="Search by email or phone…"
+            placeholder="Search by email, name, city…"
             className="w-full sm:flex-1 sm:max-w-xs"
           />
           <FilterSelect value={status} onChange={setStatus} options={STATUS_OPTS} placeholder="All statuses" />
@@ -616,11 +707,29 @@ export default function AdminUsersPage() {
           {(search || status || role) && (
             <button
               onClick={() => { setSearch(''); setStatus(''); setRole('') }}
-              className="text-[12.5px] text-ink-3 hover:text-danger transition-colors"
+              className="text-[12.5px] text-ink-3 hover:text-danger transition-colors cursor-pointer"
             >
               Clear filters
             </button>
           )}
+
+          <div className="sm:ml-auto flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => exportUsersToCSV(users, `users-page-${page}.csv`)}
+              disabled={users.length === 0}
+              title="Export visible users to CSV"
+              className="
+                inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] font-medium
+                bg-surface hover:bg-surface-2 text-ink-2 hover:text-ink
+                border border-border transition-colors cursor-pointer disabled:opacity-40
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand
+              "
+            >
+              <Download size={13} className="text-ink-3" />
+              <span>Export CSV</span>
+            </button>
+          </div>
         </div>
 
         {/* Mutation error */}
@@ -688,6 +797,86 @@ export default function AdminUsersPage() {
             })
           }}
         />
+      )}
+
+      {/* Floating Bulk Action Bar */}
+      {selectedIds.length > 0 && (
+        <div
+          role="region"
+          aria-label="Bulk actions"
+          className="
+            fixed bottom-6 left-1/2 -translate-x-1/2 z-40
+            bg-neutral-900 text-white dark:bg-neutral-800 dark:text-neutral-100
+            border border-neutral-700/80 shadow-[0_12px_36px_rgba(0,0,0,0.35)]
+            rounded-2xl px-4 py-2.5 flex items-center gap-2.5 sm:gap-3.5
+            animate-in fade-in slide-in-from-bottom-3 duration-150
+            max-w-[calc(100vw-2rem)]
+          "
+        >
+          <div className="flex items-center gap-2 pr-1">
+            <span className="w-5 h-5 rounded-full bg-brand text-white flex items-center justify-center text-[11px] font-bold shrink-0">
+              {selectedIds.length}
+            </span>
+            <span className="text-[12.5px] font-medium hidden sm:inline text-neutral-200">
+              selected
+            </span>
+          </div>
+
+          <div className="w-px h-4 bg-neutral-700 shrink-0" aria-hidden="true" />
+
+          <button
+            type="button"
+            onClick={() => handleBulkStatus('ACTIVE')}
+            disabled={anyMutating}
+            className="
+              inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] font-medium
+              bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30
+              transition-colors cursor-pointer disabled:opacity-50
+            "
+          >
+            <UserCheck size={13} className="text-emerald-400" />
+            <span>Activate</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleBulkStatus('SUSPENDED')}
+            disabled={anyMutating}
+            className="
+              inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] font-medium
+              bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30
+              transition-colors cursor-pointer disabled:opacity-50
+            "
+          >
+            <UserX size={13} className="text-amber-400" />
+            <span>Suspend</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleExportSelected}
+            className="
+              inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] font-medium
+              bg-white/10 hover:bg-white/15 text-white border border-white/15
+              transition-colors cursor-pointer
+            "
+          >
+            <Download size={13} className="text-neutral-300" />
+            <span>Export</span>
+          </button>
+
+          <div className="w-px h-4 bg-neutral-700 shrink-0" aria-hidden="true" />
+
+          <button
+            type="button"
+            onClick={() => setSelectedIds([])}
+            title="Clear selection"
+            aria-label="Clear selection"
+            className="p-1 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+          >
+            <X size={15} />
+          </button>
+        </div>
       )}
     </AdminLayout>
   )

@@ -278,6 +278,19 @@ export async function updateUserStatus(userId, status) {
   return result.rows[0] || null
 }
 
+export async function bulkUpdateUserStatus(userIds, status, currentAdminId = null) {
+  const safeIds = currentAdminId ? userIds.filter(id => id !== currentAdminId) : userIds
+  if (safeIds.length === 0) return []
+  const result = await pool.query(
+    `UPDATE users
+     SET status = $1, updated_at = now()
+     WHERE id = ANY($2::uuid[])
+     RETURNING id, status`,
+    [status, safeIds]
+  )
+  return result.rows
+}
+
 export async function updateUserRole(userId, role) {
   const result = await pool.query(
     `UPDATE users SET role = $1, updated_at = now() WHERE id = $2 RETURNING id, role`,
