@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import {
   Image as ImageIcon, UploadCloud, Trash2, Check, X,
   Star, ChevronLeft, ChevronRight, Eye, AlertCircle, Sparkles, Plus,
@@ -8,6 +9,7 @@ import { Button } from '../../components/ui/Button.jsx'
 import { Badge } from '../../components/ui/Badge.jsx'
 import { Skeleton } from '../../components/ui/Skeleton.jsx'
 import { NoProfileGuard } from '../../features/profiles/components/NoProfileGuard.jsx'
+import { PlanUpgradeRecommendation } from '../../components/common/PlanUpgradeRecommendation.jsx'
 import {
   useMyGallery,
   useUploadGalleryImages,
@@ -204,17 +206,33 @@ export default function GalleryPage() {
             </div>
 
             {usage.is_limit_reached && (
-              <div className="mt-4 flex items-center gap-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 text-[12.5px]">
-                <AlertCircle size={15} className="shrink-0" />
-                <span>
-                  You have reached your gallery limit of {usage.max_allowed} photos. Upgrade your plan to unlock more uploads.
-                </span>
+              <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-[12.5px]">
+                <div className="flex items-center gap-2.5">
+                  <AlertCircle size={16} className="shrink-0 text-amber-500" />
+                  <span>
+                    You have reached your gallery limit of <strong>{usage.max_allowed} photos</strong> on the {usage.plan_name} plan. Upgrade to unlock more uploads.
+                  </span>
+                </div>
+                <Link
+                  to="/pricing"
+                  className="inline-flex items-center gap-1 font-semibold text-brand hover:underline shrink-0"
+                >
+                  <Sparkles size={13} />
+                  View Upgrade Options
+                </Link>
               </div>
             )}
           </div>
 
-          {/* Upload Area */}
-          {!usage.is_limit_reached && (
+          {/* Upload Area or Upgrade Recommendation */}
+          {usage.is_limit_reached ? (
+            <PlanUpgradeRecommendation
+              feature="gallery"
+              currentCount={usage.count}
+              maxAllowed={usage.max_allowed}
+              currentPlanName={usage.plan_name}
+            />
+          ) : (
             <div className="bg-surface border border-border rounded-2xl p-5 shadow-sm space-y-4">
               <div
                 onDragOver={(e) => {

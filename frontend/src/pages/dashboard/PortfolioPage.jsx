@@ -9,6 +9,8 @@ import { NoProfileGuard } from '../../features/profiles/components/NoProfileGuar
 import {
   useMyPortfolio, useCreatePortfolioItem, useUpdatePortfolioItem, useDeletePortfolioItem,
 } from '../../features/profiles/hooks/useProfile.js'
+import { useMySubscription } from '../../features/subscriptions/hooks/useSubscriptions.js'
+import { PlanUpgradeRecommendation } from '../../components/common/PlanUpgradeRecommendation.jsx'
 
 const emptyForm = {
   title: '', description: '', category: '', client: '',
@@ -91,6 +93,7 @@ function PortfolioForm({ initial = emptyForm, onSave, onCancel, loading }) {
 
 export default function PortfolioPage() {
   const { data, isLoading, error } = useMyPortfolio()
+  const { data: subData } = useMySubscription()
   const createMutation = useCreatePortfolioItem()
   const updateMutation = useUpdatePortfolioItem()
   const deleteMutation = useDeletePortfolioItem()
@@ -100,6 +103,8 @@ export default function PortfolioPage() {
   const [deleteConfirm, setDeleteConfirm] = useState(null)
 
   const items = data?.items || []
+  const maxAllowed = subData?.plan?.max_portfolio_items ?? 2
+  const isLimitReached = items.length >= maxAllowed
 
   const handleCreate = async (payload) => {
     try {
@@ -147,13 +152,38 @@ export default function PortfolioPage() {
       <NoProfileGuard>
       <div className="space-y-4 max-w-3xl">
         <div className="flex items-center justify-between">
-          <p className="text-[13px] text-ink-3">{items.length} item{items.length !== 1 ? 's' : ''}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-[13px] text-ink-3">
+              {items.length} / {maxAllowed} item{items.length !== 1 ? 's' : ''}
+            </p>
+            {isLimitReached && (
+              <Badge variant="warning" size="xs">Quota Reached</Badge>
+            )}
+          </div>
           {!showForm && (
-            <Button variant="primary" size="sm" onClick={() => setShowForm(true)}>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => {
+                if (isLimitReached) return
+                setShowForm(true)
+              }}
+              disabled={isLimitReached}
+              title={isLimitReached ? 'Plan limit reached. Upgrade to add more.' : ''}
+            >
               <Plus size={14} className="mr-1" />Add item
             </Button>
           )}
         </div>
+
+        {isLimitReached && (
+          <PlanUpgradeRecommendation
+            feature="portfolio"
+            currentCount={items.length}
+            maxAllowed={maxAllowed}
+            currentPlanName={subData?.plan?.name}
+          />
+        )}
 
         {showForm && (
           <div className="bg-surface border border-border rounded-lg p-5">

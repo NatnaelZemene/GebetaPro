@@ -5,10 +5,38 @@ import { Badge } from '../../../components/ui/Badge.jsx'
 import { useCreateCheckoutSession } from '../hooks/useSubscriptions.js'
 
 const FEATURES = {
-  FREE:     ['1 active listing', '3 images per ad', 'Basic visibility'],
-  BASIC:    ['5 active listings', '5 images per ad', 'Standard visibility', 'Analytics'],
-  PRO:      ['20 active listings', '10 images per ad', 'Featured badge', 'Priority support', 'Promoted in search'],
-  BUSINESS: ['100 active listings', '10 images per ad', 'Featured badge', 'Dedicated support', 'Top placement', 'Bulk management'],
+  FREE: [
+    '3 gallery photos',
+    '3 services listed',
+    '2 portfolio projects',
+    '5 posts & updates',
+    'Standard directory listing',
+  ],
+  BASIC: [
+    '10 gallery photos',
+    '10 services listed',
+    '10 portfolio projects',
+    '20 posts & updates',
+    'Unlimited social links',
+    'Standard analytics',
+  ],
+  PRO: [
+    '30 gallery photos',
+    '50 services listed',
+    '50 portfolio projects',
+    '100 posts & updates',
+    'Verified badge',
+    'Featured placement in search',
+    'Priority support',
+  ],
+  BUSINESS: [
+    'Unlimited gallery photos',
+    'Unlimited services & portfolio',
+    'Unlimited posts',
+    'Top search placement',
+    'Verified badge',
+    'Dedicated support & priority',
+  ],
 }
 
 export function PlanCard({ plan, currentPlanName }) {

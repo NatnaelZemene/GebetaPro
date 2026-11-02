@@ -28,7 +28,9 @@ import pool from '../../db/index.js'
 export async function findAllActivePlans() {
   const result = await pool.query(
     `SELECT id, name, display_name, price_etb, max_active_ads,
-            max_images_per_ad, is_featured, sort_order
+            max_images_per_ad, max_products, max_profile_services,
+            max_portfolio_items, max_posts, max_gallery_images, max_social_links,
+            is_featured, sort_order
      FROM subscription_plans
      WHERE is_active = TRUE
      ORDER BY sort_order ASC`,
@@ -46,7 +48,9 @@ export async function findAllActivePlans() {
 export async function findPlanById(planId) {
   const result = await pool.query(
     `SELECT id, name, display_name, price_etb, max_active_ads,
-            max_images_per_ad, is_featured
+            max_images_per_ad, max_products, max_profile_services,
+            max_portfolio_items, max_posts, max_gallery_images, max_social_links,
+            is_featured
      FROM subscription_plans
      WHERE id = $1 AND is_active = TRUE`,
     [planId],
@@ -122,6 +126,8 @@ export async function findByUserId(userId) {
        sp.max_profile_services,
        sp.max_portfolio_items,
        sp.max_posts,
+       sp.max_gallery_images,
+       sp.max_social_links,
        sp.is_featured
      FROM user_subscriptions us
      JOIN subscription_plans sp ON us.plan_id = sp.id

@@ -11,6 +11,8 @@ import { NoProfileGuard } from '../../features/profiles/components/NoProfileGuar
 import {
   useMyServices, useCreateService, useUpdateService, useDeleteService, useMyProfile,
 } from '../../features/profiles/hooks/useProfile.js'
+import { useMySubscription } from '../../features/subscriptions/hooks/useSubscriptions.js'
+import { PlanUpgradeRecommendation } from '../../components/common/PlanUpgradeRecommendation.jsx'
 import * as profilesApi from '../../services/profiles.service.js'
 
 const PRICING_TYPE_VALUES  = ['FIXED','STARTING_FROM','HOURLY','NEGOTIABLE','CONTACT_FOR_PRICE']
@@ -193,6 +195,7 @@ export default function ServicesPage() {
   const updateMutation = useUpdateService()
   const deleteMutation = useDeleteService()
   const { data: myProfile } = useMyProfile()
+  const { data: subData } = useMySubscription()
   const qc = useQueryClient()
 
   // Build a default location string from the user's profile
@@ -213,6 +216,8 @@ export default function ServicesPage() {
   const [activeImageServiceId, setActiveImageServiceId] = useState(null)
 
   const services = data?.services || []
+  const maxAllowed = subData?.plan?.max_profile_services ?? 3
+  const isLimitReached = services.length >= maxAllowed
 
   const handleCreate = async (payload) => {
     try {
@@ -260,13 +265,38 @@ export default function ServicesPage() {
       <NoProfileGuard>
       <div className="space-y-4 max-w-3xl">
         <div className="flex items-center justify-between">
-          <p className="text-[13px] text-ink-3">{services.length} service{services.length !== 1 ? 's' : ''}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-[13px] text-ink-3">
+              {services.length} / {maxAllowed} service{services.length !== 1 ? 's' : ''}
+            </p>
+            {isLimitReached && (
+              <Badge variant="warning" size="xs">Quota Reached</Badge>
+            )}
+          </div>
           {!showForm && (
-            <Button variant="primary" size="sm" onClick={() => setShowForm(true)}>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => {
+                if (isLimitReached) return
+                setShowForm(true)
+              }}
+              disabled={isLimitReached}
+              title={isLimitReached ? 'Plan limit reached. Upgrade to add more.' : ''}
+            >
               <Plus size={14} className="mr-1" />Add service
             </Button>
           )}
         </div>
+
+        {isLimitReached && (
+          <PlanUpgradeRecommendation
+            feature="services"
+            currentCount={services.length}
+            maxAllowed={maxAllowed}
+            currentPlanName={subData?.plan?.name}
+          />
+        )}
 
         {showForm && (
           <div className="bg-surface border border-border rounded-xl p-5">

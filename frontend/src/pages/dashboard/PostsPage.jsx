@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import {
   Plus, Pencil, Trash2, FileText, Pin, Image as ImageIcon,
-  X, UploadCloud, ChevronRight,
+  X,
 } from 'lucide-react'
 import { DashboardLayout } from '../../components/layout/DashboardLayout.jsx'
 import { Button } from '../../components/ui/Button.jsx'
@@ -12,6 +12,8 @@ import { NoProfileGuard } from '../../features/profiles/components/NoProfileGuar
 import {
   useMyPosts, useCreatePost, useUpdatePost, useDeletePost, useUploadPostImages,
 } from '../../features/profiles/hooks/useProfile.js'
+import { useMySubscription } from '../../features/subscriptions/hooks/useSubscriptions.js'
+import { PlanUpgradeRecommendation } from '../../components/common/PlanUpgradeRecommendation.jsx'
 
 const POST_TYPE_OPTIONS = [
   { value: 'UPDATE', label: 'Update' },
@@ -221,6 +223,7 @@ function PostForm({ initial = emptyForm, existingImages = [], onSave, onCancel, 
 
 export default function PostsPage() {
   const { data, isLoading, error } = useMyPosts()
+  const { data: subData } = useMySubscription()
   const createMutation = useCreatePost()
   const updateMutation = useUpdatePost()
   const deleteMutation = useDeletePost()
@@ -232,6 +235,8 @@ export default function PostsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const posts = data?.posts || []
+  const maxAllowed = subData?.plan?.max_posts ?? 5
+  const isLimitReached = posts.length >= maxAllowed
 
   const handleCreate = async (payload, attachedFiles = []) => {
     setIsSubmitting(true)
@@ -304,18 +309,41 @@ export default function PostsPage() {
         <div className="space-y-4 max-w-3xl">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-[18px] font-bold text-ink tracking-tight">Posts & Updates</h1>
-              <p className="text-[12.5px] text-ink-3">
-                {posts.length} post{posts.length !== 1 ? 's' : ''} published on your profile
+              <div className="flex items-center gap-2">
+                <h1 className="text-[18px] font-bold text-ink tracking-tight">Posts & Updates</h1>
+                {isLimitReached && (
+                  <Badge variant="warning" size="xs">Quota Reached</Badge>
+                )}
+              </div>
+              <p className="text-[12.5px] text-ink-3 mt-0.5">
+                {posts.length} / {maxAllowed} post{posts.length !== 1 ? 's' : ''} published on your profile
               </p>
             </div>
             {!showForm && (
-              <Button variant="primary" size="sm" onClick={() => setShowForm(true)}>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  if (isLimitReached) return
+                  setShowForm(true)
+                }}
+                disabled={isLimitReached}
+                title={isLimitReached ? 'Plan limit reached. Upgrade to publish more posts.' : ''}
+              >
                 <Plus size={14} className="mr-1" />
                 New post
               </Button>
             )}
           </div>
+
+          {isLimitReached && (
+            <PlanUpgradeRecommendation
+              feature="posts"
+              currentCount={posts.length}
+              maxAllowed={maxAllowed}
+              currentPlanName={subData?.plan?.name}
+            />
+          )}
 
           {showForm && (
             <div className="bg-surface border border-border rounded-2xl p-5 sm:p-6 shadow-sm">
