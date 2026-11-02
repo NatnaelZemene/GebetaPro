@@ -54,8 +54,18 @@ export async function getAnalyticsData(range = '30d') {
   }
   const days = RANGE_DAYS[range] || 30
 
-  const [usersDaily, adsDaily, adsByStatus, adsByCategory, subsByPlan, revenueDaily] =
-    await Promise.all([
+  const [
+    usersDaily,
+    adsDaily,
+    adsByStatus,
+    adsByCategory,
+    subsByPlan,
+    revenueDaily,
+    viewsDaily,
+    contactsDaily,
+    channelsBreakdown,
+    eventsTotals,
+  ] = await Promise.all([
       // New users per day — contiguous date series
       pool.query(`
         WITH date_series AS (
@@ -162,17 +172,106 @@ export async function getAnalyticsData(range = '30d') {
         ) p ON p.date = ds.date
         ORDER BY ds.date ASC
       `, [days]),
+
+      // Directory profile views per day — contiguous date series
+      pool.query(`
+        WITH date_series AS (
+          SELECT generate_series(
+            date_trunc('day', now() - ($1 || ' days')::INTERVAL)::date,
+            date_trunc('day', now())::date,
+            '1 day'::INTERVAL
+          )::date AS date
+        )
+        SELECT
+          ds.date,
+          COALESCE(e.count, 0)::int AS count
+        FROM date_series ds
+        LEFT JOIN (
+          SELECT
+            date_trunc('day', created_at)::date AS date,
+            COUNT(*)::int AS count
+          FROM profile_analytics_events
+          WHERE created_at >= now() - ($1 || ' days')::INTERVAL
+            AND event_type = 'VIEW'
+          GROUP BY 1
+        ) e ON e.date = ds.date
+        ORDER BY ds.date ASC
+      `, [days]),
+
+      // Customer contact clicks / inquiries per day — contiguous date series
+      pool.query(`
+        WITH date_series AS (
+          SELECT generate_series(
+            date_trunc('day', now() - ($1 || ' days')::INTERVAL)::date,
+            date_trunc('day', now())::date,
+            '1 day'::INTERVAL
+          )::date AS date
+        )
+        SELECT
+          ds.date,
+          COALESCE(e.count, 0)::int AS count
+        FROM date_series ds
+        LEFT JOIN (
+          SELECT
+            date_trunc('day', created_at)::date AS date,
+            COUNT(*)::int AS count
+          FROM profile_analytics_events
+          WHERE created_at >= now() - ($1 || ' days')::INTERVAL
+            AND event_type != 'VIEW'
+          GROUP BY 1
+        ) e ON e.date = ds.date
+        ORDER BY ds.date ASC
+      `, [days]),
+
+      // Contact channels breakdown (Phone, Telegram, WhatsApp, Website, Email)
+      pool.query(`
+        SELECT
+          event_type,
+          COUNT(*)::int AS count
+        FROM profile_analytics_events
+        WHERE created_at >= now() - ($1 || ' days')::INTERVAL
+          AND event_type != 'VIEW'
+        GROUP BY event_type
+        ORDER BY count DESC
+      `, [days]),
+
+      // Aggregated totals in range
+      pool.query(`
+        SELECT
+          COUNT(*) FILTER (WHERE event_type = 'VIEW')::int AS total_views,
+          COUNT(*) FILTER (WHERE event_type != 'VIEW')::int AS total_contacts
+        FROM profile_analytics_events
+        WHERE created_at >= now() - ($1 || ' days')::INTERVAL
+      `, [days]),
     ])
+
+  const totalViews = Number(eventsTotals.rows[0]?.total_views || 0)
+  const totalContacts = Number(eventsTotals.rows[0]?.total_contacts || 0)
+  const leadConversionRate = totalViews > 0
+    ? Number(((totalContacts / totalViews) * 100).toFixed(2))
+    : 0
+
+  const channels = channelsBreakdown.rows.map(c => ({
+    event_type: c.event_type,
+    count: Number(c.count),
+    percentage: totalContacts > 0 ? Number(((Number(c.count) / totalContacts) * 100).toFixed(1)) : 0,
+  }))
 
   return {
     range,
     days,
-    users_daily:     usersDaily.rows,
-    ads_daily:       adsDaily.rows,
-    ads_by_status:   adsByStatus.rows,
-    ads_by_category: adsByCategory.rows,
-    subs_by_plan:    subsByPlan.rows,
-    revenue_daily:   revenueDaily.rows,
+    users_daily:          usersDaily.rows,
+    ads_daily:            adsDaily.rows,
+    ads_by_status:        adsByStatus.rows,
+    ads_by_category:      adsByCategory.rows,
+    subs_by_plan:         subsByPlan.rows,
+    revenue_daily:        revenueDaily.rows,
+    views_daily:          viewsDaily.rows,
+    contacts_daily:       contactsDaily.rows,
+    channels_breakdown:   channels,
+    total_views:          totalViews,
+    total_contacts:       totalContacts,
+    lead_conversion_rate: leadConversionRate,
   }
 }
 
