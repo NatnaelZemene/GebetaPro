@@ -11,9 +11,11 @@ import { useAdminAnalytics } from '../../features/admin/hooks/useAdmin.js'
 import { InteractiveAreaChart } from '../../features/admin/components/InteractiveAreaChart.jsx'
 import { ContactChannelBreakdown } from '../../features/admin/components/ContactChannelBreakdown.jsx'
 import { ConversionFunnelWidget } from '../../features/admin/components/ConversionFunnelWidget.jsx'
+import { CategoryIconInline } from '../../features/profiles/components/CategoryIcon.jsx'
 import {
   Users, Megaphone, TrendingUp, AlertCircle,
   Eye, MousePointerClick, Percent, Calendar,
+  MapPin, Layers, Building2,
 } from 'lucide-react'
 
 const RANGE_OPTIONS = [
@@ -185,22 +187,86 @@ export default function AdminAnalyticsPage() {
           />
         </div>
 
-        {/* ── Distribution charts ───────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
+        {/* ── Regional & Sector Market Share ────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {/* Ethiopian Cities Distribution */}
           <ChartCard
-            title="Top categories by ads"
-            subtitle="Top 10 categories"
+            title="Geographic Hubs (Ethiopian Cities)"
+            subtitle="Commercial directory density across key urban centers"
             loading={isLoading}
           >
-            {data?.ads_by_category?.length > 0 ? (
-              <BarChart
-                data={data.ads_by_category.slice(0, 10)}
-                keyField="category"
-                valueField="count"
-              />
+            {data?.city_distribution?.length > 0 ? (
+              <div className="space-y-3 pt-1">
+                {data.city_distribution.map(city => (
+                  <div key={city.city} className="space-y-1">
+                    <div className="flex items-center justify-between text-[12.5px]">
+                      <span className="font-semibold text-ink flex items-center gap-1.5">
+                        <MapPin size={13} className="text-brand shrink-0" />
+                        {city.city}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-ink tabular-nums">
+                          {city.count.toLocaleString()}
+                        </span>
+                        <span className="text-[11.5px] text-ink-3 tabular-nums w-12 text-right">
+                          ({city.percentage}%)
+                        </span>
+                      </div>
+                    </div>
+                    <div className="h-2 w-full bg-surface-2 rounded-full overflow-hidden border border-border/40">
+                      <div
+                        className="h-full bg-brand rounded-full transition-all duration-300"
+                        style={{ width: `${Math.max(4, city.percentage)}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : (
-              <p className="text-[12.5px] text-ink-3 text-center py-4">No data.</p>
+              <p className="text-[12.5px] text-ink-3 text-center py-6">No city data available.</p>
+            )}
+          </ChartCard>
+
+          {/* Top Industry Sectors */}
+          <ChartCard
+            title="Industry Sector Demand"
+            subtitle="Top performing market categories by listings and providers"
+            loading={isLoading}
+          >
+            {data?.category_engagement?.length > 0 || data?.ads_by_category?.length > 0 ? (
+              <div className="space-y-3 pt-1">
+                {(data?.category_engagement || data?.ads_by_category || []).slice(0, 8).map(cat => {
+                  const ads = cat.ads_count ?? cat.count ?? 0
+                  const profiles = cat.profiles_count ?? 0
+                  const totalItems = ads + profiles
+                  const allItems = (data?.category_engagement || data?.ads_by_category || []).map(c => (c.ads_count ?? c.count ?? 0) + (c.profiles_count ?? 0))
+                  const maxItems = Math.max(...allItems, 1)
+                  const pct = Math.round((totalItems / maxItems) * 100)
+
+                  return (
+                    <div key={cat.category} className="space-y-1">
+                      <div className="flex items-center justify-between text-[12.5px]">
+                        <span className="font-semibold text-ink flex items-center gap-1.5 truncate max-w-[200px]">
+                          <CategoryIconInline slug={cat.category_slug} name={cat.category} size={13} />
+                          <span className="truncate">{cat.category}</span>
+                        </span>
+                        <div className="flex items-center gap-2 text-[11.5px] text-ink-3">
+                          <span className="tabular-nums">{ads} ads</span>
+                          {profiles > 0 && <span className="tabular-nums">· {profiles} providers</span>}
+                        </div>
+                      </div>
+                      <div className="h-2 w-full bg-surface-2 rounded-full overflow-hidden border border-border/40">
+                        <div
+                          className="h-full bg-indigo-500 rounded-full transition-all duration-300"
+                          style={{ width: `${Math.max(4, pct)}%` }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className="text-[12.5px] text-ink-3 text-center py-6">No category data available.</p>
             )}
           </ChartCard>
         </div>
