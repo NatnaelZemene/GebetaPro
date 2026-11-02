@@ -27,6 +27,7 @@ import { LanguageSelector } from '../ui/LanguageSelector.jsx'
 import { ThemeToggle } from '../ui/ThemeToggle.jsx'
 import { LogoutConfirmation } from '../ui/LogoutConfirmation.jsx'
 import { useFocusTrap } from '../../hooks/useFocusTrap.js'
+import { useResizableSidebar } from '../../hooks/useResizableSidebar.js'
 import * as api from '../../services/profiles.service.js'
 
 const TYPE_ICON = {
@@ -228,6 +229,21 @@ export function DashboardLayout({ children, title }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
 
+  const {
+    effectiveWidth,
+    isDragging,
+    handleMouseDown,
+    handleTouchStart,
+    handleDoubleClick,
+    handleKeyDown,
+  } = useResizableSidebar({
+    storageKey: 'dashboard_sidebar_width',
+    defaultWidth: 224,
+    minWidth: 190,
+    maxWidth: 380,
+    collapseThreshold: 130,
+  })
+
   // Ref to hamburger so focus returns to it when drawer closes
   const hamburgerRef = useRef(null)
 
@@ -368,10 +384,51 @@ export function DashboardLayout({ children, title }) {
     <div className="min-h-screen bg-canvas flex">
       {/* Desktop sidebar */}
       <aside
-        className="hidden lg:flex flex-col w-56 shrink-0 bg-surface border-r border-border sticky top-0 h-screen"
+        style={{ width: effectiveWidth }}
+        className={`
+          relative hidden lg:flex flex-col shrink-0
+          bg-surface border-r border-border
+          sticky top-0 h-screen
+          ${isDragging ? 'select-none transition-none' : 'transition-[width] duration-200 ease-out'}
+          overflow-visible
+        `}
         aria-label="Dashboard sidebar"
       >
-        <SidebarContent onClose={() => {}} />
+        <div className="flex-1 flex flex-col h-full overflow-hidden">
+          <SidebarContent onClose={() => {}} />
+        </div>
+
+        {/* Resizer Splitter Handle (Mouse, Touch, Double-click, Keyboard) */}
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-valuenow={effectiveWidth}
+          aria-valuemin={190}
+          aria-valuemax={380}
+          aria-label="Resize sidebar. Use arrow keys to adjust, or double click to reset"
+          tabIndex={0}
+          onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
+          onDoubleClick={handleDoubleClick}
+          onKeyDown={handleKeyDown}
+          title="Drag to resize sidebar (Double click to reset)"
+          className={`
+            absolute top-0 -right-1.5 w-3 h-full cursor-col-resize z-20 group
+            flex items-center justify-center outline-none
+            focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset
+          `}
+        >
+          {/* Subtle line indicator on hover & drag */}
+          <div
+            className={`
+              w-[2px] transition-all duration-150 rounded-full
+              ${isDragging
+                ? 'bg-brand h-20 opacity-100 shadow-[0_0_8px_rgba(13,148,136,0.6)]'
+                : 'bg-transparent group-hover:bg-brand/70 group-hover:h-12 opacity-80'
+              }
+            `}
+          />
+        </div>
       </aside>
 
       {/* Mobile sidebar drawer — backdrop */}

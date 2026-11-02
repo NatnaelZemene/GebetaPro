@@ -23,6 +23,7 @@ import {
   ChevronLeft, ChevronRight, ArrowLeft, Layers, ShieldCheck,
 } from 'lucide-react'
 import { useFocusTrap } from '../../hooks/useFocusTrap.js'
+import { useResizableSidebar } from '../../hooks/useResizableSidebar.js'
 import { ThemeToggle } from '../ui/ThemeToggle.jsx'
 import { LogoutConfirmation } from '../ui/LogoutConfirmation.jsx'
 
@@ -180,7 +181,27 @@ function SidebarContent({ collapsed, onClose, onRequestLogout }) {
 
 /* ── AdminLayout ─────────────────────────────────────────────────────────── */
 export function AdminLayout({ children, title }) {
-  const [collapsed,   setCollapsed]   = useState(false)
+  const {
+    sidebarWidth,
+    collapsed,
+    isDragging,
+    effectiveWidth,
+    setCollapsed,
+    toggleCollapsed,
+    handleMouseDown,
+    handleTouchStart,
+    handleDoubleClick,
+    handleKeyDown,
+  } = useResizableSidebar({
+    storageKey: 'admin_sidebar_width',
+    collapsedStorageKey: 'admin_sidebar_collapsed',
+    defaultWidth: 248,
+    minWidth: 200,
+    maxWidth: 420,
+    collapsedWidth: 68,
+    collapseThreshold: 140,
+  })
+
   const [drawerOpen,  setDrawerOpen]  = useState(false)
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
   const navigate = useNavigate()
@@ -207,28 +228,62 @@ export function AdminLayout({ children, title }) {
 
       {/* ── Desktop sidebar ──────────────────────────────────────────── */}
       <aside
+        style={{ width: effectiveWidth }}
         className={`
-          hidden lg:flex flex-col shrink-0
+          relative hidden lg:flex flex-col shrink-0
           bg-surface border-r border-border
           sticky top-0 h-screen
-          transition-[width] duration-200 ease-out
-          ${collapsed ? 'w-[68px]' : 'w-[248px]'}
-          overflow-hidden
+          ${isDragging ? 'select-none transition-none' : 'transition-[width] duration-200 ease-out'}
+          overflow-visible
         `}
         aria-label="Admin sidebar"
       >
-        <SidebarContent collapsed={collapsed} onClose={() => {}} onRequestLogout={() => setLogoutConfirmOpen(true)} />
+        <div className="flex-1 flex flex-col h-full overflow-hidden">
+          <SidebarContent collapsed={collapsed} onClose={() => {}} onRequestLogout={() => setLogoutConfirmOpen(true)} />
+        </div>
+
+        {/* Resizer Splitter Handle (Mouse, Touch, Double-click, Keyboard) */}
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-valuenow={effectiveWidth}
+          aria-valuemin={200}
+          aria-valuemax={420}
+          aria-label="Resize sidebar. Use arrow keys to adjust, or double click to reset"
+          tabIndex={0}
+          onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
+          onDoubleClick={handleDoubleClick}
+          onKeyDown={handleKeyDown}
+          title="Drag to resize sidebar (Double click to reset)"
+          className={`
+            absolute top-0 -right-1.5 w-3 h-full cursor-col-resize z-20 group
+            flex items-center justify-center outline-none
+            focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset
+          `}
+        >
+          {/* Subtle line indicator on hover & drag */}
+          <div
+            className={`
+              w-[2px] transition-all duration-150 rounded-full
+              ${isDragging
+                ? 'bg-brand h-20 opacity-100 shadow-[0_0_8px_rgba(13,148,136,0.6)]'
+                : 'bg-transparent group-hover:bg-brand/70 group-hover:h-12 opacity-80'
+              }
+            `}
+          />
+        </div>
 
         {/* Collapse toggle */}
         <button
-          onClick={() => setCollapsed(c => !c)}
+          onClick={toggleCollapsed}
           className="
-            absolute bottom-[68px] -right-3 z-10
+            absolute bottom-[68px] -right-3 z-30
             w-6 h-6 flex items-center justify-center
             bg-surface border border-border rounded-full
             text-ink-3 hover:text-brand hover:border-brand-border
             transition-all duration-150
-            shadow-sm
+            shadow-sm cursor-pointer
             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand
           "
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
