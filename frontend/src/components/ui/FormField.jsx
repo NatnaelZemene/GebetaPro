@@ -144,17 +144,6 @@ export function Textarea({ error, rows = 5, className = '', ...props }) {
 
 /* ── Select ────────────────────────────────────────────────────────────────── */
 
-export function Select({ error, children, className = '', ...props }) {
-  return (
-    <select
-      aria-invalid={error ? 'true' : undefined}
-      className={`${inputBase} cursor-pointer ${error ? errorClass : ''} ${className}`}
-      {...props}
-    >
-      {children}
-    </select>
-  )
-}
-
+export { Select } from './Select.jsx'
 export { DatePicker } from './DatePicker.jsx'
 

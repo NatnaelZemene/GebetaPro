@@ -11,6 +11,7 @@ import {
 import { AdminLayout }  from '../../components/layout/AdminLayout.jsx'
 import { Badge }        from '../../components/ui/Badge.jsx'
 import { Button }       from '../../components/ui/Button.jsx'
+import { Select }       from '../../components/ui/Select.jsx'
 import { Skeleton }     from '../../components/ui/Skeleton.jsx'
 import { CategoryIcon, CategoryIconInline } from '../../features/profiles/components/CategoryIcon.jsx'
 import { PageHeader, EmptyState } from '../../features/admin/components/AdminTable.jsx'
@@ -89,8 +90,8 @@ function CategoryForm({ initial = EMPTY_FORM, parents = [], onSubmit, onCancel, 
         </div>
         <div>
           <label className={labelCls}>Parent category</label>
-          <select
-            className={inputCls + ' appearance-none cursor-pointer'}
+          <Select
+            className="h-9 text-[13px] bg-canvas border-border"
             value={form.parent_id || ''}
             onChange={e => set('parent_id', e.target.value)}
           >
@@ -98,7 +99,7 @@ function CategoryForm({ initial = EMPTY_FORM, parents = [], onSubmit, onCancel, 
             {parents.map(p => (
               <option key={p.id} value={p.id}>{p.name}</option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="sm:col-span-2">
           <label className={labelCls}>Description</label>

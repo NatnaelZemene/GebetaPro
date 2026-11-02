@@ -24,9 +24,10 @@
  * - StatCard: trend indicator uses aria-label so screen readers announce
  *   the full meaning (not just the icon).
  */
-import { useEffect, useId, useRef } from 'react'
+import { useEffect, useId, useRef, useMemo } from 'react'
 import { Skeleton } from '../../../components/ui/Skeleton.jsx'
 import { Button }   from '../../../components/ui/Button.jsx'
+import { Select }   from '../../../components/ui/Select.jsx'
 import { useFocusTrap } from '../../../hooks/useFocusTrap.js'
 import {
   ChevronLeft, ChevronRight, Search, TrendingUp, TrendingDown,
@@ -159,34 +160,25 @@ export function SearchBar({
 export function FilterSelect({
   value,
   onChange,
-  options,
+  options = [],
   placeholder = 'All',
   className = '',
 }) {
+  const allOptions = useMemo(() => [
+    { value: '', label: placeholder },
+    ...options.map(o => ({ value: o.value, label: o.label })),
+  ], [options, placeholder])
+
   return (
-    <div className={`relative ${className}`}>
-      <select
-        value={value}
+    <div className={`min-w-[130px] sm:min-w-[150px] ${className}`}>
+      <Select
+        value={value ?? ''}
         onChange={e => onChange(e.target.value)}
-        className="
-          h-9 pl-3 pr-8
-          bg-canvas border border-border rounded-lg
-          text-[13.5px] text-ink
-          outline-none focus:border-brand focus:ring-2 focus:ring-brand/10
-          appearance-none cursor-pointer
-          transition-all duration-150
-        "
+        options={allOptions}
+        placeholder={placeholder}
+        className="h-9 text-[13px] px-3 bg-canvas border-border"
+        searchable={options.length > 7}
         aria-label={placeholder}
-      >
-        <option value="">{placeholder}</option>
-        {options.map(o => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </select>
-      <ChevronRight
-        size={12}
-        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none rotate-90"
-        aria-hidden="true"
       />
     </div>
   )
