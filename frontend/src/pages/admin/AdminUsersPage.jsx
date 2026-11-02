@@ -13,9 +13,11 @@ import { useSearchParams } from 'react-router-dom'
 import {
   Shield, ShieldOff, UserCheck, UserX, Trash2,
   MoreHorizontal, BadgeCheck, AlertTriangle, Users, UserPlus,
+  Copy, Check, ExternalLink,
 } from 'lucide-react'
 import { AdminLayout }  from '../../components/layout/AdminLayout.jsx'
 import { Badge }        from '../../components/ui/Badge.jsx'
+import { CategoryIconInline } from '../../features/profiles/components/CategoryIcon.jsx'
 import { useFocusTrap } from '../../hooks/useFocusTrap.js'
 import {
   AdminTable, SearchBar, FilterSelect,
@@ -53,13 +55,50 @@ const ROLE_OPTS = [
   { value: 'ADMIN', label: 'Admin' },
 ]
 
-/* ── Avatar initial ────────────────────────────────────────────────────── */
-function UserAvatar({ email }) {
-  const initial = email?.[0]?.toUpperCase() || '?'
+/* ── Avatar component ─────────────────────────────────────────────────── */
+function UserAvatar({ avatarUrl, email, name }) {
+  const [imgError, setImgError] = useState(false)
+  const initial = (name?.[0] || email?.[0] || '?').toUpperCase()
+
+  if (avatarUrl && !imgError) {
+    return (
+      <img
+        src={avatarUrl}
+        alt=""
+        onError={() => setImgError(true)}
+        className="w-8 h-8 rounded-full object-cover shrink-0 border border-border/80 shadow-2xs"
+      />
+    )
+  }
+
   return (
-    <div className="w-8 h-8 rounded-full bg-brand-light flex items-center justify-center shrink-0">
+    <div className="w-8 h-8 rounded-full bg-brand-light dark:bg-brand/15 border border-brand/20 flex items-center justify-center shrink-0">
       <span className="text-[12px] font-bold text-brand leading-none">{initial}</span>
     </div>
+  )
+}
+
+/* ── Inline 1-click copy button ────────────────────────────────────────── */
+function CopyButton({ text, label = 'Copy' }) {
+  const [copied, setCopied] = useState(false)
+
+  function handleCopy(e) {
+    e.stopPropagation()
+    if (!text) return
+    navigator.clipboard?.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1800)
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      title={copied ? 'Copied to clipboard!' : label}
+      className="p-1 rounded text-ink-4 hover:text-ink hover:bg-surface-2 transition-colors cursor-pointer"
+    >
+      {copied ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
+    </button>
   )
 }
 
@@ -359,86 +398,114 @@ export default function AdminUsersPage() {
 
   const columns = [
     {
-      key: 'email',
-      label: 'User',
+      key: 'user',
+      label: 'User & Profile',
       render: u => (
-        <div className="flex items-center gap-3">
-          <UserAvatar email={u.email} />
-          <div className="min-w-0">
+        <div className="flex items-center gap-3 min-w-0">
+          <UserAvatar avatarUrl={u.avatar_url} email={u.email} name={u.display_name} />
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
-              <p className="text-[13.5px] font-medium text-ink leading-snug truncate">
-                {u.email || '—'}
-              </p>
-              {u.email_verified_at && (
+              <span className="text-[13.5px] font-semibold text-ink leading-snug truncate">
+                {u.display_name || u.email || '—'}
+              </span>
+              {(u.email_verified_at || u.profile_verified) && (
                 <BadgeCheck size={13} className="text-brand shrink-0" aria-label="Verified" />
               )}
             </div>
-            {u.phone && (
-              <p className="text-[11.5px] text-ink-3">{u.phone}</p>
-            )}
+            <div className="flex items-center gap-1.5 text-[11.5px] text-ink-3">
+              <span className="truncate max-w-[150px]">{u.email}</span>
+              <CopyButton text={u.email} label="Copy email" />
+              {u.phone && <span className="text-ink-4">· {u.phone}</span>}
+            </div>
           </div>
         </div>
       ),
     },
     {
-      key: 'status',
-      label: 'Status',
-      render: u => STATUS_BADGE[u.status] || <Badge variant="default" size="xs">{u.status}</Badge>,
-      className: 'hidden sm:table-cell',
-      cellClass:  'hidden sm:table-cell',
-    },
-    {
-      key: 'role',
-      label: 'Role',
-      render: u => ROLE_BADGE[u.role] || <Badge variant="default" size="xs">{u.role}</Badge>,
+      key: 'category',
+      label: 'Sector',
+      render: u => (
+        u.category_name ? (
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-surface-2 dark:bg-surface-2/60 text-[12px] font-medium text-ink max-w-[150px] truncate border border-border/60">
+            <CategoryIconInline slug={u.category_slug} name={u.category_name} size={11} />
+            <span className="truncate">{u.category_name}</span>
+          </span>
+        ) : (
+          <span className="text-[12px] text-ink-4">—</span>
+        )
+      ),
       className: 'hidden md:table-cell',
       cellClass:  'hidden md:table-cell',
+    },
+    {
+      key: 'city',
+      label: 'City',
+      render: u => (
+        u.city ? (
+          <span className="text-[12.5px] text-ink font-medium">{u.city}</span>
+        ) : (
+          <span className="text-[12px] text-ink-4">—</span>
+        )
+      ),
+      className: 'hidden lg:table-cell',
+      cellClass:  'hidden lg:table-cell',
     },
     {
       key: 'plan_name',
       label: 'Plan',
       render: u => PLAN_BADGE[u.plan_name] || <Badge variant="default" size="xs">{u.plan_name || 'Free'}</Badge>,
-      className: 'hidden lg:table-cell',
-      cellClass:  'hidden lg:table-cell',
+      className: 'hidden sm:table-cell',
+      cellClass:  'hidden sm:table-cell',
     },
     {
-      key: 'ad_count',
-      label: 'Ads',
-      render: u => (
-        <span className="text-[13px] tabular-nums">
-          {u.ad_count || 0}
-          {u.published_ad_count > 0 && (
-            <span className="text-success ml-1 text-[11.5px]">({u.published_ad_count} live)</span>
-          )}
-        </span>
-      ),
-      className: 'hidden lg:table-cell',
-      cellClass:  'hidden lg:table-cell',
+      key: 'status',
+      label: 'Status',
+      render: u => STATUS_BADGE[u.status] || <Badge variant="default" size="xs">{u.status}</Badge>,
+    },
+    {
+      key: 'role',
+      label: 'Role',
+      render: u => ROLE_BADGE[u.role] || <Badge variant="default" size="xs">{u.role}</Badge>,
+      className: 'hidden xl:table-cell',
+      cellClass:  'hidden xl:table-cell',
     },
     {
       key: 'created_at',
       label: 'Joined',
       render: u => (
-        <span className="text-[12.5px] text-ink-3 tabular-nums">
+        <span className="text-[12px] text-ink-3 tabular-nums">
           {new Date(u.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
         </span>
       ),
-      className: 'hidden xl:table-cell',
-      cellClass:  'hidden xl:table-cell',
+      className: 'hidden 2xl:table-cell',
+      cellClass:  'hidden 2xl:table-cell',
     },
     {
       key: 'actions',
       label: '',
       render: u => (
-        <ActionMenu
-          user={u}
-          onSuspend={id => suspend.mutate(id)}
-          onActivate={id => activate.mutate(id)}
-          onPromote={id => promote.mutate(id)}
-          onDemote={id => demote.mutate(id)}
-          onDelete={user => setConfirmDelete(user)}
-          loading={anyMutating}
-        />
+        <div className="flex items-center justify-end gap-1" onClick={e => e.stopPropagation()}>
+          {u.slug && (
+            <a
+              href={`/p/${u.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="View live public profile"
+              className="p-1.5 rounded-lg text-ink-3 hover:text-brand hover:bg-surface-2 transition-colors cursor-pointer"
+            >
+              <ExternalLink size={14} />
+            </a>
+          )}
+          <ActionMenu
+            user={u}
+            onSuspend={id => suspend.mutate(id)}
+            onActivate={id => activate.mutate(id)}
+            onPromote={id => promote.mutate(id)}
+            onDemote={id => demote.mutate(id)}
+            onDelete={user => setConfirmDelete(user)}
+            loading={anyMutating}
+          />
+        </div>
       ),
       cellClass: 'text-right',
       className: 'text-right',
