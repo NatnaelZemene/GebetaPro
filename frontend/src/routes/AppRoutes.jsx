@@ -1,7 +1,8 @@
-import { lazy, Suspense } from 'react'
+import { Suspense } from 'react'
 import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { Skeleton } from '../components/ui/Skeleton.jsx'
 import { AdminGuard } from '../components/common/AdminGuard.jsx'
+import { lazyWithRetry as lazy } from '../utils/lazyWithRetry.js'
 
 /**
  * HandleRoute: Matches `/:handle` at root level.
