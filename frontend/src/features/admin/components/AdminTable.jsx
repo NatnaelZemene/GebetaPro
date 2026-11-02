@@ -272,6 +272,7 @@ export function AdminTable({
   emptyMessage = 'No records found.',
   emptyIcon,
   rowKey = 'id',
+  onRowClick,
 }) {
   if (error) {
     return (
@@ -329,7 +330,8 @@ export function AdminTable({
               rows.map(row => (
                 <tr
                   key={row[rowKey]}
-                  className="hover:bg-surface-2/60 transition-colors duration-100 group"
+                  onClick={onRowClick ? () => onRowClick(row) : undefined}
+                  className={`hover:bg-surface-2/60 transition-colors duration-100 group ${onRowClick ? 'cursor-pointer' : ''}`}
                 >
                   {columns.map(col => (
                     <td

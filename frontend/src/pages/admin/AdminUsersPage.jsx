@@ -18,6 +18,7 @@ import {
 import { AdminLayout }  from '../../components/layout/AdminLayout.jsx'
 import { Badge }        from '../../components/ui/Badge.jsx'
 import { CategoryIconInline } from '../../features/profiles/components/CategoryIcon.jsx'
+import { UserDetailDrawer } from '../../features/admin/components/UserDetailDrawer.jsx'
 import { useFocusTrap } from '../../hooks/useFocusTrap.js'
 import {
   AdminTable, SearchBar, FilterSelect,
@@ -356,6 +357,7 @@ export default function AdminUsersPage() {
   const deleteUser = useDeleteUser()
 
   const [confirmDelete, setConfirmDelete] = useState(null) // holds the user object to delete
+  const [selectedUser, setSelectedUser] = useState(null) // holds user for slide-over drawer
 
   const anyMutating = suspend.isPending || activate.isPending || promote.isPending || demote.isPending || deleteUser.isPending
   const mutationError = suspend.error || activate.error || promote.error || demote.error || deleteUser.error
@@ -634,11 +636,45 @@ export default function AdminUsersPage() {
           rows={users}
           loading={isLoading}
           error={error}
+          onRowClick={u => setSelectedUser(u)}
           emptyMessage="No users match your current filters."
         />
 
         <Pagination pagination={pagination} onPage={setPage} />
       </div>
+
+      {/* Slide-over User Detail Drawer */}
+      {selectedUser && (
+        <UserDetailDrawer
+          user={selectedUser}
+          onClose={() => setSelectedUser(null)}
+          onSuspend={id => {
+            suspend.mutate(id, {
+              onSuccess: () => setSelectedUser(prev => prev ? { ...prev, status: 'SUSPENDED' } : null),
+            })
+          }}
+          onActivate={id => {
+            activate.mutate(id, {
+              onSuccess: () => setSelectedUser(prev => prev ? { ...prev, status: 'ACTIVE' } : null),
+            })
+          }}
+          onPromote={id => {
+            promote.mutate(id, {
+              onSuccess: () => setSelectedUser(prev => prev ? { ...prev, role: 'ADMIN' } : null),
+            })
+          }}
+          onDemote={id => {
+            demote.mutate(id, {
+              onSuccess: () => setSelectedUser(prev => prev ? { ...prev, role: 'USER' } : null),
+            })
+          }}
+          onDelete={u => {
+            setSelectedUser(null)
+            setConfirmDelete(u)
+          }}
+          loading={anyMutating}
+        />
+      )}
 
       {/* Delete confirmation dialog */}
       {confirmDelete && (
