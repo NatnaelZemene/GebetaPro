@@ -1,7 +1,7 @@
 /**
  * AdminAnalyticsPage.jsx — Platform analytics & business intelligence.
  */
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, Link } from 'react-router-dom'
 import { AdminLayout } from '../../components/layout/AdminLayout.jsx'
 import { Skeleton }    from '../../components/ui/Skeleton.jsx'
 import {
@@ -15,7 +15,7 @@ import { CategoryIconInline } from '../../features/profiles/components/CategoryI
 import {
   Users, Megaphone, TrendingUp, AlertCircle,
   Eye, MousePointerClick, Percent, Calendar,
-  MapPin, Layers, Building2,
+  MapPin, Layers, Building2, Trophy, ExternalLink, BadgeCheck,
 } from 'lucide-react'
 
 const RANGE_OPTIONS = [
@@ -270,6 +270,115 @@ export default function AdminAnalyticsPage() {
             )}
           </ChartCard>
         </div>
+
+        {/* ── Top 5 Business Profile Leaderboard ─────────────────────── */}
+        <ChartCard
+          title="Top Business Performers"
+          subtitle={`Most engaged commercial listings in directory (${currentRangeOption.label})`}
+          loading={isLoading}
+        >
+          {data?.top_profiles_leaderboard?.length > 0 ? (
+            <div className="overflow-x-auto -mx-4 sm:-mx-5 -mb-4 sm:-mb-5">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-border/60 bg-surface-2/40 text-[11px] font-semibold text-ink-3 uppercase tracking-wider">
+                    <th className="py-2.5 px-4 sm:px-5">Rank</th>
+                    <th className="py-2.5 px-3">Business Profile</th>
+                    <th className="py-2.5 px-3">Sector</th>
+                    <th className="py-2.5 px-3">Location</th>
+                    <th className="py-2.5 px-3 text-right">Views</th>
+                    <th className="py-2.5 px-3 text-right">Inquiries</th>
+                    <th className="py-2.5 px-4 sm:px-5 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/40 text-[12.5px]">
+                  {data.top_profiles_leaderboard.map((profile, idx) => {
+                    const rank = idx + 1
+                    const badgeClass =
+                      rank === 1
+                        ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 font-bold'
+                        : rank === 2
+                        ? 'bg-slate-400/15 text-slate-600 dark:text-slate-300 border-slate-400/30 font-bold'
+                        : rank === 3
+                        ? 'bg-amber-700/15 text-amber-700 dark:text-amber-500 border-amber-700/30 font-bold'
+                        : 'bg-surface-2 text-ink-3 border-border/50'
+
+                    return (
+                      <tr key={profile.id || profile.slug} className="hover:bg-surface-2/30 transition-colors">
+                        <td className="py-3 px-4 sm:px-5 whitespace-nowrap">
+                          <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-[11px] border ${badgeClass}`}>
+                            {rank}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3">
+                          <div className="flex items-center gap-2.5 min-w-[170px]">
+                            {profile.avatar_url ? (
+                              <img
+                                src={profile.avatar_url}
+                                alt=""
+                                className="w-8 h-8 rounded-full object-cover border border-border shrink-0"
+                              />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-brand/10 text-brand font-bold text-xs flex items-center justify-center border border-brand/20 shrink-0">
+                                {(profile.display_name || '?')[0].toUpperCase()}
+                              </div>
+                            )}
+                            <div className="truncate">
+                              <div className="flex items-center gap-1 font-semibold text-ink truncate">
+                                <span className="truncate">{profile.display_name}</span>
+                                {profile.is_verified && (
+                                  <BadgeCheck size={14} className="text-brand shrink-0" title="Verified business" />
+                                )}
+                              </div>
+                              <p className="text-[11px] text-ink-3 truncate">@{profile.slug}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-3 whitespace-nowrap">
+                          {profile.category_name ? (
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-surface-2 text-[11.5px] text-ink font-medium border border-border/50">
+                              <CategoryIconInline slug={profile.category_slug} name={profile.category_name} size={12} />
+                              <span className="truncate max-w-[130px]">{profile.category_name}</span>
+                            </span>
+                          ) : (
+                            <span className="text-ink-3 text-[11px]">—</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-3 whitespace-nowrap">
+                          <span className="text-[12px] text-ink-2 flex items-center gap-1">
+                            <MapPin size={12} className="text-ink-3 shrink-0" />
+                            {profile.city || 'Ethiopia'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 text-right whitespace-nowrap font-semibold text-ink tabular-nums">
+                          {Number(profile.views).toLocaleString()}
+                        </td>
+                        <td className="py-3 px-3 text-right whitespace-nowrap font-semibold text-brand tabular-nums">
+                          {Number(profile.contacts).toLocaleString()}
+                        </td>
+                        <td className="py-3 px-4 sm:px-5 text-center whitespace-nowrap">
+                          <Link
+                            to={`/p/${profile.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11.5px] font-medium text-ink-2 hover:text-brand hover:bg-brand/10 transition-colors"
+                          >
+                            <span>View</span>
+                            <ExternalLink size={12} />
+                          </Link>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-ink-3 text-[12.5px]">
+              <p>No business profile interaction recorded for this period yet.</p>
+            </div>
+          )}
+        </ChartCard>
 
         {/* ── Subscriptions by plan ─────────────────────────────────── */}
         {(isLoading || data?.subs_by_plan?.length > 0) && (
