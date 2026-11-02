@@ -655,22 +655,6 @@ export default function PublicProfilePage() {
       <Navbar />
 
       <main className="flex-1" id="main-content">
-
-        {/* Breadcrumb */}
-        <nav className="bg-canvas border-b border-border" aria-label="Breadcrumb">
-          <div className="max-w-6xl mx-auto px-5 sm:px-8 py-2.5 flex items-center gap-1.5 text-[12px] text-ink-3">
-            <Link to="/" className="hover:text-brand hover:no-underline transition-colors">
-              {t('profile.public.home')}
-            </Link>
-            <span aria-hidden="true">/</span>
-            <Link to="/directory" className="hover:text-brand hover:no-underline transition-colors">
-              {t('profile.public.directory')}
-            </Link>
-            <span aria-hidden="true">/</span>
-            <span className="text-ink truncate max-w-[160px]">{profile.display_name}</span>
-          </div>
-        </nav>
-
         {/* Page body */}
         <div className="max-w-6xl mx-auto px-5 sm:px-8">
 
