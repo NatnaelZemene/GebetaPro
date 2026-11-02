@@ -12,10 +12,11 @@ import { InteractiveAreaChart } from '../../features/admin/components/Interactiv
 import { ContactChannelBreakdown } from '../../features/admin/components/ContactChannelBreakdown.jsx'
 import { ConversionFunnelWidget } from '../../features/admin/components/ConversionFunnelWidget.jsx'
 import { CategoryIconInline } from '../../features/profiles/components/CategoryIcon.jsx'
+import { exportAnalyticsToCSV } from '../../features/admin/utils/exportAnalyticsCSV.js'
 import {
   Users, Megaphone, TrendingUp, AlertCircle,
   Eye, MousePointerClick, Percent, Calendar,
-  MapPin, Layers, Building2, Trophy, ExternalLink, BadgeCheck,
+  MapPin, Layers, Building2, Trophy, ExternalLink, BadgeCheck, Download,
 } from 'lucide-react'
 
 const RANGE_OPTIONS = [
@@ -84,22 +85,35 @@ export default function AdminAnalyticsPage() {
           </p>
         </div>
 
-        {/* Time range switcher */}
-        <div className="flex items-center gap-1 p-1 bg-surface-2/60 dark:bg-surface-2/30 border border-border/70 rounded-xl w-fit self-start sm:self-auto shrink-0">
-          {RANGE_OPTIONS.map(opt => (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => handleRangeChange(opt.value)}
-              className={`px-3 py-1.5 rounded-lg text-[12.5px] font-medium transition-all cursor-pointer whitespace-nowrap ${
-                range === opt.value
-                  ? 'bg-surface dark:bg-canvas text-ink shadow-xs font-semibold'
-                  : 'text-ink-3 hover:text-ink hover:bg-surface/50'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
+        {/* Header Actions: Range Switcher + CSV Export */}
+        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto shrink-0">
+          <div className="flex items-center gap-1 p-1 bg-surface-2/60 dark:bg-surface-2/30 border border-border/70 rounded-xl w-fit">
+            {RANGE_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => handleRangeChange(opt.value)}
+                className={`px-3 py-1.5 rounded-lg text-[12.5px] font-medium transition-all cursor-pointer whitespace-nowrap ${
+                  range === opt.value
+                    ? 'bg-surface dark:bg-canvas text-ink shadow-xs font-semibold'
+                    : 'text-ink-3 hover:text-ink hover:bg-surface/50'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => exportAnalyticsToCSV(data, range)}
+            disabled={isLoading || !data}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-border/80 bg-surface hover:bg-surface-2 text-ink text-[12.5px] font-semibold transition-colors shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Export full analytics report (CSV)"
+          >
+            <Download size={14} className="text-ink-2" />
+            <span>Export CSV</span>
+          </button>
         </div>
       </div>
 
