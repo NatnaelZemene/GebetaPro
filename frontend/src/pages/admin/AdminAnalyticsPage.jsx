@@ -5,9 +5,10 @@ import { useSearchParams } from 'react-router-dom'
 import { AdminLayout } from '../../components/layout/AdminLayout.jsx'
 import { Skeleton }    from '../../components/ui/Skeleton.jsx'
 import {
-  BarChart, LineChart, PageHeader, StatCard,
+  BarChart, PageHeader, StatCard,
 } from '../../features/admin/components/AdminTable.jsx'
 import { useAdminAnalytics } from '../../features/admin/hooks/useAdmin.js'
+import { InteractiveAreaChart } from '../../features/admin/components/InteractiveAreaChart.jsx'
 import {
   Users, Megaphone, TrendingUp, AlertCircle,
   Eye, MousePointerClick, Percent, Calendar,
@@ -31,30 +32,6 @@ function ChartCard({ title, subtitle, children, loading, className = '' }) {
       {loading ? (
         <Skeleton className="h-[210px] w-full rounded-xl" />
       ) : children}
-    </div>
-  )
-}
-
-/* ── Timeline with accessible trend chart ───────────────────────────────── */
-function Timeline({ data, dateField = 'date', valueField = 'count', formatTotal, formatValue }) {
-  if (!data || data.length === 0) return (
-    <p className="text-[12.5px] text-ink-3 text-center py-6">No data for this period.</p>
-  )
-
-  const total  = data.reduce((s, d) => s + Number(d[valueField] || 0), 0)
-  return (
-    <div>
-      {/* Total + period */}
-      <div className="flex items-end justify-between mb-3">
-        <div>
-          <span className="text-[27px] font-bold text-ink leading-none tracking-tight tabular-nums">
-            {formatTotal ? formatTotal(total) : total.toLocaleString()}
-          </span>
-        </div>
-        <span className="text-[11.5px] text-ink-3 mb-1">last 30 days</span>
-      </div>
-
-      <LineChart data={data} dateField={dateField} valueField={valueField} formatValue={formatValue} label="Platform activity over the last 30 days" />
     </div>
   )
 }
@@ -179,37 +156,16 @@ export default function AdminAnalyticsPage() {
           />
         </div>
 
-        {/* ── Trend charts ──────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <ChartCard
-            title="User growth"
-            subtitle="New registrations over 30 days"
-            loading={isLoading}
-          >
-            <Timeline data={data?.users_daily} valueField="count" />
-          </ChartCard>
-
-          <ChartCard
-            title="Advertisement activity"
-            subtitle="New listings over 30 days"
-            loading={isLoading}
-          >
-            <Timeline data={data?.ads_daily} valueField="count" />
-          </ChartCard>
-        </div>
-
-        <ChartCard
-          title="Revenue trend"
-          subtitle="Daily revenue over 30 days"
+        {/* ── Main Interactive Trend Chart with Scrubber ───────────────── */}
+        <InteractiveAreaChart
+          viewsDaily={data?.views_daily}
+          contactsDaily={data?.contacts_daily}
+          usersDaily={data?.users_daily}
+          adsDaily={data?.ads_daily}
+          revenueDaily={data?.revenue_daily}
+          range={range}
           loading={isLoading}
-        >
-            <Timeline
-            data={data?.revenue_daily}
-            valueField="revenue"
-            formatTotal={n => `ETB ${n.toLocaleString()}`}
-              formatValue={n => `ETB ${Number(n).toLocaleString()}`}
-          />
-        </ChartCard>
+        />
 
         {/* ── Distribution charts ───────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
