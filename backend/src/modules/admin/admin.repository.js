@@ -68,6 +68,9 @@ export async function getAnalyticsData(range = '30d') {
     cityDistribution,
     topProfilesLeaderboard,
     categoryEngagement,
+    prevTotals,
+    funnelTotals,
+    paymentMethods,
   ] = await Promise.all([
       // New users per day — contiguous date series
       pool.query(`
@@ -308,6 +311,38 @@ export async function getAnalyticsData(range = '30d') {
         ORDER BY (COUNT(DISTINCT a.id) + COUNT(DISTINCT p.id)) DESC
         LIMIT 10
       `),
+
+      // Prior equivalent period totals for delta % calculations
+      pool.query(`
+        SELECT
+          (SELECT COUNT(*)::int FROM profile_analytics_events WHERE event_type = 'VIEW' AND created_at >= now() - ($1 * 2 || ' days')::INTERVAL AND created_at < now() - ($1 || ' days')::INTERVAL) AS prev_views,
+          (SELECT COUNT(*)::int FROM profile_analytics_events WHERE event_type != 'VIEW' AND created_at >= now() - ($1 * 2 || ' days')::INTERVAL AND created_at < now() - ($1 || ' days')::INTERVAL) AS prev_contacts,
+          (SELECT COUNT(*)::int FROM users WHERE status != 'DELETED' AND created_at >= now() - ($1 * 2 || ' days')::INTERVAL AND created_at < now() - ($1 || ' days')::INTERVAL) AS prev_users,
+          (SELECT COUNT(*)::int FROM advertisements WHERE created_at >= now() - ($1 * 2 || ' days')::INTERVAL AND created_at < now() - ($1 || ' days')::INTERVAL) AS prev_ads,
+          (SELECT COALESCE(SUM(amount_etb), 0)::numeric FROM payment_records WHERE status = 'SUCCESS' AND created_at >= now() - ($1 * 2 || ' days')::INTERVAL AND created_at < now() - ($1 || ' days')::INTERVAL) AS prev_revenue
+      `, [days]),
+
+      // 4-stage platform conversion funnel
+      pool.query(`
+        SELECT
+          (SELECT COUNT(*)::int FROM users WHERE status != 'DELETED') AS total_users,
+          (SELECT COUNT(*)::int FROM profiles WHERE is_published = TRUE) AS published_profiles,
+          (SELECT COUNT(*)::int FROM profiles WHERE is_published = TRUE AND (is_verified = TRUE OR verification_status = 'VERIFIED')) AS verified_profiles,
+          (SELECT COUNT(*)::int FROM user_subscriptions us JOIN subscription_plans sp ON sp.id = us.plan_id WHERE us.status = 'ACTIVE' AND sp.name != 'FREE') AS paid_subscribers
+      `),
+
+      // Payment methods breakdown in range
+      pool.query(`
+        SELECT
+          COALESCE(NULLIF(TRIM(payment_method), ''), 'Telebirr / Chapa') AS method,
+          COUNT(*)::int AS count,
+          COALESCE(SUM(amount_etb), 0)::numeric AS revenue
+        FROM payment_records
+        WHERE status = 'SUCCESS'
+          AND created_at >= now() - ($1 || ' days')::INTERVAL
+        GROUP BY 1
+        ORDER BY revenue DESC
+      `, [days]),
     ])
 
   const totalViews = Number(eventsTotals.rows[0]?.total_views || 0)
@@ -329,9 +364,94 @@ export async function getAnalyticsData(range = '30d') {
     percentage: totalCityProfiles > 0 ? Number(((Number(r.count) / totalCityProfiles) * 100).toFixed(1)) : 0,
   }))
 
+  // Helper for delta calculation
+  function calcDelta(curr, prev) {
+    const c = Number(curr) || 0
+    const p = Number(prev) || 0
+    if (p === 0) return c > 0 ? 100 : 0
+    return Number((((c - p) / p) * 100).toFixed(1))
+  }
+
+  const p = prevTotals.rows[0] || {}
+  const prevViews = Number(p.prev_views || 0)
+  const prevContacts = Number(p.prev_contacts || 0)
+  const prevUsers = Number(p.prev_users || 0)
+  const prevAds = Number(p.prev_ads || 0)
+  const prevRevenue = Number(p.prev_revenue || 0)
+
+  const currentUsers = usersDaily.rows.reduce((s, r) => s + Number(r.count), 0)
+  const currentAds = adsDaily.rows.reduce((s, r) => s + Number(r.count), 0)
+  const currentRevenue = revenueDaily.rows.reduce((s, r) => s + Number(r.revenue), 0)
+
+  const summaryMetrics = {
+    views: {
+      current: totalViews,
+      previous: prevViews,
+      delta_pct: calcDelta(totalViews, prevViews),
+    },
+    contacts: {
+      current: totalContacts,
+      previous: prevContacts,
+      delta_pct: calcDelta(totalContacts, prevContacts),
+    },
+    conversion_rate: {
+      current: leadConversionRate,
+      previous: prevViews > 0 ? Number(((prevContacts / prevViews) * 100).toFixed(2)) : 0,
+      delta_pct: calcDelta(leadConversionRate, prevViews > 0 ? (prevContacts / prevViews) * 100 : 0),
+    },
+    users: {
+      current: currentUsers,
+      previous: prevUsers,
+      delta_pct: calcDelta(currentUsers, prevUsers),
+    },
+    ads: {
+      current: currentAds,
+      previous: prevAds,
+      delta_pct: calcDelta(currentAds, prevAds),
+    },
+    revenue: {
+      current: currentRevenue,
+      previous: prevRevenue,
+      delta_pct: calcDelta(currentRevenue, prevRevenue),
+    },
+  }
+
+  // 4-stage advertiser conversion funnel
+  const fn = funnelTotals.rows[0] || {}
+  const totalUsersCount = Number(fn.total_users || 0)
+  const publishedCount = Number(fn.published_profiles || 0)
+  const verifiedCount = Number(fn.verified_profiles || 0)
+  const paidCount = Number(fn.paid_subscribers || 0)
+
+  const conversionFunnel = [
+    {
+      stage: 'Registered Users',
+      count: totalUsersCount,
+      rate: 100,
+    },
+    {
+      stage: 'Published Profiles',
+      count: publishedCount,
+      rate: totalUsersCount > 0 ? Number(((publishedCount / totalUsersCount) * 100).toFixed(1)) : 0,
+    },
+    {
+      stage: 'Verified Businesses',
+      count: verifiedCount,
+      rate: publishedCount > 0 ? Number(((verifiedCount / publishedCount) * 100).toFixed(1)) : 0,
+    },
+    {
+      stage: 'Paid Subscribers',
+      count: paidCount,
+      rate: verifiedCount > 0 ? Number(((paidCount / verifiedCount) * 100).toFixed(1)) : 0,
+    },
+  ]
+
   return {
     range,
     days,
+    summary_metrics:          summaryMetrics,
+    conversion_funnel:        conversionFunnel,
+    payment_methods:          paymentMethods.rows,
     users_daily:              usersDaily.rows,
     ads_daily:                adsDaily.rows,
     ads_by_status:            adsByStatus.rows,
