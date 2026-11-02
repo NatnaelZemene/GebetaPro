@@ -1,7 +1,7 @@
 /**
  * AdminSubscriptionsPage.jsx — Subscription records.
  */
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { AdminLayout }  from '../../components/layout/AdminLayout.jsx'
 import { Badge }        from '../../components/ui/Badge.jsx'
@@ -15,9 +15,11 @@ import {
 } from '../../features/admin/hooks/useAdmin.js'
 import { CategoryIconInline } from '../../features/profiles/components/CategoryIcon.jsx'
 import { SubscriptionDetailDrawer } from '../../features/admin/components/SubscriptionDetailDrawer.jsx'
+import { exportSubscriptionsToCSV } from '../../features/admin/utils/exportSubscriptionsCSV.js'
 import {
   CreditCard, CheckCircle2, TrendingUp, Clock,
   BadgeCheck, ExternalLink, Copy, Check,
+  Download, X, CalendarPlus,
 } from 'lucide-react'
 
 const STATUS_OPTS = [
@@ -166,6 +168,31 @@ function ExpiryBar({ start, end, status }) {
   )
 }
 
+/* ── Table row & header checkbox with indeterminate support ────────────── */
+function TableCheckbox({ checked, indeterminate, onChange, ariaLabel }) {
+  const ref = useRef(null)
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.indeterminate = Boolean(indeterminate)
+    }
+  }, [indeterminate])
+
+  return (
+    <input
+      ref={ref}
+      type="checkbox"
+      checked={checked}
+      onChange={onChange}
+      aria-label={ariaLabel}
+      className="
+        w-4 h-4 rounded border-border text-brand
+        focus:ring-2 focus:ring-brand/30 focus:ring-offset-0
+        cursor-pointer transition-all accent-brand
+      "
+    />
+  )
+}
+
 export default function AdminSubscriptionsPage() {
   const [searchParams] = useSearchParams()
   const [search, setSearch] = useState(searchParams.get('search') || '')
@@ -174,13 +201,22 @@ export default function AdminSubscriptionsPage() {
   const [expiringDays, setExpiringDays] = useState(searchParams.get('expiring_days') || '')
   const [page,   setPage]   = useState(1)
   const [debSearch, setDebSearch] = useState(search)
+  const [selectedIds, setSelectedIds] = useState([])
+  const [bulkProcessing, setBulkProcessing] = useState(false)
 
   useEffect(() => {
     const t = setTimeout(() => setDebSearch(search), 350)
     return () => clearTimeout(t)
   }, [search])
 
-  useEffect(() => { setPage(1) }, [debSearch, status, plan, expiringDays])
+  useEffect(() => {
+    setPage(1)
+    setSelectedIds([])
+  }, [debSearch, status, plan, expiringDays])
+
+  useEffect(() => {
+    setSelectedIds([])
+  }, [page])
 
   const params = {
     page, page_size: 20,
@@ -255,7 +291,73 @@ export default function AdminSubscriptionsPage() {
     { id: 'paid',     label: 'Paid Plans' },
   ]
 
+  const allSelectedOnPage = subs.length > 0 && subs.every(s => selectedIds.includes(s.id))
+  const someSelectedOnPage = subs.length > 0 && subs.some(s => selectedIds.includes(s.id)) && !allSelectedOnPage
+
+  function toggleSelectAllOnPage() {
+    if (allSelectedOnPage) {
+      const pageIds = new Set(subs.map(s => s.id))
+      setSelectedIds(prev => prev.filter(id => !pageIds.has(id)))
+    } else {
+      const currentSet = new Set(selectedIds)
+      subs.forEach(s => currentSet.add(s.id))
+      setSelectedIds(Array.from(currentSet))
+    }
+  }
+
+  function toggleSelectSub(subId) {
+    setSelectedIds(prev =>
+      prev.includes(subId) ? prev.filter(id => id !== subId) : [...prev, subId]
+    )
+  }
+
+  async function handleBulkExtend30d() {
+    if (selectedIds.length === 0 || bulkProcessing) return
+    if (!window.confirm(`Extend ${selectedIds.length} subscription(s) by +30 days?`)) return
+    setBulkProcessing(true)
+    try {
+      for (const id of selectedIds) {
+        await extendSub.mutateAsync({ subId: id, days: 30, note: 'Bulk 30-day administrative extension' })
+      }
+      setSelectedIds([])
+    } catch (err) {
+      console.error('Bulk extend error:', err)
+    } finally {
+      setBulkProcessing(false)
+    }
+  }
+
+  function handleExportSelected() {
+    const selectedList = subs.filter(s => selectedIds.includes(s.id))
+    exportSubscriptionsToCSV(selectedList, `selected-subscriptions-${new Date().toISOString().slice(0, 10)}.csv`)
+  }
+
   const columns = [
+    {
+      key: 'select',
+      label: (
+        <div className="flex items-center justify-center">
+          <TableCheckbox
+            checked={allSelectedOnPage}
+            indeterminate={someSelectedOnPage}
+            onChange={toggleSelectAllOnPage}
+            ariaLabel="Select all subscriptions on this page"
+          />
+        </div>
+      ),
+      render: s => (
+        <div className="flex items-center justify-center" onClick={e => e.stopPropagation()}>
+          <TableCheckbox
+            checked={selectedIds.includes(s.id)}
+            onChange={() => toggleSelectSub(s.id)}
+            ariaLabel={`Select subscription ${s.business_name || s.display_name || s.email}`}
+          />
+        </div>
+      ),
+      className: 'w-10 px-3',
+      cellClass: 'w-10 px-3 text-center',
+      skeletonWidth: '16px',
+    },
     {
       key: 'subscriber',
       label: 'Subscriber & Business',
@@ -494,6 +596,24 @@ export default function AdminSubscriptionsPage() {
               Clear filters
             </button>
           )}
+
+          <div className="sm:ml-auto flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => exportSubscriptionsToCSV(subs, `subscriptions-page-${page}.csv`)}
+              disabled={subs.length === 0}
+              title="Export visible subscriptions to CSV"
+              className="
+                inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] font-medium
+                bg-surface hover:bg-surface-2 text-ink-2 hover:text-ink
+                border border-border transition-colors cursor-pointer disabled:opacity-40
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand
+              "
+            >
+              <Download size={13} className="text-ink-3" />
+              <span>Export CSV</span>
+            </button>
+          </div>
         </div>
 
         {/* Mutation error alert */}
@@ -525,6 +645,72 @@ export default function AdminSubscriptionsPage() {
           onUpdateStatus={(subId, status) => updateStatus.mutate({ subId, status })}
           loading={anyMutating}
         />
+      )}
+
+      {/* Floating Bulk Action Bar */}
+      {selectedIds.length > 0 && (
+        <div
+          role="region"
+          aria-label="Bulk actions"
+          className="
+            fixed bottom-6 left-1/2 -translate-x-1/2 z-40
+            bg-neutral-900 text-white dark:bg-neutral-800 dark:text-neutral-100
+            border border-neutral-700/80 shadow-[0_12px_36px_rgba(0,0,0,0.35)]
+            rounded-2xl px-4 py-2.5 flex items-center gap-2.5 sm:gap-3.5
+            animate-in fade-in slide-in-from-bottom-3 duration-150
+            max-w-[calc(100vw-2rem)]
+          "
+        >
+          <div className="flex items-center gap-2 pr-1">
+            <span className="w-5 h-5 rounded-full bg-brand text-white flex items-center justify-center text-[11px] font-bold shrink-0">
+              {selectedIds.length}
+            </span>
+            <span className="text-[12.5px] font-medium hidden sm:inline text-neutral-200">
+              selected
+            </span>
+          </div>
+
+          <div className="w-px h-4 bg-neutral-700 shrink-0" aria-hidden="true" />
+
+          <button
+            type="button"
+            onClick={handleBulkExtend30d}
+            disabled={bulkProcessing || anyMutating}
+            className="
+              inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] font-medium
+              bg-brand/20 hover:bg-brand/30 text-teal-300 border border-teal-500/30
+              transition-colors cursor-pointer disabled:opacity-50
+            "
+          >
+            <CalendarPlus size={13} className="text-teal-400" />
+            <span>{bulkProcessing ? 'Extending...' : 'Bulk Extend (+30d)'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleExportSelected}
+            className="
+              inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] font-medium
+              bg-white/10 hover:bg-white/15 text-neutral-200 border border-white/10
+              transition-colors cursor-pointer
+            "
+          >
+            <Download size={13} className="text-neutral-300" />
+            <span>Export ({selectedIds.length})</span>
+          </button>
+
+          <div className="w-px h-4 bg-neutral-700 shrink-0" aria-hidden="true" />
+
+          <button
+            type="button"
+            onClick={() => setSelectedIds([])}
+            title="Clear selection"
+            aria-label="Clear selection"
+            className="p-1 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+          >
+            <X size={15} />
+          </button>
+        </div>
       )}
     </AdminLayout>
   )
