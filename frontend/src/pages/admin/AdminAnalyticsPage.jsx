@@ -15,8 +15,8 @@ import { CategoryIconInline } from '../../features/profiles/components/CategoryI
 import { exportAnalyticsToCSV } from '../../features/admin/utils/exportAnalyticsCSV.js'
 import {
   Users, Megaphone, TrendingUp, AlertCircle,
-  Eye, MousePointerClick, Percent, Calendar,
-  MapPin, Layers, Building2, Trophy, ExternalLink, BadgeCheck, Download,
+  Eye, MousePointerClick, Percent,
+  MapPin, ExternalLink, BadgeCheck, Download,
 } from 'lucide-react'
 
 const RANGE_OPTIONS = [
