@@ -33,6 +33,25 @@ const STATUS_BADGE = {
   FREE:    <Badge variant="default" size="xs">Free Plan</Badge>,
 }
 
+function CopyTx({ text }) {
+  const [copied, setCopied] = useState(false)
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        if (!text) return
+        navigator.clipboard?.writeText(text)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 1500)
+      }}
+      title="Copy transaction reference"
+      className="p-0.5 text-ink-4 hover:text-ink cursor-pointer"
+    >
+      {copied ? <Check size={10} className="text-emerald-500" /> : <Copy size={10} />}
+    </button>
+  )
+}
+
 export function SubscriptionDetailDrawer({
   subscription,
   onClose,
@@ -317,6 +336,7 @@ export function SubscriptionDetailDrawer({
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5 font-mono text-[11px] text-ink">
                         <span className="truncate max-w-[140px]">{p.tx_ref}</span>
+                        <CopyTx text={p.tx_ref} />
                         <span className="text-[10px] text-ink-4 uppercase">({p.payment_method || 'Chapa'})</span>
                       </div>
                       <span className="text-[11px] text-ink-3">
