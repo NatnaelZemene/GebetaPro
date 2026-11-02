@@ -45,35 +45,69 @@ export async function getPlatformStats() {
  *  - ads by category (top 10)
  *  - subscriptions by plan
  */
-export async function getAnalyticsData() {
+export async function getAnalyticsData(range = '30d') {
+  const RANGE_DAYS = {
+    '7d':  7,
+    '30d': 30,
+    '90d': 90,
+    '12m': 365,
+  }
+  const days = RANGE_DAYS[range] || 30
+
   const [usersDaily, adsDaily, adsByStatus, adsByCategory, subsByPlan, revenueDaily] =
     await Promise.all([
-      // New users per day — last 30 days
+      // New users per day — contiguous date series
       pool.query(`
+        WITH date_series AS (
+          SELECT generate_series(
+            date_trunc('day', now() - ($1 || ' days')::INTERVAL)::date,
+            date_trunc('day', now())::date,
+            '1 day'::INTERVAL
+          )::date AS date
+        )
         SELECT
-          date_trunc('day', created_at)::date AS date,
-          COUNT(*) AS count
-        FROM users
-        WHERE created_at >= now() - INTERVAL '30 days'
-          AND status != 'DELETED'
-        GROUP BY 1
-        ORDER BY 1
-      `),
+          ds.date,
+          COALESCE(u.count, 0)::int AS count
+        FROM date_series ds
+        LEFT JOIN (
+          SELECT
+            date_trunc('day', created_at)::date AS date,
+            COUNT(*)::int AS count
+          FROM users
+          WHERE created_at >= now() - ($1 || ' days')::INTERVAL
+            AND status != 'DELETED'
+          GROUP BY 1
+        ) u ON u.date = ds.date
+        ORDER BY ds.date ASC
+      `, [days]),
 
-      // New ads per day — last 30 days
+      // New ads per day — contiguous date series
       pool.query(`
+        WITH date_series AS (
+          SELECT generate_series(
+            date_trunc('day', now() - ($1 || ' days')::INTERVAL)::date,
+            date_trunc('day', now())::date,
+            '1 day'::INTERVAL
+          )::date AS date
+        )
         SELECT
-          date_trunc('day', created_at)::date AS date,
-          COUNT(*) AS count
-        FROM advertisements
-        WHERE created_at >= now() - INTERVAL '30 days'
-        GROUP BY 1
-        ORDER BY 1
-      `),
+          ds.date,
+          COALESCE(a.count, 0)::int AS count
+        FROM date_series ds
+        LEFT JOIN (
+          SELECT
+            date_trunc('day', created_at)::date AS date,
+            COUNT(*)::int AS count
+          FROM advertisements
+          WHERE created_at >= now() - ($1 || ' days')::INTERVAL
+          GROUP BY 1
+        ) a ON a.date = ds.date
+        ORDER BY ds.date ASC
+      `, [days]),
 
       // Ads by status (current snapshot)
       pool.query(`
-        SELECT status, COUNT(*) AS count
+        SELECT status, COUNT(*)::int AS count
         FROM advertisements
         GROUP BY status
         ORDER BY count DESC
@@ -83,10 +117,11 @@ export async function getAnalyticsData() {
       pool.query(`
         SELECT
           COALESCE(c.name, 'Uncategorized') AS category,
-          COUNT(a.id) AS count
+          c.slug                            AS category_slug,
+          COUNT(a.id)::int                  AS count
         FROM advertisements a
         LEFT JOIN categories c ON c.id = a.category_id
-        GROUP BY COALESCE(c.name, 'Uncategorized')
+        GROUP BY COALESCE(c.name, 'Uncategorized'), c.slug
         ORDER BY count DESC
         LIMIT 10
       `),
@@ -94,35 +129,50 @@ export async function getAnalyticsData() {
       // Active subscriptions by plan
       pool.query(`
         SELECT
-          sp.display_name AS plan,
-          sp.name         AS plan_name,
-          COUNT(us.id)    AS count
+          sp.display_name  AS plan,
+          sp.name          AS plan_name,
+          COUNT(us.id)::int AS count
         FROM user_subscriptions us
         JOIN subscription_plans sp ON sp.id = us.plan_id
         GROUP BY sp.id, sp.display_name, sp.name, sp.sort_order
         ORDER BY sp.sort_order
       `),
 
-      // Revenue per day — last 30 days (successful payments only)
+      // Revenue per day — contiguous date series (successful payments only)
       pool.query(`
+        WITH date_series AS (
+          SELECT generate_series(
+            date_trunc('day', now() - ($1 || ' days')::INTERVAL)::date,
+            date_trunc('day', now())::date,
+            '1 day'::INTERVAL
+          )::date AS date
+        )
         SELECT
-          date_trunc('day', created_at)::date AS date,
-          COALESCE(SUM(amount_etb), 0)        AS revenue
-        FROM payment_records
-        WHERE status = 'SUCCESS'
-          AND created_at >= now() - INTERVAL '30 days'
-        GROUP BY 1
-        ORDER BY 1
-      `),
+          ds.date,
+          COALESCE(p.revenue, 0)::numeric AS revenue
+        FROM date_series ds
+        LEFT JOIN (
+          SELECT
+            date_trunc('day', created_at)::date AS date,
+            COALESCE(SUM(amount_etb), 0)::numeric AS revenue
+          FROM payment_records
+          WHERE status = 'SUCCESS'
+            AND created_at >= now() - ($1 || ' days')::INTERVAL
+          GROUP BY 1
+        ) p ON p.date = ds.date
+        ORDER BY ds.date ASC
+      `, [days]),
     ])
 
   return {
-    users_daily:    usersDaily.rows,
-    ads_daily:      adsDaily.rows,
-    ads_by_status:  adsByStatus.rows,
+    range,
+    days,
+    users_daily:     usersDaily.rows,
+    ads_daily:       adsDaily.rows,
+    ads_by_status:   adsByStatus.rows,
     ads_by_category: adsByCategory.rows,
-    subs_by_plan:   subsByPlan.rows,
-    revenue_daily:  revenueDaily.rows,
+    subs_by_plan:    subsByPlan.rows,
+    revenue_daily:   revenueDaily.rows,
   }
 }
 

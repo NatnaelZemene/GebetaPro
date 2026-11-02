@@ -12,8 +12,9 @@ export const getStats = asyncHandler(async (_req, res) => {
   sendSuccess(res, 'Platform stats retrieved', stats)
 })
 
-export const getAnalytics = asyncHandler(async (_req, res) => {
-  const data = await service.getAnalytics()
+export const getAnalytics = asyncHandler(async (req, res) => {
+  const range = req.query.range || '30d'
+  const data = await service.getAnalytics(range)
   sendSuccess(res, 'Analytics data retrieved', data)
 })
 

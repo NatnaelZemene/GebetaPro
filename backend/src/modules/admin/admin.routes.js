@@ -88,9 +88,15 @@ const updateCategorySchema = z.object({
   }),
 })
 
+const analyticsQuerySchema = z.object({
+  query: z.object({
+    range: z.enum(['7d', '30d', '90d', '12m']).optional(),
+  }).optional(),
+})
+
 // ── Stats & Analytics ─────────────────────────────────────────────────────────
 router.get('/stats',                                ...guard,                                     ctrl.getStats)
-router.get('/analytics',                            ...guard,                                     ctrl.getAnalytics)
+router.get('/analytics',                            ...guard, validate(analyticsQuerySchema),     ctrl.getAnalytics)
 router.get('/revenue',                              ...guard,                                     ctrl.getRevenue)
 
 // ── Users ─────────────────────────────────────────────────────────────────────

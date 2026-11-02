@@ -31,8 +31,8 @@ export async function getStats() {
   return repo.getPlatformStats()
 }
 
-export async function getAnalytics() {
-  return repo.getAnalyticsData()
+export async function getAnalytics(range = '30d') {
+  return repo.getAnalyticsData(range)
 }
 
 export async function getRevenue() {
