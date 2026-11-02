@@ -65,6 +65,9 @@ export async function getAnalyticsData(range = '30d') {
     contactsDaily,
     channelsBreakdown,
     eventsTotals,
+    cityDistribution,
+    topProfilesLeaderboard,
+    categoryEngagement,
   ] = await Promise.all([
       // New users per day — contiguous date series
       pool.query(`
@@ -243,6 +246,68 @@ export async function getAnalyticsData(range = '30d') {
         FROM profile_analytics_events
         WHERE created_at >= now() - ($1 || ' days')::INTERVAL
       `, [days]),
+
+      // Ethiopian city distribution (active profiles)
+      pool.query(`
+        SELECT
+          COALESCE(NULLIF(TRIM(city), ''), 'Other / Not specified') AS city,
+          COUNT(*)::int AS count
+        FROM profiles
+        WHERE is_published = TRUE
+        GROUP BY 1
+        ORDER BY count DESC
+        LIMIT 8
+      `),
+
+      // Top 5 most engaged business profiles in range
+      pool.query(`
+        SELECT
+          p.id,
+          p.display_name,
+          p.slug,
+          p.avatar_url,
+          p.city,
+          p.is_verified,
+          p.profile_type,
+          c.name AS category_name,
+          c.slug AS category_slug,
+          COALESCE(ev.views, p.views_count, 0)::int AS views,
+          COALESCE(ec.contacts, p.contact_clicks_count, 0)::int AS contacts
+        FROM profiles p
+        LEFT JOIN categories c ON c.id = p.category_id
+        LEFT JOIN (
+          SELECT profile_id, COUNT(*)::int AS views
+          FROM profile_analytics_events
+          WHERE event_type = 'VIEW'
+            AND created_at >= now() - ($1 || ' days')::INTERVAL
+          GROUP BY profile_id
+        ) ev ON ev.profile_id = p.id
+        LEFT JOIN (
+          SELECT profile_id, COUNT(*)::int AS contacts
+          FROM profile_analytics_events
+          WHERE event_type != 'VIEW'
+            AND created_at >= now() - ($1 || ' days')::INTERVAL
+          GROUP BY profile_id
+        ) ec ON ec.profile_id = p.id
+        WHERE p.is_published = TRUE
+        ORDER BY (COALESCE(ev.views, p.views_count, 0) + COALESCE(ec.contacts, p.contact_clicks_count, 0) * 3) DESC, p.created_at DESC
+        LIMIT 5
+      `, [days]),
+
+      // Top categories with ads and directory providers
+      pool.query(`
+        SELECT
+          c.name                    AS category,
+          c.slug                    AS category_slug,
+          COUNT(DISTINCT a.id)::int AS ads_count,
+          COUNT(DISTINCT p.id)::int AS profiles_count
+        FROM categories c
+        LEFT JOIN advertisements a ON a.category_id = c.id
+        LEFT JOIN profiles p ON p.category_id = c.id AND p.is_published = TRUE
+        GROUP BY c.id, c.name, c.slug
+        ORDER BY (COUNT(DISTINCT a.id) + COUNT(DISTINCT p.id)) DESC
+        LIMIT 10
+      `),
     ])
 
   const totalViews = Number(eventsTotals.rows[0]?.total_views || 0)
@@ -257,21 +322,31 @@ export async function getAnalyticsData(range = '30d') {
     percentage: totalContacts > 0 ? Number(((Number(c.count) / totalContacts) * 100).toFixed(1)) : 0,
   }))
 
+  const totalCityProfiles = cityDistribution.rows.reduce((sum, r) => sum + Number(r.count), 0)
+  const cityStats = cityDistribution.rows.map(r => ({
+    city: r.city,
+    count: Number(r.count),
+    percentage: totalCityProfiles > 0 ? Number(((Number(r.count) / totalCityProfiles) * 100).toFixed(1)) : 0,
+  }))
+
   return {
     range,
     days,
-    users_daily:          usersDaily.rows,
-    ads_daily:            adsDaily.rows,
-    ads_by_status:        adsByStatus.rows,
-    ads_by_category:      adsByCategory.rows,
-    subs_by_plan:         subsByPlan.rows,
-    revenue_daily:        revenueDaily.rows,
-    views_daily:          viewsDaily.rows,
-    contacts_daily:       contactsDaily.rows,
-    channels_breakdown:   channels,
-    total_views:          totalViews,
-    total_contacts:       totalContacts,
-    lead_conversion_rate: leadConversionRate,
+    users_daily:              usersDaily.rows,
+    ads_daily:                adsDaily.rows,
+    ads_by_status:            adsByStatus.rows,
+    ads_by_category:          adsByCategory.rows,
+    category_engagement:      categoryEngagement.rows,
+    subs_by_plan:             subsByPlan.rows,
+    revenue_daily:            revenueDaily.rows,
+    views_daily:              viewsDaily.rows,
+    contacts_daily:           contactsDaily.rows,
+    channels_breakdown:       channels,
+    city_distribution:        cityStats,
+    top_profiles_leaderboard: topProfilesLeaderboard.rows,
+    total_views:              totalViews,
+    total_contacts:           totalContacts,
+    lead_conversion_rate:     leadConversionRate,
   }
 }
 
