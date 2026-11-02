@@ -456,6 +456,10 @@ export async function getSubscriptionStats() {
        COUNT(*)                                              AS total_users,
        COUNT(*) FILTER (WHERE us.status = 'ACTIVE')         AS active_subscriptions,
        COUNT(*) FILTER (WHERE us.status = 'EXPIRED')        AS expired_subscriptions,
+       COUNT(*) FILTER (WHERE us.status = 'ACTIVE'
+         AND us.current_period_end <= now() + INTERVAL '7 days'
+         AND us.current_period_end >= now())                AS expiring_soon_7d,
+       COALESCE(SUM(sp.price_etb) FILTER (WHERE us.status = 'ACTIVE'), 0) AS mrr_etb,
        COUNT(*) FILTER (WHERE sp.name = 'FREE')             AS free_plan_users,
        COUNT(*) FILTER (WHERE sp.name = 'BASIC')            AS basic_plan_users,
        COUNT(*) FILTER (WHERE sp.name = 'PRO')              AS pro_plan_users,

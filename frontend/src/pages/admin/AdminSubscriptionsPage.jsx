@@ -9,8 +9,8 @@ import {
   AdminTable, SearchBar, FilterSelect,
   Pagination, PageHeader, StatCard,
 } from '../../features/admin/components/AdminTable.jsx'
-import { useAdminSubscriptions } from '../../features/admin/hooks/useAdmin.js'
-import { CreditCard } from 'lucide-react'
+import { useAdminSubscriptions, useAdminSubOverview } from '../../features/admin/hooks/useAdmin.js'
+import { CreditCard, CheckCircle2, TrendingUp, Clock } from 'lucide-react'
 
 const STATUS_OPTS = [
   { value: 'ACTIVE',  label: 'Active'  },
@@ -80,8 +80,16 @@ export default function AdminSubscriptionsPage() {
   }
 
   const { data, isLoading, error } = useAdminSubscriptions(params)
+  const { data: overview, isLoading: overviewLoading } = useAdminSubOverview()
   const subs       = data?.subscriptions || []
   const pagination = data?.pagination    || null
+
+  const totalSubs    = Number(overview?.total_users ?? pagination?.total ?? subs.length)
+  const activeSubs   = Number(overview?.active_subscriptions ?? 0)
+  const expiringSoon = Number(overview?.expiring_soon_7d ?? 0)
+  const expiredSubs  = Number(overview?.expired_subscriptions ?? 0)
+  const mrrEtb       = Number(overview?.mrr_etb ?? overview?.total_revenue_etb ?? 0)
+  const activeRate   = totalSubs > 0 ? Math.round((activeSubs / totalSubs) * 100) : 100
 
   const columns = [
     {
@@ -160,10 +168,42 @@ export default function AdminSubscriptionsPage() {
 
       {/* Stats strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-7">
-        <StatCard label="Total"        value={(data?.pagination?.total ?? subs.length).toLocaleString()} icon={<CreditCard size={15} />} iconBg="bg-brand-light" iconColor="text-brand" loading={isLoading} />
-        <StatCard label="Active"       value={status === 'ACTIVE'  ? subs.length.toLocaleString() : '—'} iconBg="bg-success-bg" iconColor="text-success" />
-        <StatCard label="Status filter" value={status || 'All'}                                           iconBg="bg-brand-light" iconColor="text-brand" />
-        <StatCard label="Page size"    value="20 / page"                                                  iconBg="bg-surface-2" iconColor="text-ink-3" />
+        <StatCard
+          label="Active Subscribers"
+          value={activeSubs.toLocaleString()}
+          sub={`${activeRate}% active rate`}
+          icon={<CheckCircle2 size={16} />}
+          iconBg="bg-emerald-50 dark:bg-emerald-950/40"
+          iconColor="text-emerald-600 dark:text-emerald-400"
+          loading={overviewLoading && isLoading}
+        />
+        <StatCard
+          label="Monthly Value (MRR)"
+          value={`ETB ${mrrEtb.toLocaleString()}`}
+          sub="Active subscriber run-rate"
+          icon={<TrendingUp size={16} />}
+          iconBg="bg-brand-light dark:bg-brand/10"
+          iconColor="text-brand"
+          loading={overviewLoading}
+        />
+        <StatCard
+          label="Expiring Soon (7d)"
+          value={expiringSoon.toLocaleString()}
+          sub={expiringSoon > 0 ? "Requires renewal watch" : "All renewals healthy"}
+          icon={<Clock size={16} />}
+          iconBg={expiringSoon > 0 ? "bg-amber-50 dark:bg-amber-950/40" : "bg-surface-2"}
+          iconColor={expiringSoon > 0 ? "text-amber-600 dark:text-amber-400" : "text-ink-3"}
+          loading={overviewLoading}
+        />
+        <StatCard
+          label="Expired Accounts"
+          value={expiredSubs.toLocaleString()}
+          sub="Lapsed memberships"
+          icon={<CreditCard size={16} />}
+          iconBg="bg-surface-2"
+          iconColor="text-ink-3"
+          loading={overviewLoading}
+        />
       </div>
 
       <div className="flex flex-col gap-5">
