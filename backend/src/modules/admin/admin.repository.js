@@ -172,7 +172,7 @@ export async function findAllUsers({ page = 1, pageSize = 20, search = null, sta
 
   if (search) {
     params.push(`%${search}%`)
-    conditions.push(`(u.email ILIKE $${i} OR u.phone ILIKE $${i})`)
+    conditions.push(`(u.email ILIKE $${i} OR u.phone ILIKE $${i} OR p.display_name ILIKE $${i} OR p.city ILIKE $${i} OR p.slug ILIKE $${i})`)
     i++
   }
   if (status) { params.push(status); conditions.push(`u.status = $${i++}`) }
@@ -181,7 +181,10 @@ export async function findAllUsers({ page = 1, pageSize = 20, search = null, sta
   const where = conditions.join(' AND ')
 
   const countResult = await pool.query(
-    `SELECT COUNT(*) AS total FROM users u WHERE ${where}`, params
+    `SELECT COUNT(DISTINCT u.id) AS total
+     FROM users u
+     LEFT JOIN profiles p ON p.user_id = u.id
+     WHERE ${where}`, params
   )
   const total = parseInt(countResult.rows[0].total, 10)
 
@@ -190,6 +193,9 @@ export async function findAllUsers({ page = 1, pageSize = 20, search = null, sta
     `SELECT
        u.id, u.email, u.phone, u.role, u.status,
        u.email_verified_at, u.created_at,
+       p.id AS profile_id, p.display_name, p.slug, p.avatar_url, p.profile_type,
+       p.city, p.is_verified AS profile_verified, p.is_published,
+       c.name AS category_name, c.slug AS category_slug,
        (SELECT COUNT(*) FROM advertisements WHERE user_id = u.id)            AS ad_count,
        (SELECT COUNT(*) FROM advertisements WHERE user_id = u.id
           AND status = 'PUBLISHED')                                           AS published_ad_count,
@@ -197,6 +203,8 @@ export async function findAllUsers({ page = 1, pageSize = 20, search = null, sta
        sp.name     AS plan_name,
        sp.display_name AS plan_display_name
      FROM users u
+     LEFT JOIN profiles p ON p.user_id = u.id
+     LEFT JOIN categories c ON c.id = p.category_id
      LEFT JOIN user_subscriptions us ON us.user_id = u.id
      LEFT JOIN subscription_plans sp ON sp.id = us.plan_id
      WHERE ${where}
@@ -212,6 +220,16 @@ export async function findUserById(userId) {
     `SELECT
        u.id, u.email, u.phone, u.role, u.status,
        u.email_verified_at, u.created_at, u.updated_at,
+       p.id AS profile_id, p.display_name, p.slug, p.headline, p.description,
+       p.avatar_url, p.cover_url, p.profile_type,
+       p.country, p.region, p.city, p.area, p.address_line,
+       p.contact_phone, p.contact_email, p.website_url,
+       p.whatsapp, p.telegram_username,
+       p.is_published, p.is_verified AS profile_verified,
+       p.completion_score,
+       c.name AS category_name, c.slug AS category_slug,
+       (SELECT COUNT(*) FROM advertisements WHERE user_id = u.id) AS ad_count,
+       (SELECT COUNT(*) FROM advertisements WHERE user_id = u.id AND status = 'PUBLISHED') AS published_ad_count,
        us.status              AS subscription_status,
        us.current_period_end,
        us.current_period_start,
@@ -219,6 +237,8 @@ export async function findUserById(userId) {
        sp.display_name        AS plan_display_name,
        sp.price_etb
      FROM users u
+     LEFT JOIN profiles p ON p.user_id = u.id
+     LEFT JOIN categories c ON c.id = p.category_id
      LEFT JOIN user_subscriptions us ON us.user_id = u.id
      LEFT JOIN subscription_plans sp ON sp.id = us.plan_id
      WHERE u.id = $1`,
