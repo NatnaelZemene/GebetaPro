@@ -14,6 +14,7 @@
  */
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { ChevronDown, Search, X, Check } from 'lucide-react'
+import { CategoryIcon, CategoryIconInline } from '../../features/profiles/components/CategoryIcon.jsx'
 
 export function Select({
   value,
@@ -56,10 +57,13 @@ export function Select({
       return options.map(o => ({
         value: String(o.value ?? ''),
         label: o.label ?? o.name ?? String(o.value),
+        slug: o.slug || null,
+        icon: o.icon || null,
         subtitle: o.subtitle || null,
         disabled: Boolean(o.disabled),
         style: o.style || {},
         isParent: Boolean(o.isParent),
+        isIndented: Boolean(o.isIndented),
         group: o.group || null,
       }))
     }
@@ -89,12 +93,17 @@ export function Select({
             child.props.style?.fontWeight === 700
           )
           const isIndented = Boolean(
+            child.props['data-indented'] ||
             child.props.style?.paddingLeft ||
             (typeof child.props.style?.paddingLeft === 'string' && child.props.style.paddingLeft !== '0px')
           )
+          const slug = child.props['data-slug'] || child.props.slug || null
+          const icon = child.props['data-icon'] || child.props.icon || null
           items.push({
             value: val,
             label: typeof label === 'string' || typeof label === 'number' ? String(label) : val,
+            slug,
+            icon,
             disabled: Boolean(child.props.disabled),
             style: child.props.style || {},
             className: child.props.className || '',
@@ -316,13 +325,30 @@ export function Select({
           ${className}
         `}
       >
-        <span
-          className={`truncate flex-1 leading-normal ${
-            isPlaceholderActive ? 'text-ink-3 font-normal' : 'font-medium text-ink'
-          }`}
-        >
-          {displayLabel}
-        </span>
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          {selectedOption?.icon ? (
+            <span className="shrink-0 flex items-center justify-center">
+              {selectedOption.icon}
+            </span>
+          ) : selectedOption?.slug ? (
+            <CategoryIcon
+              slug={selectedOption.slug}
+              name={selectedOption.label}
+              size={13}
+              boxSize="w-5.5 h-5.5"
+              rounded="rounded-md"
+              className="shrink-0 shadow-2xs"
+            />
+          ) : null}
+
+          <span
+            className={`truncate leading-normal ${
+              isPlaceholderActive ? 'text-ink-3 font-normal' : 'font-medium text-ink'
+            }`}
+          >
+            {displayLabel}
+          </span>
+        </div>
 
         <span className="shrink-0 flex items-center justify-center text-ink-3 transition-transform duration-200">
           <ChevronDown
@@ -450,13 +476,29 @@ export function Select({
                         ${opt.disabled ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}
                       `}
                     >
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        {isSubcategory && (
+                      <div className="flex items-center gap-2 min-w-0">
+                        {opt.icon ? (
+                          <span className="shrink-0 flex items-center justify-center">
+                            {opt.icon}
+                          </span>
+                        ) : opt.slug ? (
+                          <CategoryIcon
+                            slug={opt.slug}
+                            name={opt.label}
+                            size={isParentCategory ? 13 : 11}
+                            boxSize={isParentCategory ? 'w-6 h-6' : 'w-5 h-5'}
+                            rounded={isParentCategory ? 'rounded-md' : 'rounded'}
+                            className="shrink-0 shadow-2xs"
+                          />
+                        ) : isSubcategory ? (
                           <span className={`text-[12px] ${isSelected ? 'text-brand' : 'text-ink-4'}`}>
                             ·
                           </span>
-                        )}
-                        <span className="truncate">{opt.label}</span>
+                        ) : null}
+
+                        <span className={`truncate ${isParentCategory ? 'font-semibold text-ink' : ''}`}>
+                          {opt.label}
+                        </span>
                       </div>
 
                       {isSelected && (

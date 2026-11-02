@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Camera, CheckCircle, ExternalLink, X, Plus,
@@ -531,17 +531,32 @@ function CreateProfileSetup({ onCreated }) {
   }
 
   const { data: categoriesData } = useCategories()
-  const categoryOptions = []
-  if (Array.isArray(categoriesData)) {
+  const categoryOptions = useMemo(() => {
+    if (!Array.isArray(categoriesData)) return []
+    const items = [
+      { value: '', label: t('profile.edit.categoryPlaceholder') }
+    ]
     const roots = categoriesData.filter(c => !c.parent_id)
     const children = categoriesData.filter(c => c.parent_id)
     for (const root of roots) {
-      categoryOptions.push({ value: root.id, label: root.name, isParent: true })
+      items.push({
+        value: String(root.id),
+        label: root.name,
+        slug: root.slug,
+        isParent: true,
+      })
       for (const sub of children.filter(c => c.parent_id === root.id)) {
-        categoryOptions.push({ value: sub.id, label: `  ${sub.name}`, isParent: false })
+        items.push({
+          value: String(sub.id),
+          label: sub.name.trim(),
+          slug: sub.slug,
+          isParent: false,
+          isIndented: true,
+        })
       }
     }
-  }
+    return items
+  }, [categoriesData, t])
 
   return (
     <DashboardLayout title={t('profile.edit.setupTitle')}>
@@ -594,15 +609,12 @@ function CreateProfileSetup({ onCreated }) {
             </FormField>
 
             <FormField label={t('profile.edit.categoryLabel')} hint={t('profile.edit.categoryHint')}>
-              <Select value={form.category_id || ''} onChange={set('category_id')}>
-                <option value="">{t('profile.edit.categoryPlaceholder')}</option>
-                {categoryOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}
-                    style={opt.isParent ? { fontWeight: 'bold' } : { paddingLeft: '16px' }}>
-                    {opt.label}
-                  </option>
-                ))}
-              </Select>
+              <Select
+                value={form.category_id ? String(form.category_id) : ''}
+                onChange={set('category_id')}
+                options={categoryOptions}
+                placeholder={t('profile.edit.categoryPlaceholder')}
+              />
             </FormField>
 
             {error && <p className="text-[13px] text-danger">{error}</p>}
@@ -715,17 +727,32 @@ export default function ProfileEditPage() {
   }
 
   const { data: categoriesData } = useCategories()
-  const categoryOptions = []
-  if (Array.isArray(categoriesData)) {
+  const categoryOptions = useMemo(() => {
+    if (!Array.isArray(categoriesData)) return []
+    const items = [
+      { value: '', label: t('profile.edit.categoryPlaceholder') }
+    ]
     const roots = categoriesData.filter(c => !c.parent_id)
     const children = categoriesData.filter(c => c.parent_id)
     for (const root of roots) {
-      categoryOptions.push({ value: root.id, label: root.name, isParent: true })
+      items.push({
+        value: String(root.id),
+        label: root.name,
+        slug: root.slug,
+        isParent: true,
+      })
       for (const sub of children.filter(c => c.parent_id === root.id)) {
-        categoryOptions.push({ value: sub.id, label: `  ${sub.name}`, isParent: false })
+        items.push({
+          value: String(sub.id),
+          label: sub.name.trim(),
+          slug: sub.slug,
+          isParent: false,
+          isIndented: true,
+        })
       }
     }
-  }
+    return items
+  }, [categoriesData, t])
 
   const [form, setForm] = useState(null)
   const [slugStatus, setSlugStatus] = useState(null)
@@ -1021,15 +1048,12 @@ export default function ProfileEditPage() {
             )}
 
             <FormField label={t('profile.edit.categoryLabel')} hint={t('profile.edit.categoryHint')}>
-              <Select value={form.category_id || ''} onChange={set('category_id')}>
-                <option value="">{t('profile.edit.categoryPlaceholder')}</option>
-                {categoryOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}
-                    style={opt.isParent ? { fontWeight: 'bold' } : { paddingLeft: '16px' }}>
-                    {opt.label}
-                  </option>
-                ))}
-              </Select>
+              <Select
+                value={form.category_id ? String(form.category_id) : ''}
+                onChange={set('category_id')}
+                options={categoryOptions}
+                placeholder={t('profile.edit.categoryPlaceholder')}
+              />
             </FormField>
 
             <FormField

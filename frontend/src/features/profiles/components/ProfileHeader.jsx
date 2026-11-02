@@ -14,6 +14,7 @@ import { useState } from 'react'
 import { MapPin, BadgeCheck, Star, Share2, Phone, Mail, Globe, MessageCircle, Send, Navigation } from 'lucide-react'
 import { OpenStatusBadge } from './OpenStatusBadge.jsx'
 import { SocialLinks } from './SocialLinks.jsx'
+import { CategoryIconInline } from './CategoryIcon.jsx'
 import { trackProfileEvent } from '../../../services/profiles.service.js'
 
 const TYPE_LABELS = {
@@ -239,8 +240,14 @@ export function ProfileHeader({ profile }) {
             </span>
           )}
           {profile.category_name && (
-            <span className="text-[11.5px] text-ink-3 font-medium">
-              {profile.category_name}
+            <span className="text-[11.5px] text-ink-3 font-medium inline-flex items-center gap-1.5">
+              <CategoryIconInline
+                slug={profile.category_slug}
+                name={profile.category_name}
+                size={13}
+                className="shrink-0"
+              />
+              <span>{profile.category_name}</span>
             </span>
           )}
           {(typeLabel || profile.category_name) && profile.business_hours?.length > 0 && (
