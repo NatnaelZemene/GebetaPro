@@ -117,7 +117,34 @@ router.patch('/categories/:catId',                  ...guard, validate(updateCat
 router.patch('/categories/:catId/toggle',           ...guard, validate(uuidParam('catId')),        ctrl.toggleCategory)
 
 // ── Subscriptions & Payments ──────────────────────────────────────────────────
+const extendSubSchema = z.object({
+  params: z.object({ subId: z.string().uuid() }),
+  body: z.object({
+    days:       z.coerce.number().int().min(1).max(3650).optional(),
+    newEndDate: z.string().datetime().optional(),
+    note:       z.string().max(300).optional(),
+  }),
+})
+
+const changePlanSchema = z.object({
+  params: z.object({ subId: z.string().uuid() }),
+  body: z.object({
+    planId: z.string().uuid(),
+  }),
+})
+
+const updateSubStatusSchema = z.object({
+  params: z.object({ subId: z.string().uuid() }),
+  body: z.object({
+    status: z.enum(['ACTIVE', 'EXPIRED', 'FREE']),
+  }),
+})
+
 router.get('/subscriptions',                        ...guard, validate(listQuerySchema),           ctrl.listSubscriptions)
+router.get('/subscriptions/:subId',                 ...guard, validate(uuidParam('subId')),        ctrl.getSubscriptionDetail)
+router.patch('/subscriptions/:subId/extend',         ...guard, validate(extendSubSchema),           ctrl.extendSubscription)
+router.patch('/subscriptions/:subId/plan',           ...guard, validate(changePlanSchema),          ctrl.changeSubscriptionPlan)
+router.patch('/subscriptions/:subId/status',         ...guard, validate(updateSubStatusSchema),     ctrl.updateSubscriptionStatus)
 router.get('/payments',                             ...guard, validate(listQuerySchema),           ctrl.listPayments)
 
 // ── Subscription Plans ────────────────────────────────────────────────────────

@@ -623,3 +623,133 @@ export async function findAllPayments({ page = 1, pageSize = 20, status = null }
 
   return { rows: dataResult.rows, total }
 }
+
+export async function findSubscriptionById(subId) {
+  const result = await pool.query(
+    `SELECT
+       us.id,
+       us.user_id,
+       us.status,
+       us.current_period_start,
+       us.current_period_end,
+       us.created_at,
+       us.updated_at,
+       u.email,
+       u.phone,
+       u.status         AS user_status,
+       sp.id            AS plan_id,
+       sp.name          AS plan_name,
+       sp.display_name  AS plan_display_name,
+       sp.price_etb,
+       sp.max_active_ads,
+       sp.max_images_per_ad,
+       sp.max_products,
+       sp.max_profile_services,
+       sp.max_portfolio_items,
+       sp.max_posts,
+       sp.is_featured,
+       p.id             AS profile_id,
+       p.display_name,
+       p.business_name,
+       p.headline,
+       p.avatar_url,
+       p.slug,
+       p.city,
+       p.contact_phone,
+       p.contact_email,
+       p.website_url,
+       p.is_verified    AS profile_verified,
+       c.name           AS category_name,
+       c.slug           AS category_slug,
+       (SELECT COUNT(*) FROM advertisements WHERE user_id = us.user_id) AS total_ads,
+       (SELECT COUNT(*) FROM advertisements WHERE user_id = us.user_id AND status = 'PUBLISHED') AS published_ads
+     FROM user_subscriptions us
+     JOIN users u  ON us.user_id = u.id
+     JOIN subscription_plans sp ON us.plan_id = sp.id
+     LEFT JOIN profiles p ON p.user_id = us.user_id
+     LEFT JOIN categories c ON c.id = p.category_id
+     WHERE us.id = $1`,
+    [subId],
+  )
+  const sub = result.rows[0]
+  if (!sub) return null
+
+  // Fetch recent payments for this subscriber
+  const paymentsResult = await pool.query(
+    `SELECT
+       pr.id,
+       pr.tx_ref,
+       pr.chapa_tx_id,
+       pr.amount_etb,
+       pr.status,
+       pr.payment_method,
+       pr.created_at,
+       sp.name AS plan_name,
+       sp.display_name AS plan_display_name
+     FROM payment_records pr
+     JOIN subscription_plans sp ON pr.plan_id = sp.id
+     WHERE pr.user_id = $1
+     ORDER BY pr.created_at DESC
+     LIMIT 15`,
+    [sub.user_id],
+  )
+  sub.payments = paymentsResult.rows
+  return sub
+}
+
+export async function extendSubscription(subId, { days = null, newEndDate = null }) {
+  let query = ''
+  let params = []
+
+  if (newEndDate) {
+    query = `
+      UPDATE user_subscriptions
+      SET current_period_end = $1,
+          status             = 'ACTIVE',
+          updated_at         = now()
+      WHERE id = $2
+      RETURNING *`
+    params = [newEndDate, subId]
+  } else {
+    const addDays = parseInt(days, 10) || 7
+    query = `
+      UPDATE user_subscriptions
+      SET current_period_end = CASE
+            WHEN current_period_end IS NOT NULL AND current_period_end > now()
+              THEN current_period_end + ($1 || ' days')::INTERVAL
+            ELSE now() + ($1 || ' days')::INTERVAL
+          END,
+          status             = 'ACTIVE',
+          updated_at         = now()
+      WHERE id = $2
+      RETURNING *`
+    params = [addDays, subId]
+  }
+
+  const result = await pool.query(query, params)
+  return result.rows[0] || null
+}
+
+export async function changeSubscriptionPlan(subId, planId) {
+  const result = await pool.query(
+    `UPDATE user_subscriptions
+     SET plan_id    = $1,
+         updated_at = now()
+     WHERE id = $2
+     RETURNING *`,
+    [planId, subId],
+  )
+  return result.rows[0] || null
+}
+
+export async function updateSubscriptionStatus(subId, status) {
+  const result = await pool.query(
+    `UPDATE user_subscriptions
+     SET status     = $1,
+         updated_at = now()
+     WHERE id = $2
+     RETURNING *`,
+    [status, subId],
+  )
+  return result.rows[0] || null
+}

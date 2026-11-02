@@ -126,6 +126,26 @@ export const listPayments = asyncHandler(async (req, res) => {
   sendSuccess(res, 'Payment records retrieved', result)
 })
 
+export const getSubscriptionDetail = asyncHandler(async (req, res) => {
+  const result = await service.getSubscriptionDetail(req.params.subId)
+  sendSuccess(res, 'Subscription detail retrieved', result)
+})
+
+export const extendSubscription = asyncHandler(async (req, res) => {
+  const result = await service.extendSubscription(req.params.subId, req.body, req.user.id)
+  sendSuccess(res, 'Subscription period extended', result)
+})
+
+export const changeSubscriptionPlan = asyncHandler(async (req, res) => {
+  const result = await service.changeSubscriptionPlan(req.params.subId, req.body, req.user.id)
+  sendSuccess(res, 'Subscription plan updated', result)
+})
+
+export const updateSubscriptionStatus = asyncHandler(async (req, res) => {
+  const result = await service.updateSubscriptionStatus(req.params.subId, req.body, req.user.id)
+  sendSuccess(res, 'Subscription status updated', result)
+})
+
 // ── Profile Verifications ─────────────────────────────────────────────────────
 
 export const listProfileVerifications = asyncHandler(async (req, res) => {

@@ -15,6 +15,7 @@ const K = {
   userAds:    (id, p) => ['admin', 'user-ads', id, p],
   categories: ['admin', 'categories'],
   subs:       (p) => ['admin', 'subs', p],
+  sub:        (id) => ['admin', 'sub', id],
   payments:   (p) => ['admin', 'payments', p],
   subOverview: ['admin', 'sub-overview'],
 }
@@ -97,6 +98,14 @@ export function useAdminSubscriptions(params = {}) {
   })
 }
 
+export function useAdminSubscriptionDetail(subId) {
+  return useQuery({
+    queryKey: K.sub(subId),
+    queryFn: () => api.getSubscriptionDetail(subId),
+    enabled: !!subId,
+  })
+}
+
 export function useAdminPayments(params = {}) {
   return useQuery({
     queryKey: K.payments(params),
@@ -162,6 +171,48 @@ export function useDeleteUser() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'users'] })
       qc.invalidateQueries({ queryKey: ['admin', 'stats'] })
+    },
+  })
+}
+
+export function useExtendSubscription() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ subId, days, newEndDate, note }) => api.extendSubscription(subId, { days, newEndDate, note }),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'subs'] })
+      qc.invalidateQueries({ queryKey: K.sub(vars.subId) })
+      qc.invalidateQueries({ queryKey: K.subOverview })
+      qc.invalidateQueries({ queryKey: K.revenue })
+      qc.invalidateQueries({ queryKey: K.stats })
+    },
+  })
+}
+
+export function useChangeSubscriptionPlan() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ subId, planId }) => api.changeSubscriptionPlan(subId, planId),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'subs'] })
+      qc.invalidateQueries({ queryKey: K.sub(vars.subId) })
+      qc.invalidateQueries({ queryKey: K.subOverview })
+      qc.invalidateQueries({ queryKey: K.revenue })
+      qc.invalidateQueries({ queryKey: K.stats })
+    },
+  })
+}
+
+export function useUpdateSubscriptionStatus() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ subId, status }) => api.updateSubscriptionStatus(subId, status),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'subs'] })
+      qc.invalidateQueries({ queryKey: K.sub(vars.subId) })
+      qc.invalidateQueries({ queryKey: K.subOverview })
+      qc.invalidateQueries({ queryKey: K.revenue })
+      qc.invalidateQueries({ queryKey: K.stats })
     },
   })
 }

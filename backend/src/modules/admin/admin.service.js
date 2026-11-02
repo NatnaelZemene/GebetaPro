@@ -235,6 +235,38 @@ export async function listPayments(query = {}) {
   return { payments: rows, pagination: pagination(total, page, pageSize) }
 }
 
+export async function getSubscriptionDetail(subId) {
+  const sub = await subRepo.findSubscriptionById(subId)
+  if (!sub) throw createError('Subscription not found', 404, 'SUBSCRIPTION_NOT_FOUND')
+  return sub
+}
+
+export async function extendSubscription(subId, { days, newEndDate, note }, adminId) {
+  const sub = await subRepo.findSubscriptionById(subId)
+  if (!sub) throw createError('Subscription not found', 404, 'SUBSCRIPTION_NOT_FOUND')
+  const updated = await subRepo.extendSubscription(subId, { days, newEndDate })
+  logger.info({ adminId, subId, days, newEndDate, note }, 'Admin extended user subscription period')
+  return updated
+}
+
+export async function changeSubscriptionPlan(subId, { planId }, adminId) {
+  const sub = await subRepo.findSubscriptionById(subId)
+  if (!sub) throw createError('Subscription not found', 404, 'SUBSCRIPTION_NOT_FOUND')
+  const plan = await subRepo.findPlanById(planId)
+  if (!plan) throw createError('Target subscription plan not found', 404, 'PLAN_NOT_FOUND')
+  const updated = await subRepo.changeSubscriptionPlan(subId, planId)
+  logger.info({ adminId, subId, planId, planName: plan.name }, 'Admin changed user subscription plan')
+  return updated
+}
+
+export async function updateSubscriptionStatus(subId, { status }, adminId) {
+  const sub = await subRepo.findSubscriptionById(subId)
+  if (!sub) throw createError('Subscription not found', 404, 'SUBSCRIPTION_NOT_FOUND')
+  const updated = await subRepo.updateSubscriptionStatus(subId, status)
+  logger.info({ adminId, subId, status }, 'Admin updated subscription status')
+  return updated
+}
+
 // ── Profile Verifications ─────────────────────────────────────────────────────
 
 export async function listProfileVerifications(query = {}) {

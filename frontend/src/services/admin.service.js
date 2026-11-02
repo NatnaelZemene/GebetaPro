@@ -97,6 +97,26 @@ export async function getSubscriptions(params = {}) {
   return r.data.data
 }
 
+export async function getSubscriptionDetail(subId) {
+  const r = await apiClient.get(`/admin/subscriptions/${subId}`)
+  return r.data.data
+}
+
+export async function extendSubscription(subId, data) {
+  const r = await apiClient.patch(`/admin/subscriptions/${subId}/extend`, data)
+  return r.data.data
+}
+
+export async function changeSubscriptionPlan(subId, planId) {
+  const r = await apiClient.patch(`/admin/subscriptions/${subId}/plan`, { planId })
+  return r.data.data
+}
+
+export async function updateSubscriptionStatus(subId, status) {
+  const r = await apiClient.patch(`/admin/subscriptions/${subId}/status`, { status })
+  return r.data.data
+}
+
 export async function getPayments(params = {}) {
   const r = await apiClient.get('/admin/payments', { params })
   return r.data.data
