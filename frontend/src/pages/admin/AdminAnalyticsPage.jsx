@@ -1,14 +1,24 @@
 /**
- * AdminAnalyticsPage.jsx — Platform analytics.
- * All charts CSS/SVG — no chart library dependency.
+ * AdminAnalyticsPage.jsx — Platform analytics & business intelligence.
  */
+import { useSearchParams } from 'react-router-dom'
 import { AdminLayout } from '../../components/layout/AdminLayout.jsx'
 import { Skeleton }    from '../../components/ui/Skeleton.jsx'
 import {
   BarChart, LineChart, PageHeader, StatCard,
 } from '../../features/admin/components/AdminTable.jsx'
 import { useAdminAnalytics } from '../../features/admin/hooks/useAdmin.js'
-import { Users, Megaphone, TrendingUp, AlertCircle } from 'lucide-react'
+import {
+  Users, Megaphone, TrendingUp, AlertCircle,
+  Eye, MousePointerClick, Percent, Calendar,
+} from 'lucide-react'
+
+const RANGE_OPTIONS = [
+  { value: '7d',  label: 'Last 7 Days' },
+  { value: '30d', label: 'Last 30 Days' },
+  { value: '90d', label: 'Last 90 Days' },
+  { value: '12m', label: 'Last 12 Months' },
+]
 
 /* ── Chart card wrapper ────────────────────────────────────────────────── */
 function ChartCard({ title, subtitle, children, loading, className = '' }) {
@@ -51,7 +61,16 @@ function Timeline({ data, dateField = 'date', valueField = 'count', formatTotal,
 
 /* ── Page ──────────────────────────────────────────────────────────────── */
 export default function AdminAnalyticsPage() {
-  const { data, isLoading, error } = useAdminAnalytics()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const range = searchParams.get('range') || '30d'
+
+  function handleRangeChange(newRange) {
+    const p = new URLSearchParams(searchParams)
+    p.set('range', newRange)
+    setSearchParams(p)
+  }
+
+  const { data, isLoading, error } = useAdminAnalytics({ range })
 
   if (error) {
     return (
@@ -64,46 +83,99 @@ export default function AdminAnalyticsPage() {
     )
   }
 
-  /* Compute simple totals for header KPIs */
-  const totalNewUsers  = (data?.users_daily   || []).reduce((s, d) => s + Number(d.count   || 0), 0)
-  const totalNewAds    = (data?.ads_daily      || []).reduce((s, d) => s + Number(d.count   || 0), 0)
-  const totalRevenue   = (data?.revenue_daily  || []).reduce((s, d) => s + Number(d.revenue || 0), 0)
+  const metrics = data?.summary_metrics
+  const prevLabel = range === '7d' ? 'vs prior 7d' : range === '90d' ? 'vs prior 90d' : range === '12m' ? 'vs prior 12m' : 'vs prior 30d'
+
+  const totalViews     = Number(data?.total_views || 0)
+  const totalContacts  = Number(data?.total_contacts || 0)
+  const leadCtr        = Number(data?.lead_conversion_rate || 0)
+  const totalNewUsers  = Number(metrics?.users?.current ?? (data?.users_daily   || []).reduce((s, d) => s + Number(d.count   || 0), 0))
+  const totalNewAds    = Number(metrics?.ads?.current ?? (data?.ads_daily      || []).reduce((s, d) => s + Number(d.count   || 0), 0))
+  const totalRevenue   = Number(metrics?.revenue?.current ?? (data?.revenue_daily  || []).reduce((s, d) => s + Number(d.revenue || 0), 0))
 
   return (
     <AdminLayout title="Analytics">
-      <PageHeader
-        title="Analytics"
-        subtitle="Platform usage trends over the last 30 days."
-      />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-[22px] sm:text-[24px] font-bold text-ink tracking-tight">Analytics</h1>
+          <p className="text-[13px] text-ink-3 mt-0.5">
+            Platform intelligence & engagement overview ({range === '7d' ? 'last 7 days' : range === '90d' ? 'last 90 days' : range === '12m' ? 'last 12 months' : 'last 30 days'}).
+          </p>
+        </div>
+
+        {/* Time range switcher */}
+        <div className="flex items-center gap-1 p-1 bg-surface-2/60 dark:bg-surface-2/30 border border-border/70 rounded-xl w-fit self-start sm:self-auto shrink-0">
+          {RANGE_OPTIONS.map(opt => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => handleRangeChange(opt.value)}
+              className={`px-3 py-1.5 rounded-lg text-[12.5px] font-medium transition-all cursor-pointer whitespace-nowrap ${
+                range === opt.value
+                  ? 'bg-surface dark:bg-canvas text-ink shadow-xs font-semibold'
+                  : 'text-ink-3 hover:text-ink hover:bg-surface/50'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="flex flex-col gap-6">
 
         {/* ── Summary KPIs ──────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
           <StatCard
-            label="New users (30d)"
+            label="Directory Views"
+            value={isLoading ? undefined : (metrics?.views?.current ?? totalViews).toLocaleString()}
+            trend={metrics?.views?.delta_pct}
+            sub={prevLabel}
+            icon={<Eye size={16} />}
+            iconBg="bg-brand-light dark:bg-brand/10"
+            iconColor="text-brand"
+            loading={isLoading}
+          />
+          <StatCard
+            label="Customer Inquiries"
+            value={isLoading ? undefined : (metrics?.contacts?.current ?? totalContacts).toLocaleString()}
+            trend={metrics?.contacts?.delta_pct}
+            sub={prevLabel}
+            icon={<MousePointerClick size={16} />}
+            iconBg="bg-indigo-50 dark:bg-indigo-950/40"
+            iconColor="text-indigo-600 dark:text-indigo-400"
+            loading={isLoading}
+          />
+          <StatCard
+            label="Lead Conversion (CTR)"
+            value={isLoading ? undefined : `${(metrics?.conversion_rate?.current ?? leadCtr).toFixed(1)}%`}
+            trend={metrics?.conversion_rate?.delta_pct}
+            sub="View to lead rate"
+            icon={<Percent size={16} />}
+            iconBg="bg-emerald-50 dark:bg-emerald-950/40"
+            iconColor="text-emerald-600 dark:text-emerald-400"
+            loading={isLoading}
+          />
+          <StatCard
+            label="New Signups"
             value={isLoading ? undefined : totalNewUsers.toLocaleString()}
-            icon={<Users size={15} />}
-            iconBg="bg-brand-light"
-            iconColor="text-brand"
+            trend={metrics?.users?.delta_pct}
+            sub={prevLabel}
+            icon={<Users size={16} />}
+            iconBg="bg-blue-50 dark:bg-blue-950/40"
+            iconColor="text-blue-600 dark:text-blue-400"
             loading={isLoading}
           />
           <StatCard
-            label="New ads (30d)"
-            value={isLoading ? undefined : totalNewAds.toLocaleString()}
-            icon={<Megaphone size={15} />}
-            iconBg="bg-brand-light"
-            iconColor="text-brand"
-            loading={isLoading}
-          />
-          <StatCard
-            label="Revenue (30d)"
+            label="Platform Revenue"
             value={isLoading ? undefined : `ETB ${totalRevenue.toLocaleString()}`}
-            icon={<TrendingUp size={15} />}
-            iconBg="bg-success-bg"
-            iconColor="text-success"
+            trend={metrics?.revenue?.delta_pct}
+            sub={prevLabel}
+            icon={<TrendingUp size={16} />}
+            iconBg="bg-emerald-50 dark:bg-emerald-950/40"
+            iconColor="text-emerald-600 dark:text-emerald-400"
             loading={isLoading}
-            className=""
+            className="col-span-2 lg:col-span-1"
           />
         </div>
 

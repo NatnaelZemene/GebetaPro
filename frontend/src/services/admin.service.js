@@ -11,8 +11,8 @@ export async function getStats() {
   return r.data.data
 }
 
-export async function getAnalytics() {
-  const r = await apiClient.get('/admin/analytics')
+export async function getAnalytics(params = {}) {
+  const r = await apiClient.get('/admin/analytics', { params })
   return r.data.data
 }
 

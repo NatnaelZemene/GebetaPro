@@ -30,10 +30,10 @@ export function useAdminStats() {
   })
 }
 
-export function useAdminAnalytics() {
+export function useAdminAnalytics(params = {}) {
   return useQuery({
-    queryKey: K.analytics,
-    queryFn: api.getAnalytics,
+    queryKey: [...K.analytics, params],
+    queryFn: () => api.getAnalytics(params),
     staleTime: 60_000,
   })
 }
