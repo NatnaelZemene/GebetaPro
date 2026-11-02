@@ -5,7 +5,7 @@ import { useSearchParams, Link } from 'react-router-dom'
 import { AdminLayout } from '../../components/layout/AdminLayout.jsx'
 import { Skeleton }    from '../../components/ui/Skeleton.jsx'
 import {
-  BarChart, PageHeader, StatCard,
+  BarChart, StatCard,
 } from '../../features/admin/components/AdminTable.jsx'
 import { useAdminAnalytics } from '../../features/admin/hooks/useAdmin.js'
 import { InteractiveAreaChart } from '../../features/admin/components/InteractiveAreaChart.jsx'
@@ -14,7 +14,7 @@ import { ConversionFunnelWidget } from '../../features/admin/components/Conversi
 import { CategoryIconInline } from '../../features/profiles/components/CategoryIcon.jsx'
 import { exportAnalyticsToCSV } from '../../features/admin/utils/exportAnalyticsCSV.js'
 import {
-  Users, Megaphone, TrendingUp, AlertCircle,
+  Users, TrendingUp, AlertCircle,
   Eye, MousePointerClick, Percent,
   MapPin, ExternalLink, BadgeCheck, Download,
 } from 'lucide-react'
@@ -45,6 +45,7 @@ function ChartCard({ title, subtitle, children, loading, className = '' }) {
 export default function AdminAnalyticsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const range = searchParams.get('range') || '30d'
+  const currentRangeOption = RANGE_OPTIONS.find(o => o.value === range) || RANGE_OPTIONS[1]
 
   function handleRangeChange(newRange) {
     const p = new URLSearchParams(searchParams)
@@ -72,7 +73,6 @@ export default function AdminAnalyticsPage() {
   const totalContacts  = Number(data?.total_contacts || 0)
   const leadCtr        = Number(data?.lead_conversion_rate || 0)
   const totalNewUsers  = Number(metrics?.users?.current ?? (data?.users_daily   || []).reduce((s, d) => s + Number(d.count   || 0), 0))
-  const totalNewAds    = Number(metrics?.ads?.current ?? (data?.ads_daily      || []).reduce((s, d) => s + Number(d.count   || 0), 0))
   const totalRevenue   = Number(metrics?.revenue?.current ?? (data?.revenue_daily  || []).reduce((s, d) => s + Number(d.revenue || 0), 0))
 
   return (

@@ -11,6 +11,7 @@
  */
 import { useState, useRef, useId, useMemo, useCallback } from 'react'
 import { Eye, MousePointerClick, Users, Megaphone, TrendingUp } from 'lucide-react'
+import { Skeleton } from '../../../components/ui/Skeleton.jsx'
 
 export function InteractiveAreaChart({
   viewsDaily = [],
@@ -180,6 +181,16 @@ export function InteractiveAreaChart({
     y: paddingTop + (1 - frac) * plotHeight,
     val: minVal + frac * (maxVal - minVal),
   }))
+
+  if (loading) {
+    return (
+      <div className="bg-surface border border-border rounded-2xl p-5 sm:p-6 shadow-xs">
+        <Skeleton className="h-6 w-56 mb-2" />
+        <Skeleton className="h-4 w-72 mb-6" />
+        <Skeleton className="h-[260px] w-full rounded-xl" />
+      </div>
+    )
+  }
 
   return (
     <div className="bg-surface border border-border rounded-2xl p-5 sm:p-6 shadow-xs relative">

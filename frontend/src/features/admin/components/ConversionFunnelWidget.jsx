@@ -1,7 +1,8 @@
 /**
  * ConversionFunnelWidget.jsx — 4-stage advertiser conversion funnel and payment gateway share.
  */
-import { Users, Store, ShieldCheck, Crown, ChevronRight, Wallet, ArrowDown } from 'lucide-react'
+import { Users, Store, ShieldCheck, Crown, Wallet } from 'lucide-react'
+import { Skeleton } from '../../../components/ui/Skeleton.jsx'
 
 const STAGE_ICONS = {
   'Registered Users': Users,
@@ -10,18 +11,26 @@ const STAGE_ICONS = {
   'Paid Subscribers': Crown,
 }
 
-const STAGE_COLORS = [
-  'bg-slate-500 text-slate-500',
-  'bg-blue-500 text-blue-500',
-  'bg-teal-500 text-teal-500',
-  'bg-brand text-brand',
-]
-
 export function ConversionFunnelWidget({
   funnel = [],
   paymentMethods = [],
   loading = false,
 }) {
+  if (loading) {
+    return (
+      <div className="bg-surface border border-border rounded-2xl p-5 sm:p-6 shadow-xs">
+        <Skeleton className="h-5 w-48 mb-2" />
+        <Skeleton className="h-3.5 w-64 mb-6" />
+        <div className="space-y-4">
+          <Skeleton className="h-7 w-full rounded-lg" />
+          <Skeleton className="h-7 w-full rounded-lg" />
+          <Skeleton className="h-7 w-full rounded-lg" />
+          <Skeleton className="h-7 w-full rounded-lg" />
+        </div>
+      </div>
+    )
+  }
+
   const topCount = funnel[0]?.count || 1
 
   return (

@@ -15,7 +15,7 @@
  * - <main id="main-content"> retained for skip-nav link.
  * - Breadcrumb uses <nav aria-label="Breadcrumb"> semantics.
  */
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, Users, CreditCard,
@@ -26,6 +26,7 @@ import { useFocusTrap } from '../../hooks/useFocusTrap.js'
 import { useResizableSidebar } from '../../hooks/useResizableSidebar.js'
 import { ThemeToggle } from '../ui/ThemeToggle.jsx'
 import { LogoutConfirmation } from '../ui/LogoutConfirmation.jsx'
+import { ErrorBoundary } from '../ui/ErrorBoundary.jsx'
 
 /* ── Nav definition ──────────────────────────────────────────────────────── */
 const NAV = [
@@ -182,11 +183,9 @@ function SidebarContent({ collapsed, onClose, onRequestLogout }) {
 /* ── AdminLayout ─────────────────────────────────────────────────────────── */
 export function AdminLayout({ children, title }) {
   const {
-    sidebarWidth,
     collapsed,
     isDragging,
     effectiveWidth,
-    setCollapsed,
     toggleCollapsed,
     handleMouseDown,
     handleTouchStart,
@@ -393,7 +392,9 @@ export function AdminLayout({ children, title }) {
 
         {/* Page content */}
         <main id="main-content" className="flex-1 px-4 py-6 sm:px-7 sm:py-8 xl:px-10 max-w-[1600px] mx-auto w-full">
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
         </main>
       </div>
       <LogoutConfirmation
