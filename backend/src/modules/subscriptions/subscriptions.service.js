@@ -441,6 +441,8 @@ export async function getAdminSubscriptionList(query = {}) {
     pageSize,
     search: query.search || null,
     status: query.status || null,
+    plan: query.plan || null,
+    expiring_days: query.expiring_days || null,
   })
 
   const totalPages = Math.ceil(total / pageSize)

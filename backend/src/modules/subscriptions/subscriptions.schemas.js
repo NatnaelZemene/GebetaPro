@@ -95,8 +95,10 @@ export const adminSubscriptionQuerySchema = z.object({
         .positive('page_size must be greater than 0')
         .max(100, 'page_size cannot exceed 100')
         .optional(),
-      search: z.string().max(200).optional(),
-      status: z.string().max(50).optional(),
+      search:        z.string().max(200).optional(),
+      status:        z.string().max(50).optional(),
+      plan:          z.string().max(50).optional(),
+      expiring_days: z.coerce.number().int().positive().optional(),
     })
     .optional(),
 })

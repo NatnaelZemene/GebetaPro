@@ -56,12 +56,14 @@ const bulkStatusSchema = z.object({
 
 const listQuerySchema = z.object({
   query: z.object({
-    page:      z.coerce.number().int().positive().optional(),
-    page_size: z.coerce.number().int().positive().max(100).optional(),
-    search:    z.string().max(200).optional(),
-    status:    z.string().max(50).optional(),
-    role:      z.string().max(20).optional(),
-    category_id: z.string().uuid().optional(),
+    page:          z.coerce.number().int().positive().optional(),
+    page_size:     z.coerce.number().int().positive().max(100).optional(),
+    search:        z.string().max(200).optional(),
+    status:        z.string().max(50).optional(),
+    role:          z.string().max(20).optional(),
+    category_id:   z.string().uuid().optional(),
+    plan:          z.string().max(50).optional(),
+    expiring_days: z.coerce.number().int().positive().optional(),
   }).optional(),
 })
 

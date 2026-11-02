@@ -219,6 +219,8 @@ export async function listSubscriptions(query = {}) {
     page, pageSize,
     search: query.search || null,
     status: query.status || null,
+    plan: query.plan || null,
+    expiring_days: query.expiring_days || null,
   })
   return { subscriptions: rows, pagination: pagination(total, page, pageSize) }
 }

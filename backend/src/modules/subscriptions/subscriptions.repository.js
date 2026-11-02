@@ -481,7 +481,14 @@ export async function getSubscriptionStats() {
  * @param {string|null} options.status  — 'ACTIVE' | 'EXPIRED' | 'FREE' etc.
  * @returns {Promise<{ rows: object[], total: number }>}
  */
-export async function findAllSubscriptions({ page = 1, pageSize = 20, search = null, status = null }) {
+export async function findAllSubscriptions({
+  page = 1,
+  pageSize = 20,
+  search = null,
+  status = null,
+  plan = null,
+  expiring_days = null,
+}) {
   const offset = (page - 1) * pageSize
   const params = []
 
@@ -489,7 +496,8 @@ export async function findAllSubscriptions({ page = 1, pageSize = 20, search = n
 
   if (search) {
     params.push(`%${search}%`)
-    whereClause += ` AND (u.email ILIKE $${params.length} OR u.phone ILIKE $${params.length})`
+    const i = params.length
+    whereClause += ` AND (u.email ILIKE $${i} OR u.phone ILIKE $${i} OR p.display_name ILIKE $${i} OR p.business_name ILIKE $${i} OR p.slug ILIKE $${i})`
   }
 
   if (status) {
@@ -497,10 +505,25 @@ export async function findAllSubscriptions({ page = 1, pageSize = 20, search = n
     whereClause += ` AND us.status = $${params.length}`
   }
 
+  if (plan) {
+    params.push(plan.toUpperCase())
+    whereClause += ` AND sp.name = $${params.length}`
+  }
+
+  if (expiring_days) {
+    const days = parseInt(expiring_days, 10)
+    if (!isNaN(days) && days > 0) {
+      params.push(days)
+      whereClause += ` AND us.status = 'ACTIVE' AND us.current_period_end <= (now() + ($${params.length} || ' days')::INTERVAL) AND us.current_period_end >= now()`
+    }
+  }
+
   const countResult = await pool.query(
     `SELECT COUNT(*) AS total
      FROM user_subscriptions us
      JOIN users u ON us.user_id = u.id
+     JOIN subscription_plans sp ON us.plan_id = sp.id
+     LEFT JOIN profiles p ON p.user_id = us.user_id
      ${whereClause}`,
     params,
   )
@@ -515,14 +538,30 @@ export async function findAllSubscriptions({ page = 1, pageSize = 20, search = n
        us.current_period_start,
        us.current_period_end,
        us.created_at,
+       us.updated_at,
        u.email,
        u.phone,
+       u.status         AS user_status,
+       sp.id            AS plan_id,
        sp.name          AS plan_name,
        sp.display_name  AS plan_display_name,
-       sp.price_etb
+       sp.price_etb,
+       sp.max_active_ads,
+       sp.max_images_per_ad,
+       p.id             AS profile_id,
+       p.display_name,
+       p.business_name,
+       p.avatar_url,
+       p.slug,
+       p.city,
+       p.is_verified    AS profile_verified,
+       c.name           AS category_name,
+       c.slug           AS category_slug
      FROM user_subscriptions us
      JOIN users u  ON us.user_id = u.id
      JOIN subscription_plans sp ON us.plan_id = sp.id
+     LEFT JOIN profiles p ON p.user_id = us.user_id
+     LEFT JOIN categories c ON c.id = p.category_id
      ${whereClause}
      ORDER BY us.updated_at DESC
      LIMIT $${params.length - 1} OFFSET $${params.length}`,
