@@ -10,7 +10,11 @@ import {
   Pagination, PageHeader, StatCard,
 } from '../../features/admin/components/AdminTable.jsx'
 import { useAdminSubscriptions, useAdminSubOverview } from '../../features/admin/hooks/useAdmin.js'
-import { CreditCard, CheckCircle2, TrendingUp, Clock } from 'lucide-react'
+import { CategoryIconInline } from '../../features/profiles/components/CategoryIcon.jsx'
+import {
+  CreditCard, CheckCircle2, TrendingUp, Clock,
+  BadgeCheck, ExternalLink, Copy, Check,
+} from 'lucide-react'
 
 const STATUS_OPTS = [
   { value: 'ACTIVE',  label: 'Active'  },
@@ -35,6 +39,53 @@ const PLAN_BADGE = {
   BASIC:    <Badge variant="info"    size="xs">Basic</Badge>,
   PRO:      <Badge variant="brand"   size="xs">Pro</Badge>,
   BUSINESS: <Badge variant="dark"    size="xs">Business</Badge>,
+}
+
+/* ── Avatar component ─────────────────────────────────────────────────── */
+function SubscriberAvatar({ avatarUrl, email, name }) {
+  const [imgError, setImgError] = useState(false)
+  const initial = (name?.[0] || email?.[0] || '?').toUpperCase()
+
+  if (avatarUrl && !imgError) {
+    return (
+      <img
+        src={avatarUrl}
+        alt=""
+        onError={() => setImgError(true)}
+        className="w-8 h-8 rounded-full object-cover shrink-0 border border-border/80 shadow-2xs"
+      />
+    )
+  }
+
+  return (
+    <div className="w-8 h-8 rounded-full bg-brand-light dark:bg-brand/15 border border-brand/20 flex items-center justify-center shrink-0">
+      <span className="text-[12px] font-bold text-brand leading-none">{initial}</span>
+    </div>
+  )
+}
+
+/* ── Inline 1-click copy button ────────────────────────────────────────── */
+function CopyButton({ text, label = 'Copy' }) {
+  const [copied, setCopied] = useState(false)
+
+  function handleCopy(e) {
+    e.stopPropagation()
+    if (!text) return
+    navigator.clipboard?.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1800)
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      title={copied ? 'Copied to clipboard!' : label}
+      className="p-1 rounded text-ink-4 hover:text-ink hover:bg-surface-2 transition-colors cursor-pointer"
+    >
+      {copied ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
+    </button>
+  )
 }
 
 /* ── Days remaining indicator ──────────────────────────────────────────── */
@@ -148,14 +199,60 @@ export default function AdminSubscriptionsPage() {
 
   const columns = [
     {
-      key: 'email',
-      label: 'User',
+      key: 'subscriber',
+      label: 'Subscriber & Business',
+      render: s => {
+        const name = s.business_name || s.display_name
+        return (
+          <div className="flex items-center gap-3 min-w-0">
+            <SubscriberAvatar avatarUrl={s.avatar_url} email={s.email} name={name} />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[13.5px] font-semibold text-ink leading-snug truncate">
+                  {name || s.email || '—'}
+                </span>
+                {s.profile_verified && (
+                  <BadgeCheck size={13} className="text-brand shrink-0" aria-label="Verified" />
+                )}
+              </div>
+              <div className="flex items-center gap-1.5 text-[11.5px] text-ink-3">
+                <span className="truncate max-w-[150px]">{s.email}</span>
+                <CopyButton text={s.email} label="Copy email" />
+                {s.phone && <span className="text-ink-4">· {s.phone}</span>}
+              </div>
+            </div>
+          </div>
+        )
+      },
+    },
+    {
+      key: 'category',
+      label: 'Sector',
       render: s => (
-        <div>
-          <p className="text-[13.5px] font-medium text-ink">{s.email || '—'}</p>
-          {s.phone && <p className="text-[11.5px] text-ink-3">{s.phone}</p>}
-        </div>
+        s.category_name ? (
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-surface-2 dark:bg-surface-2/60 text-[12px] font-medium text-ink max-w-[140px] truncate border border-border/60">
+            <CategoryIconInline slug={s.category_slug} name={s.category_name} size={11} />
+            <span className="truncate">{s.category_name}</span>
+          </span>
+        ) : (
+          <span className="text-[12px] text-ink-4">—</span>
+        )
       ),
+      className: 'hidden md:table-cell',
+      cellClass:  'hidden md:table-cell',
+    },
+    {
+      key: 'city',
+      label: 'City',
+      render: s => (
+        s.city ? (
+          <span className="text-[12.5px] text-ink font-medium">{s.city}</span>
+        ) : (
+          <span className="text-[12px] text-ink-4">—</span>
+        )
+      ),
+      className: 'hidden lg:table-cell',
+      cellClass:  'hidden lg:table-cell',
     },
     {
       key: 'plan_name',
@@ -181,8 +278,8 @@ export default function AdminSubscriptionsPage() {
             : '—'}
         </span>
       ),
-      className: 'hidden md:table-cell',
-      cellClass:  'hidden md:table-cell',
+      className: 'hidden xl:table-cell',
+      cellClass:  'hidden xl:table-cell',
     },
     {
       key: 'current_period_end',
@@ -198,8 +295,8 @@ export default function AdminSubscriptionsPage() {
           <ExpiryBar start={s.current_period_start} end={s.current_period_end} status={s.status} />
         </div>
       ),
-      className: 'hidden lg:table-cell',
-      cellClass:  'hidden lg:table-cell',
+      className: 'hidden sm:table-cell',
+      cellClass:  'hidden sm:table-cell',
     },
     {
       key: 'price_etb',
@@ -209,8 +306,29 @@ export default function AdminSubscriptionsPage() {
           {s.price_etb > 0 ? `ETB ${Number(s.price_etb).toLocaleString()}` : <span className="text-ink-3 font-normal">Free</span>}
         </span>
       ),
-      className: 'hidden xl:table-cell',
-      cellClass:  'hidden xl:table-cell',
+      className: 'hidden 2xl:table-cell',
+      cellClass:  'hidden 2xl:table-cell',
+    },
+    {
+      key: 'actions',
+      label: '',
+      render: s => (
+        <div className="flex items-center justify-end gap-1" onClick={e => e.stopPropagation()}>
+          {s.slug && (
+            <a
+              href={`/p/${s.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="View live public directory profile"
+              className="p-1.5 rounded-lg text-ink-3 hover:text-brand hover:bg-surface-2 transition-colors cursor-pointer"
+            >
+              <ExternalLink size={14} />
+            </a>
+          )}
+        </div>
+      ),
+      cellClass: 'text-right',
+      className: 'text-right w-12',
     },
   ]
 
