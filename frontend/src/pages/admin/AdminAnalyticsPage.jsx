@@ -10,6 +10,7 @@ import {
 import { useAdminAnalytics } from '../../features/admin/hooks/useAdmin.js'
 import { InteractiveAreaChart } from '../../features/admin/components/InteractiveAreaChart.jsx'
 import { ContactChannelBreakdown } from '../../features/admin/components/ContactChannelBreakdown.jsx'
+import { ConversionFunnelWidget } from '../../features/admin/components/ConversionFunnelWidget.jsx'
 import {
   Users, Megaphone, TrendingUp, AlertCircle,
   Eye, MousePointerClick, Percent, Calendar,
@@ -168,7 +169,7 @@ export default function AdminAnalyticsPage() {
           loading={isLoading}
         />
 
-        {/* ── Channel & Lead Intelligence ────────────────────────────── */}
+        {/* ── Channel & Funnel Intelligence ─────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <ContactChannelBreakdown
             channels={data?.channels_breakdown}
@@ -177,21 +178,11 @@ export default function AdminAnalyticsPage() {
             leadConversionRate={data?.lead_conversion_rate}
           />
 
-          <ChartCard
-            title="Ads by status"
-            subtitle="Current listing lifecycle status snapshot"
+          <ConversionFunnelWidget
+            funnel={data?.conversion_funnel}
+            paymentMethods={data?.payment_methods}
             loading={isLoading}
-          >
-            {data?.ads_by_status?.length > 0 ? (
-              <BarChart
-                data={data.ads_by_status}
-                keyField="status"
-                valueField="count"
-              />
-            ) : (
-              <p className="text-[12.5px] text-ink-3 text-center py-4">No data.</p>
-            )}
-          </ChartCard>
+          />
         </div>
 
         {/* ── Distribution charts ───────────────────────────────────── */}
