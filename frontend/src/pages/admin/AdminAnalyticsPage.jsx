@@ -9,6 +9,7 @@ import {
 } from '../../features/admin/components/AdminTable.jsx'
 import { useAdminAnalytics } from '../../features/admin/hooks/useAdmin.js'
 import { InteractiveAreaChart } from '../../features/admin/components/InteractiveAreaChart.jsx'
+import { ContactChannelBreakdown } from '../../features/admin/components/ContactChannelBreakdown.jsx'
 import {
   Users, Megaphone, TrendingUp, AlertCircle,
   Eye, MousePointerClick, Percent, Calendar,
@@ -167,10 +168,18 @@ export default function AdminAnalyticsPage() {
           loading={isLoading}
         />
 
-        {/* ── Distribution charts ───────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* ── Channel & Lead Intelligence ────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <ContactChannelBreakdown
+            channels={data?.channels_breakdown}
+            totalViews={data?.total_views}
+            totalContacts={data?.total_contacts}
+            leadConversionRate={data?.lead_conversion_rate}
+          />
+
           <ChartCard
             title="Ads by status"
+            subtitle="Current listing lifecycle status snapshot"
             loading={isLoading}
           >
             {data?.ads_by_status?.length > 0 ? (
@@ -183,6 +192,10 @@ export default function AdminAnalyticsPage() {
               <p className="text-[12.5px] text-ink-3 text-center py-4">No data.</p>
             )}
           </ChartCard>
+        </div>
+
+        {/* ── Distribution charts ───────────────────────────────────── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
           <ChartCard
             title="Top categories by ads"
