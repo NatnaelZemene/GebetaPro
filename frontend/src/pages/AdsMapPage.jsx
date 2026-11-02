@@ -63,7 +63,7 @@ export default function DirectoryMapPage() {
       <main className="flex-1 flex flex-col" id="main-content">
 
         {/* Toolbar */}
-        <div className="relative z-30 bg-surface border-b border-border px-4 py-2.5 flex flex-wrap items-center gap-3">
+        <div className="relative z-40 bg-surface border-b border-border px-4 py-2.5 flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2 shrink-0">
             <MapPin size={15} className="text-brand" />
             <span className="text-[14px] font-semibold text-ink">Profile map</span>
@@ -118,7 +118,7 @@ export default function DirectoryMapPage() {
         {geo.error   && <div className="px-4 py-2 bg-danger-bg border-b border-red-200"><p className="text-[13px] text-danger">{geo.error}</p></div>}
         {nearbyError && <div className="px-4 py-2 bg-danger-bg border-b border-red-200"><p className="text-[13px] text-danger">{nearbyError}</p></div>}
 
-        <div className="flex-1 p-0">
+        <div className="flex-1 p-0 relative z-0 isolate">
           <MapListingsView
             pins={displayPins}
             loading={loading}

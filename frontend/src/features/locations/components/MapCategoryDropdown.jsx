@@ -39,6 +39,7 @@ export function MapCategoryDropdown({
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [alignRight, setAlignRight] = useState(false)
   const containerRef = useRef(null)
   const searchInputRef = useRef(null)
 
@@ -127,9 +128,18 @@ export function MapCategoryDropdown({
     }
   }, [open, close])
 
-  // Focus search input when popover opens
+  // Focus search input and check screen bounds when popover opens
   useEffect(() => {
     if (open) {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect()
+        // If popover (~380px wide) would overflow screen right, align right
+        if (rect.left + 380 > window.innerWidth && rect.right > 350) {
+          setAlignRight(true)
+        } else {
+          setAlignRight(false)
+        }
+      }
       setTimeout(() => searchInputRef.current?.focus(), 50)
     }
   }, [open])
@@ -154,7 +164,7 @@ export function MapCategoryDropdown({
   }
 
   return (
-    <div ref={containerRef} className={`relative inline-block text-left ${className}`}>
+    <div ref={containerRef} className={`relative inline-block text-left ${open ? 'z-50' : 'z-10'} ${className}`}>
       {/* ── Main Trigger Button ────────────────────────────────────────── */}
       <button
         type="button"
@@ -222,14 +232,15 @@ export function MapCategoryDropdown({
       {open && (
         <div
           role="listbox"
-          className="
-            absolute left-0 mt-2 w-[330px] sm:w-[380px] max-w-[94vw]
+          className={`
+            absolute ${alignRight ? 'right-0 origin-top-right' : 'left-0 origin-top-left'} mt-2
+            w-[330px] sm:w-[380px] max-w-[calc(100vw-2rem)]
             bg-surface/98 dark:bg-[#111720]/98 backdrop-blur-xl
             border border-border/90 dark:border-white/10
             rounded-2xl shadow-[0_16px_50px_rgba(0,0,0,0.18)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.65)]
             overflow-hidden z-[2000]
-            animate-in fade-in-50 zoom-in-95 duration-150 origin-top-left
-          "
+            animate-in fade-in-50 zoom-in-95 duration-150
+          `}
         >
           {/* ── Search Input Header ────────────────────────────────────── */}
           <div className="p-3 border-b border-border bg-surface-2/40">

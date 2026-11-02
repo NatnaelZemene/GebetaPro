@@ -29,7 +29,7 @@ export function MapView({
 }) {
   return (
     <div
-      className={`rounded-xl overflow-hidden border border-border ${className}`}
+      className={`rounded-xl overflow-hidden border border-border relative z-0 isolate ${className}`}
       style={{ height }}
     >
       <MapContainer

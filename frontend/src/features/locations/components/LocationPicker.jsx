@@ -173,7 +173,7 @@ export function LocationPicker({
 
       {/* Map */}
       <div
-        className="rounded-xl overflow-hidden border border-border"
+        className="rounded-xl overflow-hidden border border-border relative z-0 isolate"
         style={{ height }}
       >
         <MapContainer
