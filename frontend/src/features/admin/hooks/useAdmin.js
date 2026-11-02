@@ -98,6 +98,14 @@ export function useAdminSubscriptions(params = {}) {
   })
 }
 
+export function useAdminPlans() {
+  return useQuery({
+    queryKey: ['admin', 'plans'],
+    queryFn: api.getPlans,
+    staleTime: 60_000,
+  })
+}
+
 export function useAdminSubscriptionDetail(subId) {
   return useQuery({
     queryKey: K.sub(subId),

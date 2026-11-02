@@ -9,7 +9,10 @@ import {
   AdminTable, SearchBar, FilterSelect,
   Pagination, PageHeader, StatCard,
 } from '../../features/admin/components/AdminTable.jsx'
-import { useAdminSubscriptions, useAdminSubOverview } from '../../features/admin/hooks/useAdmin.js'
+import {
+  useAdminSubscriptions, useAdminSubOverview,
+  useExtendSubscription, useChangeSubscriptionPlan, useUpdateSubscriptionStatus,
+} from '../../features/admin/hooks/useAdmin.js'
 import { CategoryIconInline } from '../../features/profiles/components/CategoryIcon.jsx'
 import { SubscriptionDetailDrawer } from '../../features/admin/components/SubscriptionDetailDrawer.jsx'
 import {
@@ -193,6 +196,13 @@ export default function AdminSubscriptionsPage() {
   const pagination = data?.pagination    || null
 
   const [selectedSubscription, setSelectedSubscription] = useState(null)
+
+  const extendSub = useExtendSubscription()
+  const changePlan = useChangeSubscriptionPlan()
+  const updateStatus = useUpdateSubscriptionStatus()
+
+  const anyMutating = extendSub.isPending || changePlan.isPending || updateStatus.isPending
+  const mutationError = extendSub.error || changePlan.error || updateStatus.error
 
   const totalSubs    = Number(overview?.total_users ?? pagination?.total ?? subs.length)
   const activeSubs   = Number(overview?.active_subscriptions ?? 0)
@@ -486,6 +496,13 @@ export default function AdminSubscriptionsPage() {
           )}
         </div>
 
+        {/* Mutation error alert */}
+        {mutationError && (
+          <div className="bg-danger-bg border border-red-200 rounded-lg px-4 py-2.5 text-[13px] text-danger">
+            {mutationError?.response?.data?.message || 'Operation failed. Please try again.'}
+          </div>
+        )}
+
         <AdminTable
           columns={columns}
           rows={subs}
@@ -503,6 +520,10 @@ export default function AdminSubscriptionsPage() {
         <SubscriptionDetailDrawer
           subscription={selectedSubscription}
           onClose={() => setSelectedSubscription(null)}
+          onExtend={(data) => extendSub.mutate(data)}
+          onChangePlan={(data) => changePlan.mutate(data)}
+          onUpdateStatus={(subId, status) => updateStatus.mutate({ subId, status })}
+          loading={anyMutating}
         />
       )}
     </AdminLayout>

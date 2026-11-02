@@ -117,6 +117,11 @@ export async function updateSubscriptionStatus(subId, status) {
   return r.data.data
 }
 
+export async function getPlans() {
+  const r = await apiClient.get('/admin/plans')
+  return r.data.data
+}
+
 export async function getPayments(params = {}) {
   const r = await apiClient.get('/admin/payments', { params })
   return r.data.data

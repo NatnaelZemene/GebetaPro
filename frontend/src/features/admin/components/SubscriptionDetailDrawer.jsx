@@ -5,8 +5,10 @@
  *   - Slide-in from right with backdrop blur and escape dismissal (useFocusTrap).
  *   - Rich customer identity (avatar, business name, category, directory link).
  *   - Billing lifecycle details (start/end dates, exact countdown, MRR, limits).
- *   - In-drawer payment transaction audit history.
- *   - Quick administrative actions (courtesy extensions, plan change, status toggle).
+ *   - In-drawer payment transaction audit history with copyable references.
+ *   - Quick administrative courtesy extension presets (+7d, +14d, +30d).
+ *   - Manual plan switcher (Free, Basic, Pro, Business).
+ *   - Direct status overrides (Expire / Reactivate).
  */
 import { useEffect, useState } from 'react'
 import {
@@ -14,10 +16,11 @@ import {
   BadgeCheck, Mail, Phone, MapPin, Globe, Sparkles,
   CalendarPlus, Layers, AlertCircle, RefreshCw, Clock,
   ArrowUpRight, CheckCircle2, ChevronDown, CheckCircle,
+  AlertTriangle,
 } from 'lucide-react'
 import { Badge } from '../../../components/ui/Badge.jsx'
 import { CategoryIcon } from '../../profiles/components/CategoryIcon.jsx'
-import { useAdminSubscriptionDetail } from '../hooks/useAdmin.js'
+import { useAdminSubscriptionDetail, useAdminPlans } from '../hooks/useAdmin.js'
 import { useFocusTrap } from '../../../hooks/useFocusTrap.js'
 
 const PLAN_BADGE = {
@@ -63,9 +66,28 @@ export function SubscriptionDetailDrawer({
   const [copiedSubId, setCopiedSubId] = useState(false)
   const [copiedUserId, setCopiedUserId] = useState(false)
 
+  // Extension panel states
+  const [extendOpen, setExtendOpen] = useState(false)
+  const [extendDays, setExtendDays] = useState(7)
+  const [extendNote, setExtendNote] = useState('')
+
+  // Change plan states
+  const [changePlanOpen, setChangePlanOpen] = useState(false)
+  const [selectedPlanId, setSelectedPlanId] = useState(subscription?.plan_id)
+
+  // Status confirm prompt
+  const [confirmStatus, setConfirmStatus] = useState(null) // 'EXPIRED' or 'ACTIVE'
+
   // Fetch full details including payment history
   const { data: detailData, isLoading: detailLoading } = useAdminSubscriptionDetail(subscription?.id)
+  const { data: plansData } = useAdminPlans()
   const fullSub = detailData || subscription
+
+  useEffect(() => {
+    if (fullSub?.plan_id) {
+      setSelectedPlanId(fullSub.plan_id)
+    }
+  }, [fullSub?.plan_id])
 
   // Accessible focus trap
   const trapRef = useFocusTrap(Boolean(subscription), onClose)
@@ -92,6 +114,37 @@ export function SubscriptionDetailDrawer({
   // Expiry countdown calculation
   const msRemaining = fullSub.current_period_end ? new Date(fullSub.current_period_end) - Date.now() : 0
   const daysRemaining = Math.ceil(msRemaining / 86400000)
+
+  // Projected expiration when extending
+  const now = new Date()
+  const currentEnd = fullSub.current_period_end ? new Date(fullSub.current_period_end) : now
+  const baseEnd = currentEnd > now ? currentEnd : now
+  const projectedEnd = new Date(baseEnd.getTime() + (Number(extendDays) || 0) * 86400000)
+
+  async function handleApplyExtension() {
+    if (!extendDays || extendDays <= 0) return
+    await onExtend?.({
+      subId: fullSub.id,
+      days: extendDays,
+      note: extendNote.trim() || undefined,
+    })
+    setExtendOpen(false)
+    setExtendNote('')
+  }
+
+  async function handleApplyPlanChange() {
+    if (!selectedPlanId || selectedPlanId === fullSub.plan_id) return
+    await onChangePlan?.({
+      subId: fullSub.id,
+      planId: selectedPlanId,
+    })
+    setChangePlanOpen(false)
+  }
+
+  async function handleApplyStatus(targetStatus) {
+    await onUpdateStatus?.(fullSub.id, targetStatus)
+    setConfirmStatus(null)
+  }
 
   return (
     <div
@@ -192,6 +245,200 @@ export function SubscriptionDetailDrawer({
               </button>
             </div>
           </div>
+
+          {/* ── Courtesy Extension Collapsible Accordion (Task 9) ───────── */}
+          {extendOpen && (
+            <div className="bg-brand-light/40 dark:bg-brand/10 border border-brand/30 rounded-2xl p-4 sm:p-5 space-y-4 animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CalendarPlus size={16} className="text-brand" />
+                  <h4 className="text-[13.5px] font-bold text-ink">Extend Subscription Period</h4>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setExtendOpen(false)}
+                  className="p-1 text-ink-3 hover:text-ink cursor-pointer"
+                >
+                  <X size={15} />
+                </button>
+              </div>
+
+              {/* Presets */}
+              <div>
+                <label className="block text-[11.5px] font-medium text-ink-2 mb-2">Preset extensions</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {[7, 14, 30, 90].map((d) => (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setExtendDays(d)}
+                      className={`
+                        py-1.5 rounded-lg text-[12px] font-semibold border transition-all cursor-pointer
+                        ${extendDays === d
+                          ? 'bg-brand text-white border-brand shadow-xs'
+                          : 'bg-surface border-border text-ink-2 hover:border-brand/40 hover:text-ink'
+                        }
+                      `}
+                    >
+                      +{d} Days
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Note / reason */}
+              <div>
+                <label className="block text-[11.5px] font-medium text-ink-2 mb-1">
+                  Reason / Administrative Note (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={extendNote}
+                  onChange={(e) => setExtendNote(e.target.value)}
+                  placeholder="e.g., Courtesy extension, verified CBE direct deposit"
+                  className="w-full text-[12.5px] px-3 py-1.5 rounded-lg border border-border bg-surface text-ink focus:outline-none focus:ring-2 focus:ring-brand"
+                />
+              </div>
+
+              {/* Preview */}
+              <div className="bg-surface/80 border border-border/80 rounded-xl p-3 text-[12px] flex items-center justify-between">
+                <span className="text-ink-3">New Expiration Date:</span>
+                <span className="font-bold text-brand tabular-nums">
+                  {projectedEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
+              </div>
+
+              <div className="flex gap-2 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setExtendOpen(false)}
+                  className="px-3 py-1.5 rounded-lg text-[12px] font-medium text-ink-3 hover:text-ink bg-surface border border-border cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleApplyExtension}
+                  disabled={loading}
+                  className="px-4 py-1.5 rounded-lg text-[12px] font-semibold text-white bg-brand hover:bg-brand-hover shadow-xs cursor-pointer disabled:opacity-50"
+                >
+                  {loading ? 'Extending…' : `Confirm +${extendDays} Days`}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── Change Plan Modal / Panel (Task 10) ────────────────────── */}
+          {changePlanOpen && (
+            <div className="bg-surface-2/60 border border-border rounded-2xl p-4 sm:p-5 space-y-4 animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Layers size={16} className="text-brand" />
+                  <h4 className="text-[13.5px] font-bold text-ink">Change Subscription Plan</h4>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setChangePlanOpen(false)}
+                  className="p-1 text-ink-3 hover:text-ink cursor-pointer"
+                >
+                  <X size={15} />
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                {(plansData || [
+                  { id: '1', name: 'FREE', display_name: 'Free', price_etb: 0, max_active_ads: 2 },
+                  { id: '2', name: 'BASIC', display_name: 'Basic', price_etb: 300, max_active_ads: 5 },
+                  { id: '3', name: 'PRO', display_name: 'Pro', price_etb: 800, max_active_ads: 15 },
+                  { id: '4', name: 'BUSINESS', display_name: 'Business', price_etb: 1500, max_active_ads: 50 },
+                ]).map((p) => {
+                  const isSelected = selectedPlanId === p.id
+                  return (
+                    <div
+                      key={p.id}
+                      onClick={() => setSelectedPlanId(p.id)}
+                      className={`
+                        p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all
+                        ${isSelected
+                          ? 'bg-brand/10 border-brand/60 shadow-xs'
+                          : 'bg-surface border-border hover:border-brand/30'
+                        }
+                      `}
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[13px] font-bold text-ink">{p.display_name || p.name}</span>
+                          {PLAN_BADGE[p.name]}
+                        </div>
+                        <span className="text-[11.5px] text-ink-3">
+                          {p.max_active_ads ? `Up to ${p.max_active_ads} active listings` : 'Standard features'}
+                        </span>
+                      </div>
+
+                      <div className="text-right">
+                        <span className="text-[13px] font-bold text-ink tabular-nums">
+                          {p.price_etb > 0 ? `ETB ${Number(p.price_etb).toLocaleString()}` : 'Free'}
+                        </span>
+                        {p.price_etb > 0 && <span className="block text-[10.5px] text-ink-4">/ month</span>}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <div className="flex gap-2 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setChangePlanOpen(false)}
+                  className="px-3 py-1.5 rounded-lg text-[12px] font-medium text-ink-3 hover:text-ink bg-surface border border-border cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleApplyPlanChange}
+                  disabled={loading || selectedPlanId === fullSub.plan_id}
+                  className="px-4 py-1.5 rounded-lg text-[12px] font-semibold text-white bg-brand hover:bg-brand-hover shadow-xs cursor-pointer disabled:opacity-50"
+                >
+                  {loading ? 'Updating…' : 'Update Plan'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── Status Confirmation Dialog (Task 10) ──────────────────── */}
+          {confirmStatus && (
+            <div className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-4 space-y-3 animate-in fade-in duration-150">
+              <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-bold text-[13px]">
+                <AlertTriangle size={16} />
+                <span>Confirm Status Override</span>
+              </div>
+              <p className="text-[12.5px] text-ink-2 leading-relaxed">
+                Are you sure you want to change this subscription to{' '}
+                <strong className="text-ink">{confirmStatus}</strong>?
+                {confirmStatus === 'EXPIRED'
+                  ? ' The subscriber will lose access to paid features immediately.'
+                  : ' The subscription will be reactivated with immediate access.'}
+              </p>
+              <div className="flex gap-2 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setConfirmStatus(null)}
+                  className="px-3 py-1.5 rounded-lg text-[12px] font-medium text-ink-3 hover:text-ink bg-surface border border-border cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleApplyStatus(confirmStatus)}
+                  disabled={loading}
+                  className="px-4 py-1.5 rounded-lg text-[12px] font-semibold text-white bg-rose-600 hover:bg-rose-700 shadow-xs cursor-pointer disabled:opacity-50"
+                >
+                  {loading ? 'Updating…' : `Confirm ${confirmStatus}`}
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* ── Billing & Period Section ──────────────────────────────── */}
           <div className="bg-surface border border-border rounded-2xl p-4 sm:p-5 space-y-4">
@@ -372,13 +619,19 @@ export function SubscriptionDetailDrawer({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => onExtend?.(fullSub)}
+              onClick={() => {
+                setExtendOpen(o => !o)
+                setChangePlanOpen(false)
+                setConfirmStatus(null)
+              }}
               disabled={loading}
-              className="
-                inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12.5px] font-semibold
-                bg-brand text-white hover:bg-brand-hover shadow-xs transition-colors cursor-pointer
-                disabled:opacity-50
-              "
+              className={`
+                inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12.5px] font-semibold transition-colors cursor-pointer
+                ${extendOpen
+                  ? 'bg-brand-dark text-white ring-2 ring-brand/30'
+                  : 'bg-brand text-white hover:bg-brand-hover shadow-xs'
+                }
+              `}
             >
               <CalendarPlus size={14} />
               <span>Extend Period</span>
@@ -386,13 +639,19 @@ export function SubscriptionDetailDrawer({
 
             <button
               type="button"
-              onClick={() => onChangePlan?.(fullSub)}
+              onClick={() => {
+                setChangePlanOpen(o => !o)
+                setExtendOpen(false)
+                setConfirmStatus(null)
+              }}
               disabled={loading}
-              className="
-                inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12.5px] font-medium
-                bg-surface hover:bg-surface-2 text-ink border border-border shadow-xs transition-colors cursor-pointer
-                disabled:opacity-50
-              "
+              className={`
+                inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12.5px] font-medium border shadow-xs transition-colors cursor-pointer
+                ${changePlanOpen
+                  ? 'bg-surface-3 border-brand text-ink'
+                  : 'bg-surface hover:bg-surface-2 text-ink border-border'
+                }
+              `}
             >
               <Layers size={14} className="text-ink-3" />
               <span>Change Plan</span>
@@ -403,7 +662,7 @@ export function SubscriptionDetailDrawer({
             {isActive ? (
               <button
                 type="button"
-                onClick={() => onUpdateStatus?.(fullSub.id, 'EXPIRED')}
+                onClick={() => setConfirmStatus('EXPIRED')}
                 disabled={loading}
                 className="
                   inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12.5px] font-medium
@@ -416,7 +675,7 @@ export function SubscriptionDetailDrawer({
             ) : (
               <button
                 type="button"
-                onClick={() => onUpdateStatus?.(fullSub.id, 'ACTIVE')}
+                onClick={() => setConfirmStatus('ACTIVE')}
                 disabled={loading}
                 className="
                   inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12.5px] font-medium
