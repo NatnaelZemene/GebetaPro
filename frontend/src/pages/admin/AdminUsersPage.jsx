@@ -12,7 +12,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
   Shield, ShieldOff, UserCheck, UserX, Trash2,
-  MoreHorizontal, BadgeCheck, AlertTriangle,
+  MoreHorizontal, BadgeCheck, AlertTriangle, Users, UserPlus,
 } from 'lucide-react'
 import { AdminLayout }  from '../../components/layout/AdminLayout.jsx'
 import { Badge }        from '../../components/ui/Badge.jsx'
@@ -22,7 +22,7 @@ import {
   Pagination, PageHeader, StatCard,
 } from '../../features/admin/components/AdminTable.jsx'
 import {
-  useAdminUsers, useSuspendUser, useActivateUser,
+  useAdminUsers, useAdminStats, useSuspendUser, useActivateUser,
   usePromoteUser, useDemoteUser, useDeleteUser,
 } from '../../features/admin/hooks/useAdmin.js'
 
@@ -309,6 +309,7 @@ export default function AdminUsersPage() {
   }
 
   const { data, isLoading, error } = useAdminUsers(params)
+  const { data: statsData, isLoading: statsLoading } = useAdminStats()
   const suspend  = useSuspendUser()
   const activate = useActivateUser()
   const promote  = usePromoteUser()
@@ -322,6 +323,39 @@ export default function AdminUsersPage() {
 
   const users      = data?.users      || []
   const pagination = data?.pagination || null
+
+  const totalMembers = Number(statsData?.total_users ?? pagination?.total ?? users.length)
+  const activeMembers = Number(statsData?.active_users ?? 0)
+  const suspendedMembers = Number(statsData?.suspended_users ?? 0)
+  const newMembers30d = Number(statsData?.new_users_30d ?? 0)
+  const activeRate = totalMembers > 0 ? Math.round((activeMembers / totalMembers) * 100) : 100
+
+  // Quick segment tab selection
+  const activeSegment = role === 'ADMIN' ? 'admins' : status === 'ACTIVE' ? 'active' : status === 'SUSPENDED' ? 'suspended' : 'all'
+
+  function handleSelectSegment(seg) {
+    setPage(1)
+    if (seg === 'all') {
+      setStatus('')
+      setRole('')
+    } else if (seg === 'active') {
+      setStatus('ACTIVE')
+      setRole('')
+    } else if (seg === 'suspended') {
+      setStatus('SUSPENDED')
+      setRole('')
+    } else if (seg === 'admins') {
+      setStatus('')
+      setRole('ADMIN')
+    }
+  }
+
+  const SEGMENTS = [
+    { id: 'all', label: 'All Users', count: totalMembers },
+    { id: 'active', label: 'Active', count: activeMembers },
+    { id: 'suspended', label: 'Suspended', count: suspendedMembers },
+    { id: 'admins', label: 'Admins' },
+  ]
 
   const columns = [
     {
@@ -419,8 +453,8 @@ export default function AdminUsersPage() {
       />
 
       {/* Stats strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-7">
-        {isLoading ? (
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        {statsLoading && isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="bg-surface border border-border rounded-xl p-4">
               <Skeleton className="h-3 w-20 rounded mb-3" />
@@ -429,12 +463,74 @@ export default function AdminUsersPage() {
           ))
         ) : (
           <>
-            <StatCard label="Total users"   value={(data?.pagination?.total ?? users.length).toLocaleString()} iconBg="bg-brand-light" iconColor="text-brand" />
-            <StatCard label="Showing"       value={users.length.toLocaleString()} sub="on this page"          iconBg="bg-surface-2"     iconColor="text-ink-3" />
-            <StatCard label="Status filter" value={status || 'All'}               iconBg="bg-brand-light"    iconColor="text-brand" />
-            <StatCard label="Role filter"   value={role   || 'All'}               iconBg="bg-surface-2"     iconColor="text-ink-3" />
+            <StatCard
+              label="Total Members"
+              value={totalMembers.toLocaleString()}
+              sub="Platform accounts"
+              icon={<Users size={16} />}
+              iconBg="bg-brand-light dark:bg-brand/10"
+              iconColor="text-brand"
+            />
+            <StatCard
+              label="Active Accounts"
+              value={activeMembers.toLocaleString()}
+              sub={`${activeRate}% active rate`}
+              icon={<UserCheck size={16} />}
+              iconBg="bg-emerald-50 dark:bg-emerald-950/40"
+              iconColor="text-emerald-600 dark:text-emerald-400"
+            />
+            <StatCard
+              label="Suspended Accounts"
+              value={suspendedMembers.toLocaleString()}
+              sub="Moderation watch"
+              icon={<UserX size={16} />}
+              iconBg={suspendedMembers > 0 ? "bg-amber-50 dark:bg-amber-950/40" : "bg-surface-2"}
+              iconColor={suspendedMembers > 0 ? "text-amber-600 dark:text-amber-400" : "text-ink-3"}
+            />
+            <StatCard
+              label="New Sign-ups (30d)"
+              value={newMembers30d.toLocaleString()}
+              sub="Recent platform growth"
+              icon={<UserPlus size={16} />}
+              iconBg="bg-blue-50 dark:bg-blue-950/40"
+              iconColor="text-blue-600 dark:text-blue-400"
+            />
           </>
         )}
+      </div>
+
+      {/* Segment filter pills */}
+      <div className="flex items-center gap-1.5 p-1 bg-surface-2/60 dark:bg-surface-2/30 border border-border/70 rounded-xl w-fit mb-4 overflow-x-auto max-w-full">
+        {SEGMENTS.map(tab => {
+          const isCurrent = activeSegment === tab.id
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => handleSelectSegment(tab.id)}
+              className={`
+                px-3 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-150 cursor-pointer whitespace-nowrap
+                flex items-center gap-2
+                ${isCurrent
+                  ? 'bg-surface dark:bg-canvas text-ink shadow-xs font-semibold'
+                  : 'text-ink-3 hover:text-ink hover:bg-surface/50'
+                }
+              `}
+            >
+              <span>{tab.label}</span>
+              {tab.count !== undefined && (
+                <span
+                  className={`
+                    px-1.5 py-0.2 rounded-md text-[11px] font-semibold tabular-nums
+                    ${isCurrent ? 'bg-brand/10 text-brand' : 'bg-surface-2 text-ink-3'}
+                  `}
+                >
+                  {tab.count.toLocaleString()}
+                </span>
+              )}
+            </button>
+          )
+        })}
       </div>
 
       <div className="flex flex-col gap-5">
