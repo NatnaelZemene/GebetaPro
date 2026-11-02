@@ -11,6 +11,7 @@ import {
 } from '../../features/admin/components/AdminTable.jsx'
 import { useAdminSubscriptions, useAdminSubOverview } from '../../features/admin/hooks/useAdmin.js'
 import { CategoryIconInline } from '../../features/profiles/components/CategoryIcon.jsx'
+import { SubscriptionDetailDrawer } from '../../features/admin/components/SubscriptionDetailDrawer.jsx'
 import {
   CreditCard, CheckCircle2, TrendingUp, Clock,
   BadgeCheck, ExternalLink, Copy, Check,
@@ -190,6 +191,8 @@ export default function AdminSubscriptionsPage() {
   const { data: overview, isLoading: overviewLoading } = useAdminSubOverview()
   const subs       = data?.subscriptions || []
   const pagination = data?.pagination    || null
+
+  const [selectedSubscription, setSelectedSubscription] = useState(null)
 
   const totalSubs    = Number(overview?.total_users ?? pagination?.total ?? subs.length)
   const activeSubs   = Number(overview?.active_subscriptions ?? 0)
@@ -488,11 +491,20 @@ export default function AdminSubscriptionsPage() {
           rows={subs}
           loading={isLoading}
           error={error}
+          onRowClick={s => setSelectedSubscription(s)}
           emptyMessage="No subscriptions found."
         />
 
         <Pagination pagination={pagination} onPage={setPage} />
       </div>
+
+      {/* Slide-over Subscription Detail Drawer */}
+      {selectedSubscription && (
+        <SubscriptionDetailDrawer
+          subscription={selectedSubscription}
+          onClose={() => setSelectedSubscription(null)}
+        />
+      )}
     </AdminLayout>
   )
 }
