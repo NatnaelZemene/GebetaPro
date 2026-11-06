@@ -121,6 +121,8 @@ router.get('/categories',                           ...guard,                   
 router.post('/categories',                          ...guard, validate(createCategorySchema),      ctrl.createCategory)
 router.patch('/categories/:catId',                  ...guard, validate(updateCategorySchema),      ctrl.updateCategory)
 router.patch('/categories/:catId/toggle',           ...guard, validate(uuidParam('catId')),        ctrl.toggleCategory)
+router.get('/categories/:catId/dependencies',       ...guard, validate(uuidParam('catId')),        ctrl.getCategoryDependencies)
+router.delete('/categories/:catId',                 ...guard, validate(uuidParam('catId')),        ctrl.deleteCategory)
 
 // ── Subscriptions & Payments ──────────────────────────────────────────────────
 const extendSubSchema = z.object({

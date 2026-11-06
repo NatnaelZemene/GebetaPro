@@ -115,6 +115,16 @@ export const toggleCategory = asyncHandler(async (req, res) => {
   sendSuccess(res, 'Category toggled', cat)
 })
 
+export const getCategoryDependencies = asyncHandler(async (req, res) => {
+  const data = await service.getCategoryDependencies(req.params.catId)
+  sendSuccess(res, 'Category dependencies retrieved', data)
+})
+
+export const deleteCategory = asyncHandler(async (req, res) => {
+  const deleted = await service.deleteCategory(req.params.catId, req.user.id)
+  sendSuccess(res, 'Category deleted successfully', deleted)
+})
+
 // ── Subscriptions & Payments ──────────────────────────────────────────────────
 
 export const listSubscriptions = asyncHandler(async (req, res) => {
