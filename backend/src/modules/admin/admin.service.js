@@ -210,6 +210,42 @@ export async function toggleCategoryActive(catId, adminId) {
   return updated
 }
 
+export async function getCategoryDependencies(catId) {
+  const cat = await repo.findCategoryById(catId)
+  if (!cat) throw createError('Category not found', 404, 'CATEGORY_NOT_FOUND')
+
+  const counts = await repo.getCategoryDependencyCounts(catId)
+  return {
+    category: cat,
+    counts,
+    isDeletable: Number(counts.ads_count) === 0 && Number(counts.profiles_count) === 0 && Number(counts.services_count) === 0,
+  }
+}
+
+export async function deleteCategory(catId, adminId) {
+  const cat = await repo.findCategoryById(catId)
+  if (!cat) throw createError('Category not found', 404, 'CATEGORY_NOT_FOUND')
+
+  const counts = await repo.getCategoryDependencyCounts(catId)
+  const adsCount = Number(counts.ads_count) || 0
+  const profilesCount = Number(counts.profiles_count) || 0
+  const servicesCount = Number(counts.services_count) || 0
+
+  if (adsCount > 0 || profilesCount > 0 || servicesCount > 0) {
+    const error = createError(
+      `Cannot delete category "${cat.name}": it is referenced by ${adsCount} ad(s), ${profilesCount} profile(s), and ${servicesCount} service(s). Please reassign them or deactivate the category instead.`,
+      409,
+      'CATEGORY_IN_USE'
+    )
+    error.details = counts
+    throw error
+  }
+
+  const deleted = await repo.deleteCategoryById(catId)
+  logger.info({ adminId, catId, name: cat.name }, 'Admin deleted category')
+  return deleted
+}
+
 // ── Subscriptions & Payments ─────────────────────────────────────────────────
 
 export async function listSubscriptions(query = {}) {
