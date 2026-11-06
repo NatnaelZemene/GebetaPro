@@ -229,7 +229,10 @@ export function useCreateCategory() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (data) => api.createCategory(data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: K.categories }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: K.categories })
+      qc.invalidateQueries({ queryKey: ['categories'] })
+    },
   })
 }
 
@@ -237,7 +240,10 @@ export function useUpdateCategory() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ catId, data }) => api.updateCategory(catId, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: K.categories }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: K.categories })
+      qc.invalidateQueries({ queryKey: ['categories'] })
+    },
   })
 }
 
@@ -245,7 +251,37 @@ export function useToggleCategory() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (catId) => api.toggleCategory(catId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: K.categories }),
+    onMutate: async (catId) => {
+      await qc.cancelQueries({ queryKey: K.categories })
+      const previous = qc.getQueryData(K.categories)
+      if (previous && Array.isArray(previous)) {
+        qc.setQueryData(
+          K.categories,
+          previous.map(c => (c.id === catId ? { ...c, is_active: !c.is_active } : c))
+        )
+      }
+      return { previous }
+    },
+    onError: (_err, _catId, context) => {
+      if (context?.previous) {
+        qc.setQueryData(K.categories, context.previous)
+      }
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: K.categories })
+      qc.invalidateQueries({ queryKey: ['categories'] })
+    },
+  })
+}
+
+export function useDeleteCategory() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (catId) => api.deleteCategory(catId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: K.categories })
+      qc.invalidateQueries({ queryKey: ['categories'] })
+    },
   })
 }
 

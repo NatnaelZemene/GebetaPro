@@ -90,6 +90,16 @@ export async function toggleCategory(catId) {
   return r.data.data
 }
 
+export async function getCategoryDependencies(catId) {
+  const r = await apiClient.get(`/admin/categories/${catId}/dependencies`)
+  return r.data.data
+}
+
+export async function deleteCategory(catId) {
+  const r = await apiClient.delete(`/admin/categories/${catId}`)
+  return r.data.data
+}
+
 // ── Subscriptions & Payments ──────────────────────────────────────────────────
 
 export async function getSubscriptions(params = {}) {
