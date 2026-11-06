@@ -753,7 +753,9 @@ export async function findAllCategories() {
        c.id, c.parent_id, c.name, c.slug, c.description,
        c.icon, c.is_active, c.created_at,
        p.name AS parent_name,
-       (SELECT COUNT(*) FROM advertisements a WHERE a.category_id = c.id) AS ad_count
+       (SELECT COUNT(*) FROM advertisements a WHERE a.category_id = c.id)::int AS ad_count,
+       (SELECT COUNT(*) FROM profiles pr WHERE pr.category_id = c.id)::int AS profile_count,
+       (SELECT COUNT(*) FROM categories ch WHERE ch.parent_id = c.id)::int AS subcategory_count
      FROM categories c
      LEFT JOIN categories p ON p.id = c.parent_id
      ORDER BY c.parent_id NULLS FIRST, c.name`
@@ -812,6 +814,34 @@ export async function findCategoryById(catId) {
     [catId]
   )
   return result.rows[0] || null
+}
+
+export async function getCategoryDependencyCounts(catId) {
+  const result = await pool.query(
+    `SELECT
+       (SELECT COUNT(*) FROM categories WHERE parent_id = $1)::int AS subcategories_count,
+       (SELECT COUNT(*) FROM advertisements WHERE category_id = $1 OR category_id IN (SELECT id FROM categories WHERE parent_id = $1))::int AS ads_count,
+       (SELECT COUNT(*) FROM profiles WHERE category_id = $1 OR category_id IN (SELECT id FROM categories WHERE parent_id = $1))::int AS profiles_count,
+       (SELECT COUNT(*) FROM services WHERE category_id = $1 OR category_id IN (SELECT id FROM categories WHERE parent_id = $1))::int AS services_count`,
+    [catId]
+  )
+  return result.rows[0] || { subcategories_count: 0, ads_count: 0, profiles_count: 0, services_count: 0 }
+}
+
+export async function deleteCategoryById(catId) {
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
+    await client.query('DELETE FROM categories WHERE parent_id = $1', [catId])
+    const res = await client.query('DELETE FROM categories WHERE id = $1 RETURNING *', [catId])
+    await client.query('COMMIT')
+    return res.rows[0] || null
+  } catch (err) {
+    await client.query('ROLLBACK')
+    throw err
+  } finally {
+    client.release()
+  }
 }
 
 // ── Profile Verifications ─────────────────────────────────────────────────────
