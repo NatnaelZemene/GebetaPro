@@ -267,8 +267,13 @@ export function useToggleCategory() {
         qc.setQueryData(K.categories, context.previous)
       }
     },
-    onSettled: () => {
-      qc.invalidateQueries({ queryKey: K.categories })
+    onSuccess: (updated) => {
+      if (updated && updated.id) {
+        qc.setQueryData(K.categories, (old) => {
+          if (!Array.isArray(old)) return old
+          return old.map(c => (c.id === updated.id ? { ...c, ...updated } : c))
+        })
+      }
       qc.invalidateQueries({ queryKey: ['categories'] })
     },
   })

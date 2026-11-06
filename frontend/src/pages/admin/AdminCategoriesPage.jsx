@@ -29,8 +29,8 @@ import {
   useDeleteCategory,
 } from '../../features/admin/hooks/useAdmin.js'
 
-/* ── Modern Apple/Stripe-style Toggle Switch ─────────────────────────────── */
-function ToggleSwitch({ active, onToggle, loading, label = 'Toggle category status' }) {
+/* ── Modern Apple/Stripe-style Instant Toggle Switch ──────────────────────── */
+function ToggleSwitch({ active, onToggle, label = 'Toggle category status' }) {
   return (
     <button
       type="button"
@@ -38,20 +38,19 @@ function ToggleSwitch({ active, onToggle, loading, label = 'Toggle category stat
         e.stopPropagation()
         onToggle()
       }}
-      disabled={loading}
+      role="switch"
+      aria-checked={Boolean(active)}
       aria-label={label}
       title={active ? 'Click to deactivate' : 'Click to activate'}
-      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 ${
+      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-150 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 select-none ${
         active ? 'bg-success' : 'bg-ink-4/30 dark:bg-ink-4/40'
-      } ${loading ? 'opacity-60 cursor-wait' : ''}`}
+      }`}
     >
       <span
-        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition-transform duration-150 ease-in-out ${
           active ? 'translate-x-4' : 'translate-x-0'
-        } ${loading ? 'flex items-center justify-center' : ''}`}
-      >
-        {loading && <Loader2 size={10} className="animate-spin text-ink-3" />}
-      </span>
+        }`}
+      />
     </button>
   )
 }
@@ -74,7 +73,6 @@ export default function AdminCategoriesPage() {
   const [search, setSearch]             = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [expandedIds, setExpandedIds]   = useState(new Set())
-  const [togglingId, setTogglingId]     = useState(null)
 
   // Modals state
   const [modalOpen, setModalOpen]               = useState(false)
@@ -191,12 +189,11 @@ export default function AdminCategoriesPage() {
   }
 
   function handleToggle(cat) {
-    setTogglingId(cat.id)
+    const willBeActive = !cat.is_active
     toggleMut.mutate(cat.id, {
-      onSettled: () => setTogglingId(null),
-      onSuccess: () => {
-        const nextState = !cat.is_active
-        showToast(`"${cat.name}" is now ${nextState ? 'Active' : 'Inactive'}.`)
+      onSuccess: (updatedCat) => {
+        const isNowActive = updatedCat?.is_active ?? willBeActive
+        showToast(`"${cat.name}" is now ${isNowActive ? 'Active' : 'Inactive'}.`)
       },
       onError: (err) => {
         showToast(err?.response?.data?.message || 'Failed to update category status.', 'error')
@@ -380,7 +377,6 @@ export default function AdminCategoriesPage() {
             const kids = getChildren(cat.id)
             const hasChildren = kids.length > 0
             const expanded = isExpanded(cat.id)
-            const isToggling = togglingId === cat.id
 
             return (
               <div
@@ -484,7 +480,6 @@ export default function AdminCategoriesPage() {
                       <ToggleSwitch
                         active={cat.is_active}
                         onToggle={() => handleToggle(cat)}
-                        loading={isToggling}
                         label={`Toggle ${cat.name} active status`}
                       />
                     </div>
@@ -506,8 +501,6 @@ export default function AdminCategoriesPage() {
                 {hasChildren && expanded && (
                   <div className="border-t border-border bg-canvas/60 px-4 py-2 space-y-1">
                     {kids.map((child, idx) => {
-                      const isChildToggling = togglingId === child.id
-
                       return (
                         <div
                           key={child.id}
@@ -560,7 +553,6 @@ export default function AdminCategoriesPage() {
                               <ToggleSwitch
                                 active={child.is_active}
                                 onToggle={() => handleToggle(child)}
-                                loading={isChildToggling}
                                 label={`Toggle ${child.name} active status`}
                               />
                             </div>
