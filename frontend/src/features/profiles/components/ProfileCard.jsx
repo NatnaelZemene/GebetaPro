@@ -179,12 +179,22 @@ export function ProfileCard({ profile }) {
               </span>
             ) : <span />}
 
-            {city && (
-              <div className="flex items-center gap-0.5 shrink-0 text-ink-3">
-                <MapPin size={10} aria-hidden="true" />
-                <span className="text-[10.5px] sm:text-[11px] truncate max-w-[85px]">{city}</span>
-              </div>
-            )}
+            <div className="flex items-center gap-1.5 shrink-0">
+              {profile.distance_km != null && (
+                <span className="inline-flex items-center gap-1 text-[10.5px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+                  <MapPin size={10} aria-hidden="true" />
+                  {profile.distance_km < 1
+                    ? `${Math.round(profile.distance_km * 1000)} m`
+                    : `${Number(profile.distance_km).toFixed(1)} km`}
+                </span>
+              )}
+              {city && (
+                <div className="flex items-center gap-0.5 shrink-0 text-ink-3">
+                  {profile.distance_km == null && <MapPin size={10} aria-hidden="true" />}
+                  <span className="text-[10.5px] sm:text-[11px] truncate max-w-[85px]">{city}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </Link>
@@ -317,12 +327,22 @@ export function ProfileCardLarge({ profile }) {
               </span>
             ) : <span />}
 
-            {city && (
-              <div className="flex items-center gap-0.5 shrink-0 text-ink-3">
-                <MapPin size={11} aria-hidden="true" />
-                <span className="text-[11px] sm:text-[11.5px] truncate max-w-[90px]">{city}</span>
-              </div>
-            )}
+            <div className="flex items-center gap-1.5 shrink-0">
+              {profile.distance_km != null && (
+                <span className="inline-flex items-center gap-1 text-[11px] sm:text-[11.5px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+                  <MapPin size={11} aria-hidden="true" />
+                  {profile.distance_km < 1
+                    ? `${Math.round(profile.distance_km * 1000)} m`
+                    : `${Number(profile.distance_km).toFixed(1)} km`}
+                </span>
+              )}
+              {city && (
+                <div className="flex items-center gap-0.5 shrink-0 text-ink-3">
+                  {profile.distance_km == null && <MapPin size={11} aria-hidden="true" />}
+                  <span className="text-[11px] sm:text-[11.5px] truncate max-w-[90px]">{city}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </Link>
@@ -449,9 +469,17 @@ export function ProfileListCard({ profile }) {
           ) : (
             <span className="text-[11px] text-ink-2">No reviews</span>
           )}
+          {profile.distance_km != null && (
+            <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+              <MapPin size={9} aria-hidden="true" />
+              {profile.distance_km < 1
+                ? `${Math.round(profile.distance_km * 1000)} m`
+                : `${Number(profile.distance_km).toFixed(1)} km`}
+            </span>
+          )}
           {city && (
             <div className="flex items-center gap-0.5 text-ink-2">
-              <MapPin size={10} aria-hidden="true" />
+              {profile.distance_km == null && <MapPin size={10} aria-hidden="true" />}
               <span className="text-[11px] max-w-[72px] truncate">{city}</span>
             </div>
           )}
