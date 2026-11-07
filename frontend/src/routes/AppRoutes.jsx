@@ -30,7 +30,7 @@ const ResetPasswordPage  = lazy(() => import('../pages/ResetPasswordPage.jsx'))
 
 // Directory
 const DirectoryPage         = lazy(() => import('../pages/DirectoryPage.jsx'))
-const DirectoryMapPage      = lazy(() => import('../pages/AdsMapPage.jsx'))  // repurposed
+const DirectoryMapPage      = lazy(() => import('../pages/DirectoryMapPage.jsx'))
 
 // Profile
 const PublicProfilePage     = lazy(() => import('../pages/PublicProfilePage.jsx'))
