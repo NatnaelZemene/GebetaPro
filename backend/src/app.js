@@ -25,7 +25,6 @@ import { errorHandler } from './middleware/errorHandler.js'
 import healthRouter from './modules/health/health.routes.js'
 import authRouter from './modules/auth/auth.routes.js'
 import profileRouter from './modules/users/users.routes.js'
-import adsRouter from './modules/advertisements/advertisements.routes.js'
 import subscriptionsRouter from './modules/subscriptions/subscriptions.routes.js'
 import locationsRouter from './modules/locations/locations.routes.js'
 import analyticsRouter from './modules/analytics/analytics.routes.js'
@@ -103,7 +102,6 @@ app.use('/api/auth', authRouter)
 app.use('/api/profile', profileRouter)
 app.use('/api/profile', dashboardProfileRouter)
 app.use('/api/profiles', publicProfilesRouter)
-// app.use('/api/ads', adsRouter)  // disabled — marketplace module retired
 app.use('/api/locations', locationsRouter)
 app.use('/api/analytics', analyticsRouter)
 app.use('/api/admin', adminRouter)
