@@ -1,79 +1,97 @@
-# Advertising Platform
+# GebetaPro — Local Discovery & Professional Directory Platform
 
-A web-based subscription advertising platform where individuals and companies can advertise products, services, skills, businesses, jobs, and other listings.
+A web-based SaaS platform where professionals, skilled individuals, local businesses, and shops can create public profiles to showcase their services, working hours, portfolio, social channels, and GPS location. Visitors can discover verified professionals near them, view reviews, and connect directly via WhatsApp, Telegram, or Phone.
 
-## Project Overview
-
-Advertisers subscribe to a plan, create listings with details, images, contact info, and GPS location, and manage everything from a dashboard. Customers browse, search, and contact advertisers directly. Revenue comes from advertiser subscription fees.
+---
 
 ## Tech Stack
 
-| Layer       | Technology                        |
-|-------------|-----------------------------------|
-| Frontend    | React.js + Vite                   |
-| Backend     | Node.js + Express.js              |
-| Database    | PostgreSQL                        |
-| Auth        | JWT (planned)                     |
-| File Storage| S3-compatible (planned)           |
-| DevOps      | Docker + Docker Compose (planned) |
+| Layer | Technology |
+|---|---|
+| **Frontend** | React 18 + Vite (Tailwind CSS, Lucide Icons, MapLibre / Leaflet) |
+| **Backend** | Node.js (ES Modules) + Express.js modular monolith |
+| **Database** | PostgreSQL 16 + PostGIS spatial extensions |
+| **Authentication** | JWT (access tokens) + rotating HttpOnly refresh tokens |
+| **File Storage** | Supabase Storage (public images & private verification docs) |
+| **Payments** | Chapa API (ETB subscription plans) |
+| **DevOps & Edge** | Cloudflare Workers, GitHub Actions CI/CD, Docker |
+
+---
 
 ## Repository Structure
 
 ```
-advertising-platform/
-├── frontend/     # React + Vite SPA
-├── backend/      # Node.js + Express API (modular monolith)
-├── database/     # Migrations, seeds, and schema definitions
-├── docs/         # Architecture decisions, API docs, guides
-├── infra/        # Docker, CI/CD, environment configs
-├── tests/        # Integration and end-to-end tests
-├── .gitignore
-├── README.md
-└── docker-compose.yml
+Web_Based_SaaS_Advertisement_Management_System/
+├── frontend/               # React + Vite Single Page Application
+│   ├── src/
+│   │   ├── components/     # UI primitives, layout wrappers, modals
+│   │   ├── features/       # Domain modules (profiles, subscriptions, admin, etc.)
+│   │   ├── pages/          # Routed page views (Directory, Profile, Dashboard)
+│   │   ├── routes/         # App routing and route guards
+│   │   └── services/       # API client abstractions
+│   └── public/             # Static web assets
+├── backend/                # Node.js + Express API
+│   ├── database/           # 39+ PostgreSQL migrations & seed data
+│   ├── src/
+│   │   ├── config/         # Central environment & swagger configuration
+│   │   ├── db/             # Connection pooling (pg Pool) & health check
+│   │   ├── middleware/     # Auth, validation (Zod), rate limiting, error handling
+│   │   ├── modules/        # Modular API controllers, services, repositories
+│   │   ├── workers/        # Scheduled jobs & subscription expiry workers
+│   │   └── utils/          # Logger (Pino), storage (Supabase), JWT helpers
+│   └── tests/              # API and database integration tests
+├── docs/                   # Central technical documentation
+│   ├── architecture/       # System design, auth flows, agent handoff
+│   ├── guides/             # Developer 1, 2, and 3 pre-launch execution guides
+│   ├── phases/             # Phase specifications & development history
+│   └── reports/            # WCAG accessibility & quality audits
+├── infra/                  # Docker, Nginx, environment deployment templates
+├── scripts/                # Database and development helper utilities
+├── .github/                # GitHub Actions deployment workflows
+├── docker-compose.yml      # Local container orchestration
+└── README.md
 ```
 
-## Getting Started
+---
+
+## Developer Quick-Start Guides
+
+For sprint execution and task breakdown, refer to the guides in `docs/guides/`:
+
+- **[Developer 1 — Frontend & Public Discovery](docs/guides/DEVELOPER_FRONTEND_DISCOVERY_GUIDE.md)**
+- **[Developer 2 — Backend, Geo & Automations](docs/guides/PART_2_UNSTARTED_TASKS_TECHNICAL_GUIDE.md)**
+- **[Developer 3 — Dashboard, Security, SEO & DevOps](docs/guides/DEVELOPER_3_DASHBOARD_SECURITY_DEVOPS_GUIDE.md)**
+
+---
+
+## Getting Started (Local Development)
 
 ### Prerequisites
 - Node.js >= 18
 - PostgreSQL >= 15
 - npm >= 9
 
-### Frontend (development)
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-### Backend (development)
+### 1. Backend Setup
 ```bash
 cd backend
 npm install
-npm run dev
+cp .env.example .env   # configure your DATABASE_URL and secrets
+npm run db:migrate     # apply pending migrations
+npm run dev            # starts server on http://localhost:3000
 ```
 
-## Cloudflare deployment
+### 2. Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev            # starts Vite dev server on http://localhost:5173
+```
 
-Pushing to `main` builds the frontend and deploys the Worker through GitHub Actions. To enable it, add these repository secrets in **GitHub → Settings → Secrets and variables → Actions**:
+---
 
-- `CLOUDFLARE_API_TOKEN` — a Cloudflare API token scoped to the account with permission to edit Workers.
-- `CLOUDFLARE_ACCOUNT_ID` — the Cloudflare account ID that owns the `gebetapro` Worker.
+## Deployment (Cloudflare)
 
-The deployment workflow is `.github/workflows/deploy-cloudflare.yml`. You can also run it manually from the repository’s **Actions** tab. Keep application credentials in Cloudflare Worker secrets; do not commit them to GitHub.
-
-## Development Team
-
-Three-person team. See `docs/` for architecture decisions and contribution guidelines.
-
-## Phases
-
-- **Phase 1** ✅ Project structure and React frontend setup
-- **Phase 2** — Backend API foundation
-- **Phase 3** — Database schema design
-- **Phase 4** — Authentication
-- **Phase 5** — Advertisement features
-- **Phase 6** — Subscription and payments
-- **Phase 7** — Maps and GPS
-- **Phase 8** — Admin dashboard
-- **Phase 9** — Deployment and Docker
+Pushing to `main` builds the frontend and deploys the Worker through GitHub Actions (`.github/workflows/deploy-cloudflare.yml`). Configure required repository secrets:
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_ACCOUNT_ID`
+- Application environment variables inside Cloudflare Worker secrets.
