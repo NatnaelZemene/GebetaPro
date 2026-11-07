@@ -66,12 +66,23 @@ export const searchProfilesSchema = z.object({
     verified_only:  z.string().optional(),
     open_now:       z.union([z.boolean(), z.string()]).optional(),
     sort:           z.enum(['featured','rating','newest','name']).optional(),
-    latitude:       z.coerce.number().optional(),
-    longitude:      z.coerce.number().optional(),
-    radius_km:      z.coerce.number().optional(),
+    latitude:       z.coerce.number().min(-90, 'Latitude must be between -90 and 90').max(90, 'Latitude must be between -90 and 90').optional(),
+    lat:            z.coerce.number().min(-90, 'Latitude must be between -90 and 90').max(90, 'Latitude must be between -90 and 90').optional(),
+    longitude:      z.coerce.number().min(-180, 'Longitude must be between -180 and 180').max(180, 'Longitude must be between -180 and 180').optional(),
+    lng:            z.coerce.number().min(-180, 'Longitude must be between -180 and 180').max(180, 'Longitude must be between -180 and 180').optional(),
+    radius_km:      z.coerce.number().positive('Radius must be greater than 0').max(500, 'Radius must not exceed 500 km').optional(),
+    radius:         z.coerce.number().positive('Radius must be greater than 0').max(500, 'Radius must not exceed 500 km').optional(),
     page:           pageQ,
     page_size:      pageQ,
-  }).optional(),
+  }).optional().refine((data) => {
+    if (!data) return true
+    const lat = data.latitude ?? data.lat
+    const lng = data.longitude ?? data.lng
+    return (lat === undefined && lng === undefined) || (lat !== undefined && lng !== undefined)
+  }, {
+    message: 'Both latitude and longitude must be provided together',
+    path: ['latitude'],
+  }),
 })
 
 // ── Products ───────────────────────────────────────────────────────────────────

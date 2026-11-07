@@ -5,7 +5,6 @@ import { createError } from '../../utils/index.js'
 import logger from '../../utils/logger.js'
 import pool from '../../db/index.js'
 import * as repo from './admin.repository.js'
-import * as adsRepo from '../advertisements/advertisements.repository.js'
 import * as subRepo from '../subscriptions/subscriptions.repository.js'
 import * as storageUtils from '../../utils/storage.js'
 import { VERIFICATION_STATUS, requiresVerification } from '../../utils/verificationTypes.js'
@@ -152,7 +151,7 @@ export async function setAdStatus(adId, status, adminId) {
 }
 
 export async function deleteAd(adId, adminId) {
-  const images = await adsRepo.findImages(adId)
+  const images = await repo.findAdImages(adId)
   const storagePaths = images.map(i => i.storage_key).filter(Boolean)
   if (storagePaths.length > 0) await storageUtils.deleteImages(storagePaths)
   const deleted = await repo.deleteAdById(adId)

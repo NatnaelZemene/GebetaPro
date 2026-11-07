@@ -279,33 +279,37 @@ export async function searchProfiles({
       OR p.city ILIKE $${n}
       OR p.area ILIKE $${n}
       OR c.name ILIKE $${n}
-      OR EXISTS (SELECT 1 FROM profile_services ps WHERE ps.profile_id = p.id AND ps.name ILIKE $${n})
-      OR EXISTS (SELECT 1 FROM profile_products pr WHERE pr.profile_id = p.id AND pr.name ILIKE $${n})
+      OR EXISTS (SELECT 1 FROM profile_services ps JOIN services s ON ps.service_id = s.id WHERE ps.profile_id = p.id AND s.name ILIKE $${n})
+      OR EXISTS (SELECT 1 FROM profile_services_offered pso WHERE pso.profile_id = p.id AND pso.title ILIKE $${n})
+      OR EXISTS (SELECT 1 FROM profile_products pr WHERE pr.profile_id = p.id AND pr.title ILIKE $${n})
     )`)
   }
 
-  const useNearby = latitude != null && longitude != null && radius_km != null
+  const useNearby = latitude != null && longitude != null
   let distanceSelect = 'NULL::float AS distance_km'
   if (useNearby) {
-    params.push(latitude, longitude, radius_km)
-    const latP = params.length - 2
+    // Visitor coordinates: ST_MakePoint(x, y) = ST_MakePoint(longitude, latitude)
+    params.push(longitude, latitude)
     const lngP = params.length - 1
-    const radP = params.length
+    const latP = params.length
+
     distanceSelect = `(
-      6371 * acos(LEAST(1.0, GREATEST(-1.0,
-        cos(radians($${latP})) * cos(radians(p.latitude::float)) *
-        cos(radians(p.longitude::float) - radians($${lngP})) +
-        sin(radians($${latP})) * sin(radians(p.latitude::float))
-      )))
-    ) AS distance_km`
-    conditions.push(`p.latitude IS NOT NULL AND p.longitude IS NOT NULL`)
-    conditions.push(`(
-      6371 * acos(LEAST(1.0, GREATEST(-1.0,
-        cos(radians($${latP})) * cos(radians(p.latitude::float)) *
-        cos(radians(p.longitude::float) - radians($${lngP})) +
-        sin(radians($${latP})) * sin(radians(p.latitude::float))
-      )))
-    ) <= $${radP}`)
+      ROUND((ST_Distance(
+        p.location_geog,
+        ST_SetSRID(ST_MakePoint($${lngP}, $${latP}), 4326)::geography
+      ) / 1000.0)::numeric, 1)
+    )::float AS distance_km`
+
+    if (radius_km != null) {
+      params.push(radius_km * 1000)
+      const radMetersP = params.length
+      conditions.push(`p.location_geog IS NOT NULL`)
+      conditions.push(`ST_DWithin(
+        p.location_geog,
+        ST_SetSRID(ST_MakePoint($${lngP}, $${latP}), 4326)::geography,
+        $${radMetersP}
+      )`)
+    }
   }
 
   const where = `WHERE ${conditions.join(' AND ')}`
@@ -404,7 +408,8 @@ export async function getSearchSuggestions(query) {
          p.display_name ILIKE $1
          OR p.headline ILIKE $1
          OR c.name ILIKE $1
-         OR EXISTS (SELECT 1 FROM profile_services ps WHERE ps.profile_id = p.id AND ps.name ILIKE $1)
+         OR EXISTS (SELECT 1 FROM profile_services ps JOIN services s ON ps.service_id = s.id WHERE ps.profile_id = p.id AND s.name ILIKE $1)
+         OR EXISTS (SELECT 1 FROM profile_services_offered pso WHERE pso.profile_id = p.id AND pso.title ILIKE $1)
        )
      ORDER BY p.is_verified DESC, r.avg_rating DESC, p.created_at DESC
      LIMIT 4`,

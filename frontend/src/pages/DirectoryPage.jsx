@@ -135,6 +135,7 @@ function FilterPanel({
   filters, updateFilter,
   categories, geo, radiusKm, setRadiusKm,
   useNearMe, setUseNearMe,
+  effectiveLat, isNearMeActive,
   clearFilters, activeFilterCount,
 }) {
   const { t } = useTranslation()
@@ -175,12 +176,12 @@ function FilterPanel({
               setUseNearMe(true)
               updateFilter('page', 1)
             }}
-            label={geo.lat != null ? t('directory.locationSet') : t('directory.useMyLocation')}
+            label={isNearMeActive ? t('directory.locationSet') : t('directory.useMyLocation')}
           />
           {geo.error && (
             <p className="text-[11.5px] text-danger leading-snug">{geo.error}</p>
           )}
-          {geo.lat != null && (
+          {isNearMeActive && (
             <>
               <RadiusSelector
                 value={radiusKm}
@@ -366,7 +367,7 @@ function FilterPanel({
 }
 
 /* ── ActiveFilterChips ───────────────────────────────────────────────────────── */
-function ActiveFilterChips({ filters, categories, useNearMe, updateFilter, setUseNearMe, geo, clearFilters, onClearSearch }) {
+function ActiveFilterChips({ filters, categories, useNearMe, updateFilter, setUseNearMe, geo, isNearMeActive, radiusKm, clearFilters, onClearSearch }) {
   const { t } = useTranslation()
   const chips = []
 
@@ -423,10 +424,10 @@ function ActiveFilterChips({ filters, categories, useNearMe, updateFilter, setUs
       onRemove: () => updateFilter('open_now', false),
     })
   }
-  if (useNearMe && geo.lat != null) {
+  if (isNearMeActive) {
     chips.push({
       key: 'nearme',
-      label: t('directory.nearMe'),
+      label: radiusKm ? `${t('directory.nearMe')} (${radiusKm} km)` : t('directory.nearMe'),
       icon: <LocateFixed size={10} />,
       onRemove: () => { setUseNearMe(false); geo.clear?.(); updateFilter('page', 1) },
     })
@@ -771,8 +772,16 @@ export default function DirectoryPage() {
 
   /* ── Geolocation ────────────────────────────────────────────────────────── */
   const geo = useGeolocation()
-  const [radiusKm, setRadiusKm]   = useState(10)
-  const [useNearMe, setUseNearMe] = useState(false)
+  const urlLat = searchParams.get('lat') || searchParams.get('latitude')
+  const urlLng = searchParams.get('lng') || searchParams.get('longitude')
+  const urlRadius = searchParams.get('radius') || searchParams.get('radius_km')
+
+  const [radiusKm, setRadiusKm]   = useState(() => (urlRadius ? parseInt(urlRadius, 10) : 10))
+  const [useNearMe, setUseNearMe] = useState(() => Boolean(urlLat && urlLng))
+
+  const effectiveLat = geo.lat != null ? geo.lat : (urlLat ? parseFloat(urlLat) : null)
+  const effectiveLng = geo.lng != null ? geo.lng : (urlLng ? parseFloat(urlLng) : null)
+  const isNearMeActive = useNearMe && effectiveLat != null && effectiveLng != null
 
   /* ── Filter state (derived directly from URL params as single source of truth) ── */
   // Deriving filter state from searchParams eliminates circular sync effects,
@@ -874,13 +883,13 @@ export default function DirectoryPage() {
     if (filters.verified_only) p.verified_only = true
     if (filters.open_now)      p.open_now      = true
     if (filters.sort)          p.sort          = filters.sort
-    if (useNearMe && geo.lat != null) {
-      p.latitude  = geo.lat
-      p.longitude = geo.lng
+    if (isNearMeActive) {
+      p.latitude  = effectiveLat
+      p.longitude = effectiveLng
       p.radius_km = radiusKm
     }
     return p
-  }, [filters, useNearMe, geo.lat, geo.lng, radiusKm])
+  }, [filters, isNearMeActive, effectiveLat, effectiveLng, radiusKm])
 
   /* ── Data ───────────────────────────────────────────────────────────────── */
   const { data, isLoading, isFetching } = useProfileSearch(apiParams)
@@ -962,7 +971,7 @@ export default function DirectoryPage() {
     filters.category_id, filters.city, filters.country,
     filters.profile_type, filters.verified_only ? 'v' : '',
     filters.open_now ? 'o' : '',
-    useNearMe && geo.lat != null ? 'n' : '',
+    isNearMeActive ? 'n' : '',
   ].filter(Boolean).length
 
   const allActiveCount = activeFilterCount + (filters.search ? 1 : 0)
@@ -971,6 +980,7 @@ export default function DirectoryPage() {
     filters, updateFilter, categories,
     geo, radiusKm, setRadiusKm,
     useNearMe, setUseNearMe,
+    effectiveLat, isNearMeActive,
     clearFilters, activeFilterCount,
   }
 
@@ -1039,8 +1049,8 @@ export default function DirectoryPage() {
               onClearRecent={handleClearAllSearches}
               onUseCurrentLocation={() => {
                 if (!geo.supported) return
-                if (geo.lat == null) {
-                  geo.requestLocation()
+                if (effectiveLat == null) {
+                  geo.getLocation()
                 }
                 setUseNearMe(true)
                 updateFilter('page', 1)
@@ -1224,6 +1234,8 @@ export default function DirectoryPage() {
                         updateFilter={updateFilter}
                         setUseNearMe={setUseNearMe}
                         geo={geo}
+                        isNearMeActive={isNearMeActive}
+                        radiusKm={radiusKm}
                         clearFilters={clearFilters}
                         onClearSearch={handleClearSearch}
                       />
@@ -1239,6 +1251,8 @@ export default function DirectoryPage() {
                       updateFilter={updateFilter}
                       setUseNearMe={setUseNearMe}
                       geo={geo}
+                      isNearMeActive={isNearMeActive}
+                      radiusKm={radiusKm}
                       clearFilters={clearFilters}
                       onClearSearch={handleClearSearch}
                     />
@@ -1247,6 +1261,36 @@ export default function DirectoryPage() {
 
                 {/* Right: controls */}
                 <div className="flex items-center gap-2 shrink-0">
+                  {/* Quick Near Me chip — desktop */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!isNearMeActive) {
+                        if (effectiveLat == null) {
+                          geo.getLocation()
+                        }
+                        setUseNearMe(true)
+                        updateFilter('page', 1)
+                      } else {
+                        setUseNearMe(false)
+                        geo.clear?.()
+                        updateFilter('page', 1)
+                      }
+                    }}
+                    className={`
+                      hidden sm:inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border text-[12px] font-medium
+                      transition-all duration-150 cursor-pointer select-none
+                      ${isNearMeActive
+                        ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-400 font-semibold shadow-xs'
+                        : 'bg-surface border-border text-ink-2 hover:border-brand-border hover:bg-surface-2'
+                      }
+                    `}
+                    aria-pressed={isNearMeActive}
+                  >
+                    <LocateFixed size={12} className={geo.loading ? 'animate-spin' : ''} aria-hidden="true" />
+                    <span>{geo.loading ? 'Locating...' : isNearMeActive ? `Near me (${radiusKm}km)` : 'Near me'}</span>
+                  </button>
+
                   {/* Quick Open Now chip — desktop */}
                   <button
                     type="button"

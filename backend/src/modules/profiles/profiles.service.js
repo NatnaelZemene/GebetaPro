@@ -185,6 +185,20 @@ export async function searchProfiles(query) {
   const page = Math.max(1, query.page || 1)
   const pageSize = Math.min(MAX_PAGE_SIZE, query.page_size || DEFAULT_PAGE_SIZE)
 
+  const rawLat = query.latitude ?? query.lat
+  const rawLng = query.longitude ?? query.lng
+  const rawRadius = query.radius_km ?? query.radius
+
+  const latitude = (rawLat !== undefined && rawLat !== null && rawLat !== '' && !Number.isNaN(Number(rawLat)))
+    ? Number(rawLat)
+    : undefined
+  const longitude = (rawLng !== undefined && rawLng !== null && rawLng !== '' && !Number.isNaN(Number(rawLng)))
+    ? Number(rawLng)
+    : undefined
+  const radius_km = (rawRadius !== undefined && rawRadius !== null && rawRadius !== '' && !Number.isNaN(Number(rawRadius)))
+    ? Number(rawRadius)
+    : undefined
+
   const { rows, total } = await repo.searchProfiles({
     search: query.search || undefined,
     profile_type: query.profile_type || undefined,
@@ -193,9 +207,9 @@ export async function searchProfiles(query) {
     country: query.country || undefined,
     verified_only: query.verified_only === 'true' || query.verified_only === true,
     open_now: query.open_now === 'true' || query.open_now === true,
-    latitude: query.latitude ? parseFloat(query.latitude) : undefined,
-    longitude: query.longitude ? parseFloat(query.longitude) : undefined,
-    radius_km: query.radius_km ? parseFloat(query.radius_km) : undefined,
+    latitude,
+    longitude,
+    radius_km,
     sort: query.sort || 'featured',
     page,
     page_size: pageSize,

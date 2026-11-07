@@ -699,6 +699,17 @@ export async function findAllAds({ page = 1, pageSize = 20, search = null, statu
   return { rows: data.rows, total }
 }
 
+export async function findAdImages(adId) {
+  const result = await pool.query(
+    `SELECT id, advertisement_id, image_url, storage_key, alt_text, sort_order, is_primary, created_at
+     FROM advertisement_images
+     WHERE advertisement_id = $1
+     ORDER BY sort_order ASC, created_at ASC`,
+    [adId]
+  )
+  return result.rows
+}
+
 export async function findAdById(adId) {
   const ad = await pool.query(
     `SELECT
@@ -714,14 +725,8 @@ export async function findAdById(adId) {
   )
   if (!ad.rows[0]) return null
 
-  const images = await pool.query(
-    `SELECT id, url, storage_key, position
-     FROM advertisement_images
-     WHERE advertisement_id = $1
-     ORDER BY position`,
-    [adId]
-  )
-  return { ...ad.rows[0], images: images.rows }
+  const images = await findAdImages(adId)
+  return { ...ad.rows[0], images }
 }
 
 export async function updateAdStatus(adId, status) {
