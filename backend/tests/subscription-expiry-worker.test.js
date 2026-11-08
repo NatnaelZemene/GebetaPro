@@ -21,7 +21,11 @@ import http from 'node:http'
 import { URL } from 'node:url'
 import pool from '../src/db/index.js'
 import { config } from '../src/config/index.js'
-import { processExpiredSubscriptions } from '../src/workers/subscriptionExpiryWorker.js'
+import {
+  processExpiredSubscriptions,
+  processUpcomingExpiryWarnings,
+  runSubscriptionMaintenance,
+} from '../src/workers/subscriptionExpiryWorker.js'
 
 process.env.NODE_ENV = 'test'
 process.env.PORT = '0'
@@ -289,6 +293,57 @@ describe('Task 2.3: Automated Subscription Expiry Worker & Tier Downgrades', () 
         ])
         assert.equal(n.rows.length, 1)
       }
+    })
+
+    it('sends advance warning notification 2 to 3 days before subscription expires without downgrading', async () => {
+      // User expiring in 2 days (48 hours)
+      const subSoon = await createTestSubscriber({
+        emailSuffix: 'warning-2days',
+        status: 'ACTIVE',
+        periodEndOffsetMinutes: 48 * 60,
+        isFeatured: true,
+      })
+
+      // User expiring in 10 days (outside the 3-day warning window)
+      const subLater = await createTestSubscriber({
+        emailSuffix: 'safe-10days',
+        status: 'ACTIVE',
+        periodEndOffsetMinutes: 10 * 24 * 60,
+        isFeatured: true,
+      })
+
+      const warningResult = await processUpcomingExpiryWarnings(3)
+      assert.ok(warningResult.warnedCount >= 1, 'Should warn at least 1 upcoming expiry')
+
+      // Verify user expiring in 2 days got an advance warning notification
+      const notifsSoon = await pool.query(
+        'SELECT * FROM notifications WHERE user_id = $1 AND type = $2',
+        [subSoon.userId, 'SUBSCRIPTION_EXPIRING_SOON'],
+      )
+      assert.equal(notifsSoon.rows.length, 1, 'User must have exactly 1 upcoming expiry notification')
+      assert.equal(notifsSoon.rows[0].title, 'Subscription Expiring Soon')
+      assert.ok(notifsSoon.rows[0].body.includes('expire in'))
+
+      // Subscription remains ACTIVE and featured
+      const s = await pool.query('SELECT status FROM user_subscriptions WHERE id = $1', [subSoon.subscriptionId])
+      assert.equal(s.rows[0].status, 'ACTIVE')
+      const p = await pool.query('SELECT is_featured FROM profiles WHERE id = $1', [subSoon.profileId])
+      assert.equal(p.rows[0].is_featured, true)
+
+      // User expiring in 10 days should NOT receive a warning notification
+      const notifsLater = await pool.query(
+        'SELECT * FROM notifications WHERE user_id = $1 AND type = $2',
+        [subLater.userId, 'SUBSCRIPTION_EXPIRING_SOON'],
+      )
+      assert.equal(notifsLater.rows.length, 0, 'User with 10 days remaining should not be warned yet')
+
+      // Test idempotency: re-running does not duplicate the warning
+      const repeatResult = await processUpcomingExpiryWarnings(3)
+      const notifsRepeat = await pool.query(
+        'SELECT * FROM notifications WHERE user_id = $1 AND type = $2',
+        [subSoon.userId, 'SUBSCRIPTION_EXPIRING_SOON'],
+      )
+      assert.equal(notifsRepeat.rows.length, 1, 'Must not create duplicate warning notifications')
     })
   })
 
