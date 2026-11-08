@@ -31,6 +31,7 @@ import analyticsRouter from './modules/analytics/analytics.routes.js'
 import adminRouter from './modules/admin/admin.routes.js'
 import notificationsRouter from './modules/notifications/notifications.routes.js'
 import categoriesRouter from './modules/categories/categories.routes.js'
+import internalRouter from './modules/internal/internal.routes.js'
 import { publicProfilesRouter, dashboardProfileRouter } from './modules/profiles/profiles.routes.js'
 
 // pino-http currently uses Node internals that are not available in Workers.
@@ -107,6 +108,7 @@ app.use('/api/analytics', analyticsRouter)
 app.use('/api/admin', adminRouter)
 app.use('/api/notifications', notificationsRouter)
 app.use('/api/categories', categoriesRouter)
+app.use('/api/internal', internalRouter)
 app.get('/api-docs/swagger.json', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.send(swaggerSpec);
