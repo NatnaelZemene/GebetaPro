@@ -16,6 +16,7 @@ import { OpenStatusBadge } from './OpenStatusBadge.jsx'
 import { SocialLinks } from './SocialLinks.jsx'
 import { CategoryIconInline } from './CategoryIcon.jsx'
 import { trackProfileEvent } from '../../../services/profiles.service.js'
+import { trackAnalyticsEvent } from '../../../services/analytics.service.js'
 
 const TYPE_LABELS = {
   PERSONAL:      'Personal',
@@ -51,8 +52,16 @@ function handleShare(displayName) {
   }
 }
 
+function trackAction(profile, type) {
+  if (profile?.id) {
+    trackAnalyticsEvent({ profile_id: profile.id, event_type: type })
+  } else if (profile?.slug) {
+    trackProfileEvent(profile.slug, type)
+  }
+}
+
 /** Derive primary contact href — whatsapp > phone > email */
-function getPrimaryContact(contact, profile_type) {
+function getPrimaryContact(contact, profile_type, displayName = '') {
   if (!contact) return null
   const LABELS = {
     PERSONAL: 'Get in Touch', PROFESSIONAL: 'Contact',
@@ -62,7 +71,12 @@ function getPrimaryContact(contact, profile_type) {
   }
   const label = LABELS[profile_type] || 'Contact'
   if (contact.whatsapp) {
-    return { href: `https://wa.me/${contact.whatsapp.replace(/\D/g, '')}`, label, external: true, icon: <MessageCircle size={15} /> }
+    const phone = contact.whatsapp.replace(/\D/g, '')
+    const currentUrl = typeof window !== 'undefined' ? window.location.href : ''
+    const inquiryText = encodeURIComponent(
+      `Hello ${displayName || 'Professional'}, I saw your profile on GebetaPro (${currentUrl}). I would like to inquire about your services.`
+    )
+    return { href: `https://wa.me/${phone}?text=${inquiryText}`, label, external: true, icon: <MessageCircle size={15} /> }
   }
   if (contact.phone) {
     return { href: `tel:${contact.phone}`, label, external: false, icon: <Phone size={15} /> }
@@ -79,7 +93,7 @@ export function ProfileHeader({ profile }) {
   const locationStr = buildLocationString(profile.location)
   const rating      = Number(profile.avg_rating)  || 0
   const reviews     = profile.review_count || 0
-  const primaryCTA  = getPrimaryContact(profile.contact, profile.profile_type)
+  const primaryCTA  = getPrimaryContact(profile.contact, profile.profile_type, profile.display_name)
   const typeLabel   = TYPE_LABELS[profile.profile_type]
   const typeStyle   = TYPE_STYLES[profile.profile_type] || 'bg-surface-2 text-ink-2'
 
@@ -171,7 +185,7 @@ export function ProfileHeader({ profile }) {
               <a
                 href={`https://t.me/${profile.contact.telegram.replace('@', '')}`}
                 target="_blank" rel="noopener noreferrer"
-                onClick={() => profile.slug && trackProfileEvent(profile.slug, 'TELEGRAM_CLICK')}
+                onClick={() => trackAction(profile, 'TELEGRAM_CLICK')}
                 aria-label="Telegram"
                 className="
                   h-9 w-9 flex items-center justify-center
@@ -186,7 +200,7 @@ export function ProfileHeader({ profile }) {
             {profile.contact?.phone && (
               <a
                 href={`tel:${profile.contact.phone}`}
-                onClick={() => profile.slug && trackProfileEvent(profile.slug, 'PHONE_CLICK')}
+                onClick={() => trackAction(profile, 'PHONE_CLICK')}
                 aria-label={`Call ${profile.display_name}`}
                 className="
                   h-9 w-9 flex items-center justify-center
@@ -201,7 +215,7 @@ export function ProfileHeader({ profile }) {
             {profile.contact?.email && (
               <a
                 href={`mailto:${profile.contact.email}`}
-                onClick={() => profile.slug && trackProfileEvent(profile.slug, 'EMAIL_CLICK')}
+                onClick={() => trackAction(profile, 'EMAIL_CLICK')}
                 aria-label={`Email ${profile.display_name}`}
                 className="
                   h-9 w-9 flex items-center justify-center
@@ -217,7 +231,7 @@ export function ProfileHeader({ profile }) {
               <a
                 href={profile.contact.website}
                 target="_blank" rel="noopener noreferrer"
-                onClick={() => profile.slug && trackProfileEvent(profile.slug, 'WEBSITE_CLICK')}
+                onClick={() => trackAction(profile, 'WEBSITE_CLICK')}
                 aria-label="Website"
                 className="
                   h-9 w-9 flex items-center justify-center

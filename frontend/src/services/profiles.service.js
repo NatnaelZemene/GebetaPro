@@ -371,6 +371,8 @@ export async function unpublishProfile() {
 
 // ── Analytics & Event Tracking ───────────────────────────────────────────────
 
+export { trackAnalyticsEvent } from './analytics.service.js'
+
 /**
  * Record an analytics event for a profile (e.g. 'VIEW', 'PHONE_CLICK', 'WHATSAPP_CLICK', etc.)
  */

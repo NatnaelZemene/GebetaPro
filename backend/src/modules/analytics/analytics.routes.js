@@ -1,12 +1,15 @@
 /**
  * analytics.routes.js — Analytics routes.
- * GET /api/analytics/ads/:id   — views/clicks for a specific ad (owner/admin)
- * GET /api/analytics/summary   — aggregate stats for the advertiser's account
- *
- * Implementation in Phase 9 (Analytics).
+ * POST /api/analytics/track   — Track profile views, contact clicks, lead actions
  */
 import { Router } from 'express'
+import { validate } from '../../middleware/validate.js'
+import { trackEventSchema } from './analytics.schemas.js'
+import * as ctrl from './analytics.controller.js'
 
 const router = Router()
+
+// Public endpoint for tracking profile events (views, WhatsApp/Telegram/contact clicks)
+router.post('/track', validate(trackEventSchema), ctrl.trackEvent)
 
 export default router
