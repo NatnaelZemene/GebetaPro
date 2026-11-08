@@ -109,18 +109,24 @@ export function PlanUpgradeRecommendation({
 
   const config = FEATURE_CONFIG[feature] || FEATURE_CONFIG.gallery
 
+  const isExpired = mySub?.status === 'EXPIRED'
+
   const activePlanName = useMemo(() => {
+    if (isExpired) return 'FREE'
     const raw = propPlanName || mySub?.plan?.name || 'FREE'
     return String(raw).toUpperCase()
-  }, [propPlanName, mySub])
+  }, [propPlanName, mySub, isExpired])
 
   // Determine the best target tier to recommend
   const recommendedTier = useMemo(() => {
+    if (isExpired && mySub?.plan?.name && mySub.plan.name !== 'FREE') {
+      return mySub.plan.name
+    }
     if (activePlanName === 'FREE') return 'PRO'
     if (activePlanName === 'BASIC') return 'PRO'
     if (activePlanName === 'PRO') return 'BUSINESS'
     return 'BUSINESS'
-  }, [activePlanName])
+  }, [activePlanName, isExpired, mySub])
 
   // Find the plan object from plans list
   const targetPlan = useMemo(() => {
@@ -177,7 +183,7 @@ export function PlanUpgradeRecommendation({
             className="shadow-sm"
           >
             <Zap size={14} className="mr-1 fill-current" />
-            Upgrade to {targetPlan?.display_name || recommendedTier}
+            {isExpired ? `Reactivate ${targetPlan?.display_name || recommendedTier}` : `Upgrade to ${targetPlan?.display_name || recommendedTier}`}
           </Button>
           <Link to="/pricing">
             <Button variant="ghost" size="sm">
@@ -292,7 +298,7 @@ export function PlanUpgradeRecommendation({
             className="shadow-md shadow-brand/20 hover:shadow-lg hover:shadow-brand/25 transition-all text-[13.5px] font-semibold py-2.5"
           >
             <Crown size={15} className="mr-1.5 fill-current" />
-            Upgrade to {targetPlan?.display_name || recommendedTier}
+            {isExpired ? `Reactivate ${targetPlan?.display_name || recommendedTier}` : `Upgrade to ${targetPlan?.display_name || recommendedTier}`}
           </Button>
 
           <Link to="/pricing" className="w-full">

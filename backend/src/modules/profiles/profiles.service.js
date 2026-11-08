@@ -75,18 +75,28 @@ function computeCompletion(profile, stats = {}) {
  */
 async function enforceContentLimit(userId, limitField, currentCount) {
   const subscription = await subsRepo.findByUserId(userId)
-  const limit = subscription?.[limitField] ?? 3
+  let limit = subscription?.[limitField] ?? 3
+  let planName = subscription?.plan_display_name || 'Free'
+
+  // If subscription has expired or is on Free, enforce free tier limits
+  if (!subscription || subscription.status === 'EXPIRED' || subscription.status === 'FREE') {
+    const freePlan = await subsRepo.findFreePlan()
+    limit = freePlan?.[limitField] ?? 3
+    planName = subscription?.status === 'EXPIRED' ? 'Expired (Downgraded)' : (freePlan?.display_name || 'Free')
+  }
+
   if (currentCount >= limit) {
-    const planName = subscription?.plan_display_name || 'Free'
+    const isExpired = subscription?.status === 'EXPIRED'
+    const actionText = isExpired ? 'Renew your plan to restore limits' : 'Upgrade to add more'
     if (limitField === 'max_gallery_images') {
       throw createError(
-        `Plan limit exceeded. Your ${planName} plan allows max ${limit} photos. Upgrade to add more.`,
+        `Plan limit exceeded. Your ${planName} plan allows max ${limit} photos. ${actionText}.`,
         403,
         'PLAN_LIMIT_EXCEEDED',
       )
     }
     throw createError(
-      `Your ${planName} plan allows ${limit} ${limitField.replace('max_', '')}. Upgrade to add more.`,
+      `Your ${planName} plan allows ${limit} ${limitField.replace('max_', '')}. ${actionText}.`,
       409,
       'PLAN_LIMIT_REACHED',
     )
