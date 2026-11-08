@@ -37,6 +37,7 @@ const secretNames = [
   'SMTP_USER',
   'SMTP_PASSWORD',
   'EMAIL_FROM',
+  'CRON_SECRET',
 ]
 
 const missing = secretNames.filter((name) => !localEnv[name])
