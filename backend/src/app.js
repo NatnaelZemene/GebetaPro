@@ -13,6 +13,7 @@
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
+import path from 'node:path'
 import { createRequire } from 'node:module'
 import { swaggerSpec } from './config/swagger.js';
 
@@ -70,7 +71,9 @@ const corsOptions = {
 const app = express()
 
 // ── Security middleware ───────────────────────────────────────────────────────
-app.use(helmet())
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}))
 app.use(cors(corsOptions))
 
 // ── Request logging ───────────────────────────────────────────────────────────
@@ -96,6 +99,16 @@ app.use('/api/subscriptions', subscriptionsRouter)
 // ── Body parsing (after raw-body routes) ─────────────────────────────────────
 app.use(express.json({ limit: '1mb' }))
 app.use(express.urlencoded({ extended: true, limit: '1mb' }))
+
+// ── Static assets (Local development storage fallback) ──────────────────────
+app.use(
+  '/uploads',
+  express.static(path.join(process.cwd(), 'public', 'uploads'), {
+    setHeaders(res) {
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
+    },
+  }),
+)
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use('/api/health', healthRouter)
