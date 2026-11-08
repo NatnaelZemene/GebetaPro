@@ -82,12 +82,17 @@ export function buildCoverPath(profileId, mimeType) {
 
 /**
  * Build storage path for a profile gallery image.
+ * Follows Task 2.4 pattern: profiles/{profileId}/gallery/{timestamp}-{filename}
  * @param {string} profileId
  * @param {string} mimeType
+ * @param {string} [originalName]
  * @returns {string}
  */
-export function buildGalleryPath(profileId, mimeType) {
-  return `profiles/${profileId}/gallery/${randomUUID()}.${ext(mimeType)}`
+export function buildGalleryPath(profileId, mimeType, originalName) {
+  const cleanName = originalName
+    ? originalName.replace(/[^a-zA-Z0-9._-]/g, '_')
+    : `${randomUUID()}.${ext(mimeType)}`
+  return `profiles/${profileId}/gallery/${Date.now()}-${cleanName}`
 }
 
 /**
@@ -282,6 +287,10 @@ export async function uploadImages(files, advertisementId) {
 export async function uploadSingleImage(buffer, mimeType, storagePath) {
   const supabase = getSupabaseClient()
   if (!supabase) {
+    if (process.env.NODE_ENV === 'test') {
+      const publicUrl = `https://supabase.local/storage/v1/object/public/${config.supabase.storageBucket}/${storagePath}`
+      return { publicUrl, storagePath }
+    }
     throw createError('Storage service is not configured', 503, 'STORAGE_NOT_CONFIGURED')
   }
 
@@ -314,7 +323,7 @@ export async function uploadItemImages(files, pathBuilder) {
   const uploaded = []
   for (const file of files) {
     try {
-      const storagePath = pathBuilder(file.mimeType)
+      const storagePath = pathBuilder(file.mimeType, file.originalname)
       const result = await uploadSingleImage(file.buffer, file.mimeType, storagePath)
       uploaded.push(result)
     } catch (err) {

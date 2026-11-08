@@ -208,6 +208,34 @@ export async function clearPrimaryProfileImage(profileId, client = pool) {
   )
 }
 
+/**
+ * Atomically reorder gallery images for a profile.
+ * @param {string} profileId
+ * @param {string[]} imageIds - Array of image UUIDs in desired order
+ * @returns {Promise<Array<object>>} - Ordered list of updated gallery images
+ */
+export async function reorderProfileImages(profileId, imageIds) {
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
+    for (let index = 0; index < imageIds.length; index++) {
+      await client.query(
+        `UPDATE profile_images
+         SET sort_order = $1
+         WHERE id = $2 AND profile_id = $3`,
+        [index, imageIds[index], profileId],
+      )
+    }
+    await client.query('COMMIT')
+    return getProfileImages(profileId)
+  } catch (err) {
+    await client.query('ROLLBACK')
+    throw err
+  } finally {
+    client.release()
+  }
+}
+
 
 /**
  * Search published profiles.

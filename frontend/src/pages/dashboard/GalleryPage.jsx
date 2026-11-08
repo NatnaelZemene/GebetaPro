@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import {
   Image as ImageIcon, UploadCloud, Trash2, Check, X,
   Star, ChevronLeft, ChevronRight, Eye, AlertCircle, Sparkles, Plus,
+  ArrowLeft, ArrowRight, Loader2,
 } from 'lucide-react'
 import { DashboardLayout } from '../../components/layout/DashboardLayout.jsx'
 import { Button } from '../../components/ui/Button.jsx'
@@ -15,6 +16,7 @@ import {
   useUploadGalleryImages,
   useUpdateGalleryImage,
   useDeleteGalleryImage,
+  useReorderGalleryImages,
 } from '../../features/profiles/hooks/useProfile.js'
 
 export default function GalleryPage() {
@@ -22,6 +24,7 @@ export default function GalleryPage() {
   const uploadMutation = useUploadGalleryImages()
   const updateMutation = useUpdateGalleryImage()
   const deleteMutation = useDeleteGalleryImage()
+  const reorderMutation = useReorderGalleryImages()
 
   // Upload stage state
   const [selectedFiles, setSelectedFiles] = useState([])
@@ -136,6 +139,20 @@ export default function GalleryPage() {
       await deleteMutation.mutateAsync(targetId)
     } catch (err) {
       alert(err?.response?.data?.message || 'Failed to delete photo')
+    }
+  }
+
+  const handleMoveImage = async (currentIndex, direction) => {
+    const targetIndex = direction === 'left' ? currentIndex - 1 : currentIndex + 1
+    if (targetIndex < 0 || targetIndex >= images.length) return
+    const reordered = [...images]
+    const [moved] = reordered.splice(currentIndex, 1)
+    reordered.splice(targetIndex, 0, moved)
+    const newIds = reordered.map((img) => img.id)
+    try {
+      await reorderMutation.mutateAsync(newIds)
+    } catch (err) {
+      alert(err?.response?.data?.message || 'Failed to reorder images')
     }
   }
 
@@ -282,10 +299,18 @@ export default function GalleryPage() {
                       size="sm"
                       onClick={handleUploadSubmit}
                       loading={uploadMutation.isPending}
+                      disabled={uploadMutation.isPending}
                     >
                       <Check size={14} className="mr-1.5" /> Upload all
                     </Button>
                   </div>
+
+                  {uploadMutation.isPending && (
+                    <div className="flex items-center gap-2.5 p-3 rounded-xl bg-brand/10 border border-brand/20 text-brand text-[13px] animate-pulse">
+                      <Loader2 size={16} className="animate-spin shrink-0" />
+                      <span>Uploading {selectedFiles.length} photo(s) to cloud storage and saving gallery records...</span>
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {selectedFiles.map((file, idx) => (
@@ -376,11 +401,29 @@ export default function GalleryPage() {
                         </div>
                       )}
 
+                      {/* Display order index badge */}
+                      <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-md text-white text-[10.5px] font-mono shadow-sm">
+                        #{idx + 1}
+                      </div>
+
                       {/* Hover action overlay */}
                       <div
-                        className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2 pointer-events-none group-hover:pointer-events-auto"
+                        className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-1.5 pointer-events-none group-hover:pointer-events-auto"
                         onClick={(e) => e.stopPropagation()}
                       >
+                        {idx > 0 && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleMoveImage(idx, 'left')
+                            }}
+                            className="w-8 h-8 rounded-full bg-white/90 text-black flex items-center justify-center hover:scale-110 transition-transform shadow cursor-pointer"
+                            title="Move earlier"
+                          >
+                            <ArrowLeft size={13} />
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={(e) => {
@@ -390,7 +433,7 @@ export default function GalleryPage() {
                           className="w-8 h-8 rounded-full bg-white/90 text-black flex items-center justify-center hover:scale-110 transition-transform shadow cursor-pointer"
                           title="Preview full size"
                         >
-                          <Eye size={14} />
+                          <Eye size={13} />
                         </button>
                         {!img.is_primary && (
                           <button
@@ -402,7 +445,20 @@ export default function GalleryPage() {
                             className="w-8 h-8 rounded-full bg-white/90 text-black flex items-center justify-center hover:scale-110 transition-transform shadow cursor-pointer"
                             title="Set as Cover Photo"
                           >
-                            <Star size={14} />
+                            <Star size={13} />
+                          </button>
+                        )}
+                        {idx < images.length - 1 && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleMoveImage(idx, 'right')
+                            }}
+                            className="w-8 h-8 rounded-full bg-white/90 text-black flex items-center justify-center hover:scale-110 transition-transform shadow cursor-pointer"
+                            title="Move later"
+                          >
+                            <ArrowRight size={13} />
                           </button>
                         )}
                         <button
@@ -414,7 +470,7 @@ export default function GalleryPage() {
                           className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center hover:scale-110 transition-transform shadow cursor-pointer"
                           title="Delete photo"
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={13} />
                         </button>
                       </div>
                     </div>

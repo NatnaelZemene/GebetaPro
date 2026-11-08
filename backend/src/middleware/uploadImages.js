@@ -38,12 +38,14 @@ function fileFilter(_req, file, cb) {
   }
 }
 
+const MAX_BATCH_FILES = 15
+
 const multerUpload = multer({
   storage,
   fileFilter,
   limits: {
     fileSize: MAX_FILE_SIZE_BYTES,         // 5 MB per file
-    files: MAX_IMAGES_PER_AD,             // max 5 files per request
+    files: MAX_BATCH_FILES,                // max 15 files per batch
   },
 })
 
@@ -54,7 +56,7 @@ const multerUpload = multer({
  * @type {import('express').RequestHandler}
  */
 export function uploadImagesMiddleware(req, res, next) {
-  multerUpload.array('images', MAX_IMAGES_PER_AD)(req, res, (err) => {
+  multerUpload.array('images', MAX_BATCH_FILES)(req, res, (err) => {
     if (!err) return next()
 
     // Multer-specific errors
@@ -71,7 +73,7 @@ export function uploadImagesMiddleware(req, res, next) {
     if (err.code === 'LIMIT_FILE_COUNT') {
       return next(
         createError(
-          `Too many files. Maximum ${MAX_IMAGES_PER_AD} images per upload.`,
+          `Too many files. Maximum ${MAX_BATCH_FILES} images per upload.`,
           422,
           'TOO_MANY_FILES',
         ),

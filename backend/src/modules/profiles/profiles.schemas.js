@@ -235,3 +235,11 @@ export const reviewReplySchema = z.object({
     body: z.string().min(1).max(2000),
   }).strict(),
 })
+
+// ── Gallery Reorder ────────────────────────────────────────────────────────────
+
+export const reorderGallerySchema = z.object({
+  body: z.object({
+    image_ids: z.array(uuid).min(1, 'At least one image ID is required'),
+  }),
+})

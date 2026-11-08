@@ -139,6 +139,11 @@ export async function deleteGalleryImage(id) {
   return res.data.data
 }
 
+export async function reorderGalleryImages(imageIds) {
+  const res = await apiClient.patch('/profile/gallery/reorder', { image_ids: imageIds })
+  return res.data.data
+}
+
 // ── Business details (existing) ────────────────────────────────────────────────
 
 export async function getBusinessDetails() {
