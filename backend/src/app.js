@@ -13,6 +13,7 @@
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
+import path from 'node:path'
 import { createRequire } from 'node:module'
 import { swaggerSpec } from './config/swagger.js';
 
@@ -31,6 +32,7 @@ import analyticsRouter from './modules/analytics/analytics.routes.js'
 import adminRouter from './modules/admin/admin.routes.js'
 import notificationsRouter from './modules/notifications/notifications.routes.js'
 import categoriesRouter from './modules/categories/categories.routes.js'
+import internalRouter from './modules/internal/internal.routes.js'
 import { publicProfilesRouter, dashboardProfileRouter } from './modules/profiles/profiles.routes.js'
 
 // pino-http currently uses Node internals that are not available in Workers.
@@ -69,7 +71,9 @@ const corsOptions = {
 const app = express()
 
 // ── Security middleware ───────────────────────────────────────────────────────
-app.use(helmet())
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}))
 app.use(cors(corsOptions))
 
 // ── Request logging ───────────────────────────────────────────────────────────
@@ -96,6 +100,16 @@ app.use('/api/subscriptions', subscriptionsRouter)
 app.use(express.json({ limit: '1mb' }))
 app.use(express.urlencoded({ extended: true, limit: '1mb' }))
 
+// ── Static assets (Local development storage fallback) ──────────────────────
+app.use(
+  '/uploads',
+  express.static(path.join(process.cwd(), 'public', 'uploads'), {
+    setHeaders(res) {
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
+    },
+  }),
+)
+
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use('/api/health', healthRouter)
 app.use('/api/auth', authRouter)
@@ -107,6 +121,7 @@ app.use('/api/analytics', analyticsRouter)
 app.use('/api/admin', adminRouter)
 app.use('/api/notifications', notificationsRouter)
 app.use('/api/categories', categoriesRouter)
+app.use('/api/internal', internalRouter)
 app.get('/api-docs/swagger.json', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.send(swaggerSpec);

@@ -29,9 +29,13 @@ export default defineConfig({
   // Dev server config
   server: {
     port: 5173,
-    // Proxy API calls to the backend during development
+    // Proxy API calls and local uploads to the backend during development
     proxy: {
       '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+      '/uploads': {
         target: 'http://localhost:3000',
         changeOrigin: true,
       },

@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   Check, X as XIcon, Star, Zap, Shield, Crown,
   Wrench, FolderOpen, FileText, Image, Link2,
-  BadgeCheck, TrendingUp, Users, Sparkles
+  BadgeCheck, TrendingUp, Users, Sparkles, AlertTriangle
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Navbar } from '../components/layout/Navbar.jsx'
@@ -34,6 +34,8 @@ export default function PricingPage() {
   const checkout = useCreateCheckoutSession()
 
   const currentPlanName = mySubscription?.plan?.name || null
+  const isSubscriptionActive = mySubscription?.status === 'ACTIVE'
+  const isSubscriptionExpired = mySubscription?.status === 'EXPIRED'
 
   // Feature rows — built inside component so labels re-render on language change
   const FEATURES = [
@@ -127,6 +129,37 @@ export default function PricingPage() {
 
         <div className="max-w-6xl mx-auto px-4 py-12">
 
+          {/* Expired / Downgraded Alert Banner */}
+          {isSubscriptionExpired && (
+            <div className="mb-8 p-4 rounded-xl bg-danger-bg/40 border border-red-200 dark:border-red-900/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-red-100 dark:bg-red-900/40 text-danger flex items-center justify-center shrink-0">
+                  <AlertTriangle size={18} />
+                </div>
+                <div>
+                  <p className="text-[13.5px] font-bold text-ink">
+                    Your previous {mySubscription?.plan?.display_name || 'Paid'} plan has expired
+                  </p>
+                  <p className="text-[12px] text-ink-2">
+                    Your profile has been downgraded to the Free tier. Reactivate your plan below or upgrade to restore premium limits and featured placement.
+                  </p>
+                </div>
+              </div>
+              {mySubscription?.plan && mySubscription.plan.name !== 'FREE' && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  loading={checkout.isPending && checkout.variables?.planId === mySubscription.plan.id}
+                  onClick={() => handleSelect(mySubscription.plan)}
+                  className="shrink-0 font-semibold shadow-xs"
+                >
+                  <Zap size={13} className="mr-1 fill-current" />
+                  Quick Reactivate {mySubscription.plan.display_name}
+                </Button>
+              )}
+            </div>
+          )}
+
           {/* Plan cards */}
           {isLoading ? (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -166,7 +199,19 @@ export default function PricingPage() {
 
                       <div className="flex items-center justify-between mb-1">
                         <h3 className="text-[15px] font-bold text-ink">{plan.display_name}</h3>
-                        {isCurrent && <Badge variant="brand" size="xs">{t('pricing.currentPlan')}</Badge>}
+                        {isCurrent ? (
+                          isSubscriptionExpired ? (
+                            <Badge variant="danger" size="xs">Expired</Badge>
+                          ) : isSubscriptionActive ? (
+                            mySubscription?.days_remaining != null && mySubscription.days_remaining <= 5 ? (
+                              <Badge variant="warning" size="xs">{mySubscription.days_remaining}d left</Badge>
+                            ) : (
+                              <Badge variant="brand" size="xs">{t('pricing.currentPlan')}</Badge>
+                            )
+                          ) : (
+                            <Badge variant="default" size="xs">{t('pricing.currentPlan')}</Badge>
+                          )
+                        ) : null}
                       </div>
 
                       {/* Price */}
@@ -209,21 +254,47 @@ export default function PricingPage() {
 
                       {/* CTA */}
                       {isCurrent ? (
-                        <div className="w-full h-9 flex items-center justify-center rounded-lg border border-border text-[13px] text-ink-3 font-medium bg-surface-2">
-                          {t('pricing.currentPlan')}
-                        </div>
+                        isSubscriptionExpired ? (
+                          <Button
+                            variant="primary"
+                            fullWidth
+                            loading={checkout.isPending && checkout.variables?.planId === plan.id}
+                            onClick={() => handleSelect(plan)}
+                            className="font-semibold shadow-xs"
+                          >
+                            <Zap size={14} className="mr-1.5 fill-current" />
+                            Reactivate {plan.display_name}
+                          </Button>
+                        ) : isSubscriptionActive && mySubscription?.days_remaining != null && mySubscription.days_remaining <= 5 ? (
+                          <Button
+                            variant="primary"
+                            fullWidth
+                            loading={checkout.isPending && checkout.variables?.planId === plan.id}
+                            onClick={() => handleSelect(plan)}
+                            className="font-semibold shadow-xs"
+                          >
+                            Renew {plan.display_name} ({mySubscription.days_remaining}d left)
+                          </Button>
+                        ) : (
+                          <div className="w-full h-9 flex items-center justify-center rounded-lg border border-border text-[13px] text-ink-3 font-medium bg-surface-2">
+                            {t('pricing.currentPlan')}
+                          </div>
+                        )
                       ) : plan.name === 'FREE' ? (
-                        <Button variant="secondary" fullWidth onClick={() => !isLoggedIn && navigate('/register')}>
-                          {isLoggedIn ? t('pricing.yourDefaultPlan') : t('pricing.getStartedFree')}
-                        </Button>
+                        <div className="w-full h-9 flex items-center justify-center rounded-lg border border-border text-[12.5px] text-ink-3 font-medium bg-surface-2">
+                          {isLoggedIn ? (isSubscriptionExpired ? 'Current Free Tier (Downgraded)' : t('pricing.yourDefaultPlan')) : t('pricing.getStartedFree')}
+                        </div>
                       ) : (
                         <Button
                           variant={isPro ? 'primary' : 'outline'}
                           fullWidth
-                          loading={checkout.isPending}
+                          loading={checkout.isPending && checkout.variables?.planId === plan.id}
                           onClick={() => handleSelect(plan)}
+                          className={isPro ? 'font-semibold shadow-xs' : ''}
                         >
-                          {isLoggedIn ? t('pricing.upgrade', { plan: plan.display_name }) : t('pricing.getStarted')}
+                          {isLoggedIn
+                            ? (isSubscriptionExpired ? `Switch to ${plan.display_name}` : t('pricing.upgrade', { plan: plan.display_name }))
+                            : t('pricing.getStarted')}
                         </Button>
                       )}
                     </div>

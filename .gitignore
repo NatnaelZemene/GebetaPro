@@ -48,6 +48,8 @@ postgres_data/
 
 # Uploaded files (local dev)
 uploads/
+public/uploads/
+**/public/uploads/
 
 # Supabase temp
 .temp/

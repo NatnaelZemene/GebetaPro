@@ -333,6 +333,12 @@ export const uploadGalleryImages = asyncHandler(async (req, res) => {
   sendSuccess(res, 'Gallery images uploaded', images, 201)
 })
 
+export const reorderGalleryImages = asyncHandler(async (req, res) => {
+  const imageIds = req.body.image_ids || req.body.order || req.body.images
+  const result = await svc.reorderGallery(req.user.id, imageIds)
+  sendSuccess(res, 'Gallery reordered successfully', result)
+})
+
 export const updateGalleryImage = asyncHandler(async (req, res) => {
   const image = await svc.updateGalleryImage(req.user.id, req.params.id, req.body)
   sendSuccess(res, 'Gallery image updated', image)
@@ -344,8 +350,17 @@ export const deleteGalleryImage = asyncHandler(async (req, res) => {
 })
 
 export const getPublicGallery = asyncHandler(async (req, res) => {
-  const profile = await svc.getPublicProfile(req.params.slug, null)
-  sendSuccess(res, 'Gallery retrieved', { gallery: profile.gallery || [] })
+  const cleanSlug = req.params.slug ? req.params.slug.replace(/^@/, '') : ''
+  const profile = await svc.getPublicProfile(cleanSlug, null)
+  const safeGallery = (profile.gallery || []).map((img) => ({
+    id: img.id,
+    image_url: img.image_url,
+    alt_text: img.alt_text,
+    sort_order: img.sort_order,
+    is_primary: img.is_primary,
+    created_at: img.created_at,
+  }))
+  sendSuccess(res, 'Gallery retrieved', { gallery: safeGallery, images: safeGallery })
 })
 
 

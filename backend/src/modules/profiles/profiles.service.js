@@ -75,11 +75,28 @@ function computeCompletion(profile, stats = {}) {
  */
 async function enforceContentLimit(userId, limitField, currentCount) {
   const subscription = await subsRepo.findByUserId(userId)
-  const limit = subscription?.[limitField] ?? 3
+  let limit = subscription?.[limitField] ?? 3
+  let planName = subscription?.plan_display_name || 'Free'
+
+  // If subscription has expired or is on Free, enforce free tier limits
+  if (!subscription || subscription.status === 'EXPIRED' || subscription.status === 'FREE') {
+    const freePlan = await subsRepo.findFreePlan()
+    limit = freePlan?.[limitField] ?? 3
+    planName = subscription?.status === 'EXPIRED' ? 'Expired (Downgraded)' : (freePlan?.display_name || 'Free')
+  }
+
   if (currentCount >= limit) {
-    const planName = subscription?.plan_display_name || 'Free'
+    const isExpired = subscription?.status === 'EXPIRED'
+    const actionText = isExpired ? 'Renew your plan to restore limits' : 'Upgrade to add more'
+    if (limitField === 'max_gallery_images') {
+      throw createError(
+        `Plan limit exceeded. Your ${planName} plan allows max ${limit} photos. ${actionText}.`,
+        403,
+        'PLAN_LIMIT_EXCEEDED',
+      )
+    }
     throw createError(
-      `Your ${planName} plan allows ${limit} ${limitField.replace('max_', '')}. Upgrade to add more.`,
+      `Your ${planName} plan allows ${limit} ${limitField.replace('max_', '')}. ${actionText}.`,
       409,
       'PLAN_LIMIT_REACHED',
     )
@@ -938,8 +955,8 @@ export async function uploadGalleryImages(userId, files, captions = []) {
   await enforceContentLimit(userId, 'max_gallery_images', currentCount + files.length - 1)
 
   const uploadResults = await storageUtils.uploadItemImages(
-    files.map((f) => ({ buffer: f.buffer, mimeType: f.mimetype })),
-    (mimeType) => storageUtils.buildGalleryPath(profile.id, mimeType),
+    files.map((f) => ({ buffer: f.buffer, mimeType: f.mimetype, originalname: f.originalname })),
+    (mimeType, originalName) => storageUtils.buildGalleryPath(profile.id, mimeType, originalName),
   )
 
   const saved = []
@@ -974,6 +991,30 @@ export async function uploadGalleryImages(userId, files, captions = []) {
 
   logger.info({ userId, profileId: profile.id, count: saved.length }, 'Gallery images uploaded')
   return saved
+}
+
+export async function reorderGallery(userId, imageIds) {
+  const profile = await repo.findProfileByUserId(userId)
+  if (!profile) throw createError('Profile not found', 404, 'PROFILE_NOT_FOUND')
+
+  if (!Array.isArray(imageIds) || imageIds.length === 0) {
+    throw createError('image_ids array is required and must not be empty', 422, 'INVALID_INPUT')
+  }
+
+  // Get current gallery images for this profile
+  const currentImages = await repo.getProfileImages(profile.id)
+  const currentImageIds = new Set(currentImages.map((img) => img.id))
+
+  // Ensure every submitted ID belongs to this user's profile
+  for (const id of imageIds) {
+    if (!currentImageIds.has(id)) {
+      throw createError(`Image ${id} does not belong to this profile or does not exist`, 404, 'IMAGE_NOT_FOUND')
+    }
+  }
+
+  const updatedImages = await repo.reorderProfileImages(profile.id, imageIds)
+  logger.info({ userId, profileId: profile.id, count: updatedImages.length }, 'Gallery images reordered')
+  return updatedImages
 }
 
 export async function updateGalleryImage(userId, imageId, data) {

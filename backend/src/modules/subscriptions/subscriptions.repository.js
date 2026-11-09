@@ -243,16 +243,41 @@ export async function activateSubscription({
       [chapaTxId, paymentMethod, JSON.stringify(chapaResponse), txRef],
     )
 
-    // 2. Activate the subscription with a new 30-day billing period
+    // 2. Activate or upsert the subscription with a new 30-day billing period
     await client.query(
-      `UPDATE user_subscriptions
-       SET plan_id              = $1,
-           status               = 'ACTIVE',
-           current_period_start = now(),
-           current_period_end   = now() + INTERVAL '30 days',
-           updated_at           = now()
+      `INSERT INTO user_subscriptions (user_id, plan_id, status, current_period_start, current_period_end, updated_at)
+       VALUES ($2, $1, 'ACTIVE', now(), now() + INTERVAL '30 days', now())
+       ON CONFLICT (user_id) DO UPDATE SET
+         plan_id              = EXCLUDED.plan_id,
+         status               = 'ACTIVE',
+         current_period_start = EXCLUDED.current_period_start,
+         current_period_end   = EXCLUDED.current_period_end,
+         updated_at           = now()`,
+      [planId, userId],
+    )
+
+    // 3. Restore is_featured on the profile if the new/renewed plan has is_featured = true
+    await client.query(
+      `UPDATE profiles
+       SET is_featured = COALESCE((SELECT is_featured FROM subscription_plans WHERE id = $1), false),
+           updated_at  = now()
        WHERE user_id = $2`,
       [planId, userId],
+    )
+
+    // 4. Resume paused advertisements up to the plan's max_active_ads limit
+    const planRes = await client.query('SELECT max_active_ads FROM subscription_plans WHERE id = $1', [planId])
+    const maxAds = planRes.rows[0]?.max_active_ads ?? 5
+    await client.query(
+      `UPDATE advertisements
+       SET status = 'PUBLISHED', updated_at = now()
+       WHERE id IN (
+         SELECT id FROM advertisements
+         WHERE user_id = $1 AND status = 'PAUSED'
+         ORDER BY updated_at DESC
+         LIMIT $2
+       )`,
+      [userId, maxAds],
     )
 
     await client.query('COMMIT')

@@ -47,6 +47,7 @@ import {
   listProductsSchema,
   reviewSlugParamSchema, reviewIdParamSchema, createReviewSchema, updateReviewSchema,
   reviewReplySchema,
+  reorderGallerySchema,
 } from './profiles.schemas.js'
 
 // Single-file upload for avatar / cover (up to 10MB)
@@ -88,6 +89,7 @@ publicProfilesRouter.get('/@:slug/portfolio',     ctrl.getPublicPortfolio)
 publicProfilesRouter.get('/@:slug/posts',         ctrl.getPublicPosts)
 publicProfilesRouter.get('/@:slug/achievements',  ctrl.getPublicAchievements)
 publicProfilesRouter.get('/@:slug/gallery',       ctrl.getPublicGallery)
+publicProfilesRouter.get('/:slug/gallery',        ctrl.getPublicGallery)
 
 // Reviews (public reads)
 publicProfilesRouter.get('/@:slug/reviews', validate(reviewSlugParamSchema), ctrl.listReviews)
@@ -114,10 +116,12 @@ dashboardProfileRouter.post('/cover/upload',   singleUploadMiddleware, ctrl.uplo
 dashboardProfileRouter.delete('/cover',        ctrl.deleteCover)
 
 // Profile Gallery
-dashboardProfileRouter.get('/gallery',         ctrl.listMyGallery)
-dashboardProfileRouter.post('/gallery/upload', uploadImagesMiddleware, ctrl.uploadGalleryImages)
-dashboardProfileRouter.patch('/gallery/:id',   ctrl.updateGalleryImage)
-dashboardProfileRouter.delete('/gallery/:id',  ctrl.deleteGalleryImage)
+dashboardProfileRouter.get('/gallery',          ctrl.listMyGallery)
+dashboardProfileRouter.post('/gallery',         uploadImagesMiddleware, ctrl.uploadGalleryImages)
+dashboardProfileRouter.post('/gallery/upload',  uploadImagesMiddleware, ctrl.uploadGalleryImages)
+dashboardProfileRouter.patch('/gallery/reorder', validate(reorderGallerySchema), ctrl.reorderGalleryImages)
+dashboardProfileRouter.patch('/gallery/:id',    ctrl.updateGalleryImage)
+dashboardProfileRouter.delete('/gallery/:id',   ctrl.deleteGalleryImage)
 
 // Profile completion
 dashboardProfileRouter.get('/completion', ctrl.getCompletion)

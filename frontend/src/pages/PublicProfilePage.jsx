@@ -31,6 +31,7 @@ import {
 } from '../features/profiles/hooks/useProfile.js'
 import { saveViewedProfile } from '../utils/historyStorage.js'
 import { trackProfileEvent } from '../services/profiles.service.js'
+import { trackAnalyticsEvent } from '../services/analytics.service.js'
 
 /* ── Shared primitives ───────────────────────────────────────────────────────── */
 
@@ -219,6 +220,21 @@ function MobileContactBar({ profile }) {
   const c = profile.contact
   if (!c) return null
 
+  const cleanWhatsapp = c.whatsapp ? c.whatsapp.replace(/\D/g, '') : ''
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : ''
+  const inquiryText = encodeURIComponent(
+    `Hello ${profile.display_name || 'Professional'}, I saw your profile on GebetaPro (${currentUrl}). I would like to inquire about your services.`
+  )
+  const whatsappUrl = cleanWhatsapp ? `https://wa.me/${cleanWhatsapp}?text=${inquiryText}` : null
+
+  const trackAction = (type) => {
+    if (profile?.id) {
+      trackAnalyticsEvent({ profile_id: profile.id, event_type: type })
+    } else if (profile?.slug) {
+      trackProfileEvent(profile.slug, type)
+    }
+  }
+
   let primaryHref  = null
   let primaryLabel = null
   let PrimaryIcon  = null
@@ -228,8 +244,8 @@ function MobileContactBar({ profile }) {
     primaryHref  = `tel:${c.phone}`
     primaryLabel = t('profile.public.callDirectly', 'Call directly')
     PrimaryIcon  = Phone
-  } else if (c.whatsapp) {
-    primaryHref  = `https://wa.me/${c.whatsapp.replace(/\D/g, '')}`
+  } else if (whatsappUrl) {
+    primaryHref  = whatsappUrl
     primaryLabel = t('profile.public.whatsapp', 'WhatsApp')
     PrimaryIcon  = MessageCircle
   } else if (c.email) {
@@ -249,12 +265,12 @@ function MobileContactBar({ profile }) {
       aria-label="Contact actions"
     >
       {/* Secondary: WhatsApp icon button (when Phone is the primary call action) */}
-      {c.whatsapp && isPhonePrimary && (
+      {whatsappUrl && isPhonePrimary && (
         <a
-          href={`https://wa.me/${c.whatsapp.replace(/\D/g, '')}`}
+          href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={() => trackProfileEvent(profile?.slug, 'WHATSAPP_CLICK')}
+          onClick={() => trackAction('WHATSAPP_CLICK')}
           className="h-11 w-11 flex items-center justify-center border border-border bg-surface rounded-xl text-brand hover:border-brand-border hover:bg-brand-light active:scale-95 transition-all shrink-0 shadow-xs"
           aria-label={t('profile.public.whatsapp', 'WhatsApp')}
           title={t('profile.public.whatsapp', 'WhatsApp')}
@@ -267,7 +283,7 @@ function MobileContactBar({ profile }) {
       {c.phone && !isPhonePrimary && (
         <a
           href={`tel:${c.phone}`}
-          onClick={() => trackProfileEvent(profile?.slug, 'PHONE_CLICK')}
+          onClick={() => trackAction('PHONE_CLICK')}
           className="h-11 w-11 flex items-center justify-center border border-border bg-surface rounded-xl text-ink-2 hover:border-emerald-500/50 hover:text-emerald-500 hover:bg-emerald-500/10 active:scale-95 transition-all shrink-0 shadow-xs"
           aria-label={t('profile.public.callDirectly', 'Call directly')}
           title={c.phone}
@@ -282,7 +298,7 @@ function MobileContactBar({ profile }) {
           href={`https://t.me/${c.telegram.replace('@', '')}`}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={() => trackProfileEvent(profile?.slug, 'TELEGRAM_CLICK')}
+          onClick={() => trackAction('TELEGRAM_CLICK')}
           className="h-11 w-11 flex items-center justify-center border border-border bg-surface rounded-xl text-sky-500 hover:text-sky-400 hover:border-sky-500/50 hover:bg-sky-500/10 active:scale-95 transition-all shrink-0 shadow-xs"
           aria-label="Telegram"
           title="Telegram"
@@ -298,7 +314,7 @@ function MobileContactBar({ profile }) {
         rel={primaryHref.startsWith('http') ? 'noopener noreferrer' : undefined}
         onClick={() => {
           const type = isPhonePrimary ? 'PHONE_CLICK' : (c.whatsapp ? 'WHATSAPP_CLICK' : 'EMAIL_CLICK')
-          trackProfileEvent(profile?.slug, type)
+          trackAction(type)
         }}
         className="
           flex-1 h-11 px-4 rounded-xl
@@ -355,7 +371,11 @@ export default function PublicProfilePage() {
       const sessionKey = `viewed_profile_${profile.slug}`
       if (!sessionStorage.getItem(sessionKey)) {
         sessionStorage.setItem(sessionKey, '1')
-        trackProfileEvent(profile.slug, 'VIEW')
+        if (profile.id) {
+          trackAnalyticsEvent({ profile_id: profile.id, event_type: 'VIEW' })
+        } else {
+          trackProfileEvent(profile.slug, 'VIEW')
+        }
       }
     }
   }, [profile?.slug])

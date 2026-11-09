@@ -18,6 +18,8 @@
  * All files in the storage bucket are publicly readable.
  */
 import { randomUUID } from 'crypto'
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import { getSupabaseClient } from './supabase.js'
 import { config } from '../config/index.js'
 import { createError } from './index.js'
@@ -82,12 +84,17 @@ export function buildCoverPath(profileId, mimeType) {
 
 /**
  * Build storage path for a profile gallery image.
+ * Follows Task 2.4 pattern: profiles/{profileId}/gallery/{timestamp}-{filename}
  * @param {string} profileId
  * @param {string} mimeType
+ * @param {string} [originalName]
  * @returns {string}
  */
-export function buildGalleryPath(profileId, mimeType) {
-  return `profiles/${profileId}/gallery/${randomUUID()}.${ext(mimeType)}`
+export function buildGalleryPath(profileId, mimeType, originalName) {
+  const cleanName = originalName
+    ? originalName.replace(/[^a-zA-Z0-9._-]/g, '_')
+    : `${randomUUID()}.${ext(mimeType)}`
+  return `profiles/${profileId}/gallery/${Date.now()}-${cleanName}`
 }
 
 /**
@@ -193,6 +200,10 @@ export async function getVerificationDocSignedUrl(storagePath, expiresIn = 300) 
 export function buildPublicUrl(storagePath) {
   const supabase = getSupabaseClient()
   if (!supabase) {
+    if (config.isDevelopment || process.env.NODE_ENV !== 'production') {
+      const baseUrl = process.env.BACKEND_URL || `http://localhost:${config.port}`
+      return `${baseUrl}/uploads/${storagePath}`
+    }
     throw createError('Storage service is not configured', 503, 'STORAGE_NOT_CONFIGURED')
   }
   const { data } = supabase.storage
@@ -212,12 +223,24 @@ export function buildPublicUrl(storagePath) {
  * @returns {Promise<{ publicUrl: string, storagePath: string }>}
  */
 export async function uploadImage(fileBuffer, mimeType, advertisementId) {
+  const storagePath = buildStoragePath(advertisementId, mimeType)
   const supabase = getSupabaseClient()
   if (!supabase) {
+    if (process.env.NODE_ENV === 'test') {
+      const publicUrl = `https://supabase.local/storage/v1/object/public/${config.supabase.storageBucket}/${storagePath}`
+      return { publicUrl, storagePath }
+    }
+    if (config.isDevelopment || process.env.NODE_ENV !== 'production') {
+      const localFilePath = path.join(process.cwd(), 'public', 'uploads', storagePath)
+      await fs.mkdir(path.dirname(localFilePath), { recursive: true })
+      await fs.writeFile(localFilePath, fileBuffer)
+      const baseUrl = process.env.BACKEND_URL || `http://localhost:${config.port}`
+      const publicUrl = `${baseUrl}/uploads/${storagePath}`
+      logger.info({ storagePath, publicUrl }, 'Image saved to local storage')
+      return { publicUrl, storagePath }
+    }
     throw createError('Storage service is not configured', 503, 'STORAGE_NOT_CONFIGURED')
   }
-
-  const storagePath = buildStoragePath(advertisementId, mimeType)
 
   const { error } = await supabase.storage
     .from(config.supabase.storageBucket)
@@ -282,6 +305,19 @@ export async function uploadImages(files, advertisementId) {
 export async function uploadSingleImage(buffer, mimeType, storagePath) {
   const supabase = getSupabaseClient()
   if (!supabase) {
+    if (process.env.NODE_ENV === 'test') {
+      const publicUrl = `https://supabase.local/storage/v1/object/public/${config.supabase.storageBucket}/${storagePath}`
+      return { publicUrl, storagePath }
+    }
+    if (config.isDevelopment || process.env.NODE_ENV !== 'production') {
+      const localFilePath = path.join(process.cwd(), 'public', 'uploads', storagePath)
+      await fs.mkdir(path.dirname(localFilePath), { recursive: true })
+      await fs.writeFile(localFilePath, buffer)
+      const baseUrl = process.env.BACKEND_URL || `http://localhost:${config.port}`
+      const publicUrl = `${baseUrl}/uploads/${storagePath}`
+      logger.info({ storagePath, publicUrl }, 'Image saved to local storage fallback')
+      return { publicUrl, storagePath }
+    }
     throw createError('Storage service is not configured', 503, 'STORAGE_NOT_CONFIGURED')
   }
 
@@ -314,7 +350,7 @@ export async function uploadItemImages(files, pathBuilder) {
   const uploaded = []
   for (const file of files) {
     try {
-      const storagePath = pathBuilder(file.mimeType)
+      const storagePath = pathBuilder(file.mimeType, file.originalname)
       const result = await uploadSingleImage(file.buffer, file.mimeType, storagePath)
       uploaded.push(result)
     } catch (err) {
@@ -343,7 +379,13 @@ export async function deleteImage(storagePath) {
 
   const supabase = getSupabaseClient()
   if (!supabase) {
-    logger.warn({ storagePath }, 'Cannot delete image — Supabase not configured')
+    if (config.isDevelopment || process.env.NODE_ENV !== 'production') {
+      const localFilePath = path.join(process.cwd(), 'public', 'uploads', storagePath)
+      await fs.unlink(localFilePath).catch(() => {})
+      logger.info({ storagePath }, 'Local image file removed')
+    } else {
+      logger.warn({ storagePath }, 'Cannot delete image — Supabase not configured')
+    }
     return
   }
 
@@ -374,7 +416,15 @@ export async function deleteImages(storagePaths) {
 
   const supabase = getSupabaseClient()
   if (!supabase) {
-    logger.warn({ count: paths.length }, 'Cannot delete images — Supabase not configured')
+    if (config.isDevelopment || process.env.NODE_ENV !== 'production') {
+      for (const p of paths) {
+        const localFilePath = path.join(process.cwd(), 'public', 'uploads', p)
+        await fs.unlink(localFilePath).catch(() => {})
+      }
+      logger.info({ count: paths.length }, 'Local image files removed')
+    } else {
+      logger.warn({ count: paths.length }, 'Cannot delete images — Supabase not configured')
+    }
     return
   }
 

@@ -215,6 +215,62 @@ function passwordResetTemplate(resetUrl, expirationHours) {
   `)
 }
 
+function subscriptionExpiredTemplate({ displayName, planName, renewUrl }) {
+  const greeting = displayName ? `Hi ${displayName},` : 'Hello,'
+  return layout(`Your ${APP_NAME} subscription has expired`, `
+    <h2>Your subscription has expired</h2>
+    <p>${greeting}</p>
+    <p>
+      Your <strong>${planName || 'Paid'}</strong> subscription has ended. Your profile has been transitioned to our standard free tier, and featured priority placement has been paused.
+    </p>
+    <div class="notice">
+      ⚠️ <strong>Don't miss out on customer leads!</strong> Renew your subscription today to immediately restore your featured placement, enhanced limits, and verification visibility.
+    </div>
+    <div class="cta-wrap">
+      <a href="${renewUrl}" class="cta">Renew My Subscription</a>
+    </div>
+    <p style="font-size:13px;color:#9b9890;margin-bottom:8px;">
+      Button not working? Copy and paste this renewal link into your browser:
+    </p>
+    <div class="url-fallback">${renewUrl}</div>
+    <p style="font-size:13px;color:#9b9890;margin-top:16px;">
+      Thank you for being part of the ${APP_NAME} professional community.
+    </p>
+  `)
+}
+
+function subscriptionExpiringSoonTemplate({ displayName, planName, expiryDate, daysRemaining, renewUrl }) {
+  const greeting = displayName ? `Hi ${displayName},` : 'Hello,'
+  const formattedDate = expiryDate
+    ? new Date(expiryDate).toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+    : 'in a few days'
+
+  return layout(`Your ${APP_NAME} subscription expires in ${daysRemaining} days`, `
+    <h2>Your subscription expires soon</h2>
+    <p>${greeting}</p>
+    <p>
+      This is a friendly reminder that your <strong>${planName || 'Paid'}</strong> plan will expire on <strong>${formattedDate}</strong> (in <strong>${daysRemaining} day${daysRemaining !== 1 ? 's' : ''}</strong>).
+    </p>
+    <div class="notice">
+      ⏱ <strong>Keep your edge:</strong> To prevent your profile from losing its featured directory ranking and higher limits, renew your subscription before it expires.
+    </div>
+    <div class="cta-wrap">
+      <a href="${renewUrl}" class="cta">Renew Subscription Now</a>
+    </div>
+    <p style="font-size:13px;color:#9b9890;margin-bottom:8px;">
+      Button not working? Copy and paste this renewal link into your browser:
+    </p>
+    <div class="url-fallback">${renewUrl}</div>
+    <p style="font-size:13px;color:#9b9890;margin-top:16px;">
+      If you have questions or need assistance, feel free to reply or visit your dashboard.
+    </p>
+  `)
+}
+
 // ── Multi-Platform Email Delivery (Node.js & Cloudflare Workers) ────────────
 
 /**
@@ -472,6 +528,39 @@ export async function sendVerificationEmail({ to, verificationUrl, expirationHou
 export async function sendPasswordResetEmail({ to, resetUrl, expirationHours }) {
   const html = passwordResetTemplate(resetUrl, Number(expirationHours) || 1)
   const subject = `Reset your password — ${APP_NAME}`
+  return deliverEmail({ to, subject, html })
+}
+
+/**
+ * Send an email notifying the user that their subscription has expired.
+ */
+export async function sendSubscriptionExpiredEmail({ to, displayName, planName, renewUrl }) {
+  const url = renewUrl || `${config.frontendUrl}/dashboard/subscription`
+  const html = subscriptionExpiredTemplate({ displayName, planName, renewUrl: url })
+  const subject = `Your ${APP_NAME} subscription has expired — Renew to stay featured`
+  return deliverEmail({ to, subject, html })
+}
+
+/**
+ * Send an email warning the user that their subscription expires in 2-3 days.
+ */
+export async function sendSubscriptionExpiringSoonEmail({
+  to,
+  displayName,
+  planName,
+  expiryDate,
+  daysRemaining = 3,
+  renewUrl,
+}) {
+  const url = renewUrl || `${config.frontendUrl}/dashboard/subscription`
+  const html = subscriptionExpiringSoonTemplate({
+    displayName,
+    planName,
+    expiryDate,
+    daysRemaining,
+    renewUrl: url,
+  })
+  const subject = `Action required: Your ${APP_NAME} subscription expires in ${daysRemaining} day${daysRemaining !== 1 ? 's' : ''}`
   return deliverEmail({ to, subject, html })
 }
 

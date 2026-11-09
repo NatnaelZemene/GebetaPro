@@ -652,6 +652,38 @@ export function useDeleteGalleryImage() {
   })
 }
 
+export function useReorderGalleryImages() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (imageIds) => api.reorderGalleryImages(imageIds),
+    onMutate: async (imageIds) => {
+      await qc.cancelQueries({ queryKey: KEYS.myGallery })
+      const prev = qc.getQueryData(KEYS.myGallery)
+      if (prev?.images) {
+        const idMap = new Map(prev.images.map((img) => [img.id, img]))
+        const reordered = imageIds
+          .map((id, idx) => {
+            const item = idMap.get(id)
+            return item ? { ...item, sort_order: idx } : null
+          })
+          .filter(Boolean)
+        qc.setQueryData(KEYS.myGallery, { ...prev, images: reordered })
+      }
+      return { prev }
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.prev) {
+        qc.setQueryData(KEYS.myGallery, context.prev)
+      }
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: KEYS.myGallery })
+      qc.invalidateQueries({ queryKey: KEYS.myProfile })
+      qc.invalidateQueries({ queryKey: ['profiles'] })
+    },
+  })
+}
+
 export function usePublicGallery(slug) {
   return useQuery({
     queryKey: KEYS.publicGallery(slug),

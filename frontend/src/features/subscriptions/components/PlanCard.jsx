@@ -2,7 +2,7 @@ import { Check } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../../../components/ui/Button.jsx'
 import { Badge } from '../../../components/ui/Badge.jsx'
-import { useCreateCheckoutSession } from '../hooks/useSubscriptions.js'
+import { useCreateCheckoutSession, useMySubscription } from '../hooks/useSubscriptions.js'
 
 const FEATURES = {
   FREE: [
@@ -39,11 +39,14 @@ const FEATURES = {
   ],
 }
 
-export function PlanCard({ plan, currentPlanName }) {
+export function PlanCard({ plan, currentPlanName, status }) {
   const navigate = useNavigate()
+  const { data: mySub } = useMySubscription()
   const checkout = useCreateCheckoutSession()
   const isLoggedIn = !!localStorage.getItem('accessToken')
-  const isCurrent = plan.name === currentPlanName
+  const subStatus = status || mySub?.status
+  const isExpired = subStatus === 'EXPIRED'
+  const isCurrent = plan.name === (currentPlanName || mySub?.plan?.name)
   const isFree = plan.name === 'FREE'
   const isFeatured = plan.is_featured && plan.name === 'PRO'
   const features = FEATURES[plan.name] || []
@@ -69,7 +72,11 @@ export function PlanCard({ plan, currentPlanName }) {
       <div className="p-5 flex flex-col flex-1">
         <div className="flex items-center justify-between mb-1">
           <h3 className="text-[15px] font-bold text-ink">{plan.display_name}</h3>
-          {isCurrent && <Badge variant="brand" size="xs">Current</Badge>}
+          {isCurrent && (
+            <Badge variant={isExpired ? 'danger' : 'brand'} size="xs">
+              {isExpired ? 'Expired' : 'Current'}
+            </Badge>
+          )}
         </div>
 
         <div className="mt-3 mb-5">
@@ -95,21 +102,32 @@ export function PlanCard({ plan, currentPlanName }) {
         </ul>
 
         {isCurrent ? (
-          <div className="w-full h-9 flex items-center justify-center rounded border border-border text-[13px] text-ink-3 font-medium bg-surface-2">
-            Current plan
-          </div>
+          isExpired ? (
+            <Button
+              variant="primary"
+              fullWidth
+              loading={checkout.isPending && checkout.variables?.planId === plan.id}
+              onClick={handleSubscribe}
+            >
+              Reactivate {plan.display_name}
+            </Button>
+          ) : (
+            <div className="w-full h-9 flex items-center justify-center rounded border border-border text-[13px] text-ink-3 font-medium bg-surface-2">
+              Current plan
+            </div>
+          )
         ) : isFree ? (
           <div className="w-full h-9 flex items-center justify-center rounded border border-border text-[13px] text-ink-3 font-medium">
-            Always free
+            {isExpired ? 'Downgraded Free Tier' : 'Always free'}
           </div>
         ) : (
           <Button
             variant={isFeatured ? 'primary' : 'outline'}
             fullWidth
-            loading={checkout.isPending}
+            loading={checkout.isPending && checkout.variables?.planId === plan.id}
             onClick={handleSubscribe}
           >
-            {isLoggedIn ? 'Subscribe' : 'Get started'}
+            {isLoggedIn ? (isExpired ? `Switch to ${plan.display_name}` : 'Subscribe') : 'Get started'}
           </Button>
         )}
       </div>

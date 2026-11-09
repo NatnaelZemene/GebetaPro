@@ -161,4 +161,7 @@ export const config = {
     serviceRoleKey:  env('SUPABASE_SERVICE_ROLE_KEY', '', false),
     storageBucket:   env('SUPABASE_STORAGE_BUCKET',   'advertisement-images', false),
   },
+
+  /** Secret for authenticating internal scheduled cron webhooks */
+  cronSecret: env('CRON_SECRET', 'gebetapro-cron-secret-dev', false),
 }
