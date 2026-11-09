@@ -18,7 +18,8 @@
     "db:seed:demo": "node database/seed_demo.js",
     "db:seed:gondar": "node database/seed_gondar_real_data.js",
     "db:seed:gondar-presentation": "node database/seed_gondar_presentation.js",
-    "db:cleanup:gondar-presentation": "node database/cleanup_gondar_presentation.js"
+    "db:cleanup:gondar-presentation": "node database/cleanup_gondar_presentation.js",
+    "test:expiry-ui": "node scripts/test_expiry_ui.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",

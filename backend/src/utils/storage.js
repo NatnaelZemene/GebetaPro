@@ -91,10 +91,9 @@ export function buildCoverPath(profileId, mimeType) {
  * @returns {string}
  */
 export function buildGalleryPath(profileId, mimeType, originalName) {
-  const cleanName = originalName
-    ? originalName.replace(/[^a-zA-Z0-9._-]/g, '_')
-    : `${randomUUID()}.${ext(mimeType)}`
-  return `profiles/${profileId}/gallery/${Date.now()}-${cleanName}`
+  const baseName = originalName ? path.basename(originalName).replace(/[^a-zA-Z0-9._-]/g, '_') : null
+  const cleanName = baseName || `${randomUUID()}.${ext(mimeType)}`
+  return `profiles/${profileId}/gallery/${Date.now()}-${randomUUID()}-${cleanName}`
 }
 
 /**

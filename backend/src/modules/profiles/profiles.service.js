@@ -1001,6 +1001,10 @@ export async function reorderGallery(userId, imageIds) {
     throw createError('image_ids array is required and must not be empty', 422, 'INVALID_INPUT')
   }
 
+  if (new Set(imageIds).size !== imageIds.length) {
+    throw createError('image_ids array must not contain duplicate IDs', 422, 'DUPLICATE_IMAGE_IDS')
+  }
+
   // Get current gallery images for this profile
   const currentImages = await repo.getProfileImages(profile.id)
   const currentImageIds = new Set(currentImages.map((img) => img.id))

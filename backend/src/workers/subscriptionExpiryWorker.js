@@ -35,6 +35,7 @@ export async function processExpiredSubscriptions() {
       JOIN subscription_plans sp ON sp.id = us.plan_id
       LEFT JOIN profiles p ON p.user_id = us.user_id
       WHERE us.status = 'ACTIVE' 
+        AND sp.name != 'FREE'
         AND us.current_period_end < NOW()
       FOR UPDATE OF us
     `
@@ -132,6 +133,7 @@ export async function processUpcomingExpiryWarnings(daysBefore = 3) {
       JOIN subscription_plans sp ON sp.id = us.plan_id
       LEFT JOIN profiles p ON p.user_id = us.user_id
       WHERE us.status = 'ACTIVE'
+        AND sp.name != 'FREE'
         AND us.current_period_end > NOW()
         AND us.current_period_end <= NOW() + ($1 || ' days')::INTERVAL
         AND NOT EXISTS (
