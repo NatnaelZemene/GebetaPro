@@ -58,15 +58,15 @@ async function throws(fn, check) {
 // ── Teardown helpers ──────────────────────────────────────────────────────────
 
 async function cleanAll() {
-  // Delete in dependency order (children first)
-  await q('DELETE FROM profile_images')
-  await q('DELETE FROM social_links')
-  await q('DELETE FROM business_hours')
-  await q('DELETE FROM profile_services')
-  await q('DELETE FROM profiles')
+  // Delete in dependency order (children first) - only test records
+  await q(`DELETE FROM profile_images WHERE profile_id IN (SELECT id FROM profiles WHERE slug LIKE 'test-%')`)
+  await q(`DELETE FROM social_links WHERE profile_id IN (SELECT id FROM profiles WHERE slug LIKE 'test-%')`)
+  await q(`DELETE FROM business_hours WHERE profile_id IN (SELECT id FROM profiles WHERE slug LIKE 'test-%')`)
+  await q(`DELETE FROM profile_services WHERE profile_id IN (SELECT id FROM profiles WHERE slug LIKE 'test-%')`)
+  await q(`DELETE FROM profiles WHERE slug LIKE 'test-%'`)
   await q('DELETE FROM services    WHERE slug LIKE \'test-%\'')
   await q('DELETE FROM categories  WHERE slug LIKE \'test-%\'')
-  await q('DELETE FROM locations')
+  await q(`DELETE FROM locations   WHERE address_line LIKE 'test-%' OR city LIKE 'test-%'`)
   await q('DELETE FROM users       WHERE email LIKE \'test-%\'')
 }
 
